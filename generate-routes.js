@@ -124,8 +124,9 @@ function moduleToRoute(mod, directive) {
 }
 
 function generateFile(route) {
-  const lines = [MARKER];
+  const lines = [];
   if (route.directive) lines.push(`"${route.directive}";`);
+  lines.push(MARKER);
   const exportName = route.type;
   lines.push(
     `// @ts-expect-error — PureScript output`,
@@ -154,7 +155,7 @@ function removeStaleIn(dir, keepPaths) {
       removeStaleIn(full, keepPaths);
     } else if (entry.name.endsWith(".tsx")) {
       const content = fs.readFileSync(full, "utf-8");
-      if (content.startsWith(MARKER) && !keepPaths.has(full)) {
+      if (content.includes(MARKER) && !keepPaths.has(full)) {
         fs.unlinkSync(full);
         console.log(`[purescript-rsc] stale route removed: ${path.relative(process.cwd(), full)}`);
       }
