@@ -5,6 +5,7 @@
         "path": "./",
         "core": {
           "dependencies": [
+            "aff-promise",
             "console",
             "effect",
             "prelude",

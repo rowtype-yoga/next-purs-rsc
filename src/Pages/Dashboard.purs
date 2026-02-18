@@ -2,12 +2,10 @@ module Pages.Dashboard where
 
 import Prelude hiding (div)
 
-import Effect.Aff (launchAff_)
-import Effect.Class (liftEffect)
-import Effect.Ref as Ref
+import Control.Promise (Promise)
+import Control.Promise as Promise
+import Effect (Effect)
 import React.Basic (JSX)
-import React.Basic.Hooks (Component, component)
-import React.Basic.Hooks.Internal (unsafeRenderEffect)
 import Yoga.Om as Om
 import Yoga.React.DOM (div, h1, p)
 import Yoga.React.Om (omComponent, useOm)
@@ -22,12 +20,7 @@ dashboardComponent = omComponent "Dashboard" \_props -> OmReact.do
     , p {} "Server component with Om dependency injection."
     ]
 
-page :: Component {}
-page = do
+page :: Effect (Promise ({} -> JSX))
+page = Promise.fromAff do
   let ctx = { greeting: "Hello from Om on the server!" }
-  renderRef <- Ref.new (mempty :: JSX)
-  launchAff_ do
-    render <- Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } dashboardComponent
-    liftEffect $ Ref.write (render {}) renderRef
-  component "DashboardPage" \_ ->
-    unsafeRenderEffect (Ref.read renderRef)
+  Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } dashboardComponent

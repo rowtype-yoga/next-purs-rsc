@@ -1,6 +1,7 @@
 package:
   name: next-purs-rsc
   dependencies:
+    - aff-promise
     - prelude
     - effect
     - console

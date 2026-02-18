@@ -131,9 +131,19 @@ function generateFile(route) {
   lines.push(
     `// @ts-expect-error — PureScript output`,
     `import { ${exportName} as mk } from "${route.relImport}";`,
-    `export default mk();`,
-    ""
   );
+  if (route.directive === "use client") {
+    lines.push(`export default mk();`);
+  } else {
+    // Server components can be async — await Aff/Promise results
+    lines.push(
+      `export default async function(props) {`,
+      `  const render = await mk();`,
+      `  return render(props);`,
+      `}`,
+    );
+  }
+  lines.push("");
   return lines.join("\n");
 }
 
