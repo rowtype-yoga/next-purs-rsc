@@ -1,0 +1,19 @@
+package:
+  name: next-purs-rsc
+  dependencies:
+    - prelude
+    - effect
+    - console
+    - react-basic
+    - react-basic-hooks
+    - tuples
+    - yoga-react
+    - yoga-react-dom
+  build:
+    strict: true
+workspace:
+  packageSet:
+    registry: 73.1.0
+  extraPackages:
+    yoga-react: "1.0.1"
+    yoga-react-dom: "1.0.3"
