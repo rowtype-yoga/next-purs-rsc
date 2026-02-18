@@ -9,12 +9,17 @@ import React.Basic (JSX)
 import Yoga.Om as Om
 import Yoga.React.Om (OmRender, omComponent)
 
+type PageProps params searchParams =
+  { params :: { | params }
+  , searchParams :: { | searchParams }
+  }
+
 omPage
-  :: forall ctx hooks
+  :: forall ctx params searchParams hooks
    . String
   -> { | ctx }
-  -> ({} -> OmRender ctx Unit hooks JSX)
-  -> Effect (Promise ({} -> JSX))
+  -> (PageProps params searchParams -> OmRender ctx Unit hooks JSX)
+  -> Effect (Promise (PageProps params searchParams -> JSX))
 omPage name ctx render = Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
     omComponent name render

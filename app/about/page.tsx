@@ -3,5 +3,7 @@
 import { page as mk } from "../../output/Pages.About/index.js";
 export default async function(props) {
   const render = await mk();
-  return render(props);
+  const params = await (props.params ?? {});
+  const searchParams = await (props.searchParams ?? {});
+  return render({ params, searchParams });
 }

@@ -136,12 +136,24 @@ function generateFile(route) {
     lines.push(`export default mk();`);
   } else {
     // Server components can be async — await Aff/Promise results
-    lines.push(
-      `export default async function(props) {`,
-      `  const render = await mk();`,
-      `  return render(props);`,
-      `}`,
-    );
+    // Next.js 15 passes params and searchParams as Promises
+    if (route.type === "page") {
+      lines.push(
+        `export default async function(props) {`,
+        `  const render = await mk();`,
+        `  const params = await (props.params ?? {});`,
+        `  const searchParams = await (props.searchParams ?? {});`,
+        `  return render({ params, searchParams });`,
+        `}`,
+      );
+    } else {
+      lines.push(
+        `export default async function(props) {`,
+        `  const render = await mk();`,
+        `  return render(props);`,
+        `}`,
+      );
+    }
   }
   lines.push("");
   return lines.join("\n");
