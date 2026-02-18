@@ -615,6 +615,9 @@
       }
     },
     "extra_packages": {
+      "yoga-om": {
+        "path": "../purescript-yoga-om"
+      },
       "yoga-react": "1.0.1",
       "yoga-react-dom": "1.0.3",
       "yoga-react-om": {
@@ -656,6 +659,26 @@
         "exceptions",
         "foreign",
         "prelude",
+        "transformers"
+      ]
+    },
+    "aff-retry": {
+      "type": "registry",
+      "version": "2.0.0",
+      "integrity": "sha256-rKZNcP4IKSyBFQBVzrCvE0ULoJt0N/uDLLJ0dPotr4k=",
+      "dependencies": [
+        "aff",
+        "arrays",
+        "datetime",
+        "effect",
+        "either",
+        "exceptions",
+        "integers",
+        "maybe",
+        "newtype",
+        "numbers",
+        "prelude",
+        "random",
         "transformers"
       ]
     },
@@ -1223,6 +1246,16 @@
         "tuples"
       ]
     },
+    "random": {
+      "type": "registry",
+      "version": "6.0.0",
+      "integrity": "sha256-7sZRo6P9UIiXDZ9s2QL9T8h3wlIwLdQrR4+oZKOijQw=",
+      "dependencies": [
+        "effect",
+        "integers",
+        "prelude"
+      ]
+    },
     "react-basic": {
       "type": "registry",
       "version": "17.0.0",
@@ -1581,11 +1614,11 @@
       ]
     },
     "yoga-om": {
-      "type": "registry",
-      "version": "0.1.0",
-      "integrity": "sha256-0EGWo/UOVLzZ14DPtdv0C+bTvNO49wNgtTBIXI6QHqU=",
+      "type": "local",
+      "path": "../purescript-yoga-om",
       "dependencies": [
         "aff",
+        "aff-retry",
         "avar",
         "console",
         "control",
@@ -1600,6 +1633,7 @@
         "prelude",
         "record",
         "record-studio",
+        "refs",
         "tailrec",
         "transformers",
         "tuples",

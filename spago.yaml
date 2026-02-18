@@ -20,5 +20,7 @@ workspace:
   extraPackages:
     yoga-react: "1.0.1"
     yoga-react-dom: "1.0.3"
+    yoga-om:
+      path: ../purescript-yoga-om
     yoga-react-om:
       path: ../purescript-yoga-react-om

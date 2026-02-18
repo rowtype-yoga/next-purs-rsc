@@ -29,6 +29,5 @@ page = do
   launchAff_ do
     render <- Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } dashboardComponent
     liftEffect $ Ref.write (render {}) renderRef
-  component "DashboardPage" \_ -> do
-    jsx <- unsafeRenderEffect (Ref.read renderRef)
-    pure jsx
+  component "DashboardPage" \_ ->
+    unsafeRenderEffect (Ref.read renderRef)
