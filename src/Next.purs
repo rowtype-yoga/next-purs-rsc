@@ -37,34 +37,28 @@ newtype Page params sp = Page (Effect (Promise (PageProps params sp -> JSX)))
 
 newtype Layout = Layout (Effect (Promise ({ children :: JSX } -> JSX)))
 
+foreign import _mapRecord :: forall rin rout. (forall x. Nullable x -> Maybe x) -> { | rin } -> { | rout }
+
 simplePage
-  :: forall params sp spMaybe
-   . HFoldlWithIndex (MapRecordKind Nullable Maybe)
-       (Builder (Record ()) (Record ()))
-       (Record sp)
-       (Builder (Record ()) (Record spMaybe))
-  => ({ params :: { | params }, searchParams :: { | spMaybe } } -> JSX)
+  :: forall params sp
+   . ({ params :: { | params }, searchParams :: { | sp } } -> JSX)
   -> Page params sp
 simplePage render = Page $ Promise.fromAff $ pure \{ params, searchParams } ->
-  render { params, searchParams: nullableToMaybe searchParams }
+  render { params, searchParams: _mapRecord toMaybe searchParams }
 
 simpleLayout :: ({ children :: JSX } -> JSX) -> Layout
 simpleLayout render = Layout $ Promise.fromAff $ pure render
 
 nextPage
-  :: forall ctx params sp spMaybe hooks
-   . HFoldlWithIndex (MapRecordKind Nullable Maybe)
-       (Builder (Record ()) (Record ()))
-       (Record sp)
-       (Builder (Record ()) (Record spMaybe))
-  => String
+  :: forall ctx params sp hooks
+   . String
   -> { | ctx }
-  -> ({ params :: { | params }, searchParams :: { | spMaybe } } -> OmRender ctx Unit hooks JSX)
+  -> ({ params :: { | params }, searchParams :: { | sp } } -> OmRender ctx Unit hooks JSX)
   -> Page params sp
 nextPage name ctx render = Page $ Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
     omComponent name \{ params, searchParams } ->
-      render { params, searchParams: nullableToMaybe searchParams }
+      render { params, searchParams: _mapRecord toMaybe searchParams }
 
 nextLayout
   :: forall ctx hooks
