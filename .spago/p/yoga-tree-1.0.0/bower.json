@@ -1,0 +1,25 @@
+{
+    "name": "purescript-yoga-tree",
+    "license": [
+        "MIT"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jordanmartinez/purescript-tree-rose"
+    },
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "output"
+    ],
+    "dependencies": {
+        "purescript-arrays": "^v7.0.0",
+        "purescript-control": "^v6.0.0",
+        "purescript-foldable-traversable": "^v6.0.0",
+        "purescript-free": "^v7.0.0",
+        "purescript-maybe": "^v6.0.0",
+        "purescript-prelude": "^v6.0.1",
+        "purescript-tailrec": "^v6.0.0"
+    }
+}

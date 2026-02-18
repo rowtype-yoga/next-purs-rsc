@@ -14,6 +14,7 @@ package:
     - record-studio
     - refs
     - tuples
+    - yoga-http-api
     - yoga-om
     - yoga-react
     - yoga-react-dom
@@ -26,6 +27,9 @@ workspace:
   extraPackages:
     yoga-react: "1.0.1"
     yoga-react-dom: "1.0.3"
+    yoga-http-api:
+      path: ../../code/purescript-yoga-http-api
+    yoga-options: "0.1.0"
     yoga-om:
       path: ../purescript-yoga-om
     yoga-react-om:

@@ -18,6 +18,7 @@
             "record-studio",
             "refs",
             "tuples",
+            "yoga-http-api",
             "yoga-om",
             "yoga-react",
             "yoga-react-dom",
@@ -621,9 +622,13 @@
       }
     },
     "extra_packages": {
+      "yoga-http-api": {
+        "path": "../../code/purescript-yoga-http-api"
+      },
       "yoga-om": {
         "path": "../purescript-yoga-om"
       },
+      "yoga-options": "0.1.0",
       "yoga-react": "1.0.1",
       "yoga-react-dom": "1.0.3",
       "yoga-react-om": {
@@ -733,6 +738,20 @@
         "newtype",
         "prelude",
         "tuples"
+      ]
+    },
+    "catenable-lists": {
+      "type": "registry",
+      "version": "7.0.0",
+      "integrity": "sha256-7+i/MHBLIRh604iCNT4ENWRWE/wuHIotER4kpdX9Ve0=",
+      "dependencies": [
+        "control",
+        "foldable-traversable",
+        "lists",
+        "maybe",
+        "prelude",
+        "tuples",
+        "unfoldable"
       ]
     },
     "console": {
@@ -918,11 +937,52 @@
         "unsafe-coerce"
       ]
     },
+    "foreign-object": {
+      "type": "registry",
+      "version": "4.1.0",
+      "integrity": "sha256-x/Q7r80z/vmHRKvPwhYmHP/DnJciPtsyGfRTMzayKIU=",
+      "dependencies": [
+        "arrays",
+        "foldable-traversable",
+        "functions",
+        "gen",
+        "lists",
+        "maybe",
+        "prelude",
+        "st",
+        "tailrec",
+        "tuples",
+        "typelevel-prelude",
+        "unfoldable",
+        "unsafe-coerce"
+      ]
+    },
     "forgetmenot": {
       "type": "registry",
       "version": "0.1.0",
       "integrity": "sha256-YYLWpHQwJ1zKmPxLo7sZOk+kYuKOpOpRhdz9vwI/p7Q=",
       "dependencies": []
+    },
+    "free": {
+      "type": "registry",
+      "version": "7.1.0",
+      "integrity": "sha256-tUBInfUpRQEw4u94GWcYW7EYdmSdDHSRn88a+C0eltU=",
+      "dependencies": [
+        "catenable-lists",
+        "control",
+        "distributive",
+        "either",
+        "exists",
+        "foldable-traversable",
+        "invariant",
+        "lazy",
+        "maybe",
+        "prelude",
+        "tailrec",
+        "transformers",
+        "tuples",
+        "unsafe-coerce"
+      ]
     },
     "functions": {
       "type": "registry",
@@ -1051,6 +1111,16 @@
         "prelude"
       ]
     },
+    "js-bigints": {
+      "type": "registry",
+      "version": "2.2.1",
+      "integrity": "sha256-r1rE6Olv5b3JrP32lY2uKJ+eBRTsrVnC983K8VWwqe4=",
+      "dependencies": [
+        "integers",
+        "maybe",
+        "prelude"
+      ]
+    },
     "js-date": {
       "type": "registry",
       "version": "8.0.0",
@@ -1103,6 +1173,20 @@
         "tailrec",
         "tuples",
         "unfoldable"
+      ]
+    },
+    "literals": {
+      "type": "registry",
+      "version": "1.0.2",
+      "integrity": "sha256-ZkGRFD6gb8etYvyMYpX1Z7lx1Tql7R1VGnD1Dzinup8=",
+      "dependencies": [
+        "integers",
+        "maybe",
+        "numbers",
+        "partial",
+        "prelude",
+        "typelevel-prelude",
+        "unsafe-coerce"
       ]
     },
     "maybe": {
@@ -1459,6 +1543,22 @@
         "tuples"
       ]
     },
+    "undefined-is-not-a-problem": {
+      "type": "registry",
+      "version": "1.1.0",
+      "integrity": "sha256-0YkVzpcKi40T43go7/f8uLVIYgir6lGzOytL6LPfiog=",
+      "dependencies": [
+        "effect",
+        "either",
+        "foreign",
+        "maybe",
+        "newtype",
+        "prelude",
+        "tuples",
+        "type-equality",
+        "unsafe-coerce"
+      ]
+    },
     "unfoldable": {
       "type": "registry",
       "version": "6.0.0",
@@ -1483,6 +1583,22 @@
       "integrity": "sha256-ttSJTQUnK8AK2eGOsfRxLUJEDPL6pnmExjbiOqfwC6I=",
       "dependencies": [
         "prelude"
+      ]
+    },
+    "untagged-union": {
+      "type": "registry",
+      "version": "1.0.0",
+      "integrity": "sha256-MQvpb13TZEBoi9n/AoQ7ugniSQqbN6XQmAjii9pqJRk=",
+      "dependencies": [
+        "either",
+        "foreign",
+        "foreign-object",
+        "literals",
+        "maybe",
+        "newtype",
+        "prelude",
+        "tuples",
+        "unsafe-coerce"
       ]
     },
     "variant": {
@@ -1619,6 +1735,69 @@
         "web-html"
       ]
     },
+    "yoga-http-api": {
+      "type": "local",
+      "path": "../../code/purescript-yoga-http-api",
+      "dependencies": [
+        "aff",
+        "arrays",
+        "either",
+        "foldable-traversable",
+        "foreign",
+        "foreign-object",
+        "identity",
+        "integers",
+        "maybe",
+        "newtype",
+        "prelude",
+        "record",
+        "strings",
+        "tuples",
+        "undefined-is-not-a-problem",
+        "unsafe-coerce",
+        "variant",
+        "yoga-json",
+        "yoga-options"
+      ]
+    },
+    "yoga-json": {
+      "type": "registry",
+      "version": "5.1.0",
+      "integrity": "sha256-DK+KyaQ7YyWo8p3SuZPPEMoVKy6HF1iV4rGFPXgBygw=",
+      "dependencies": [
+        "arrays",
+        "bifunctors",
+        "control",
+        "datetime",
+        "effect",
+        "either",
+        "exceptions",
+        "foldable-traversable",
+        "foreign",
+        "foreign-object",
+        "free",
+        "identity",
+        "integers",
+        "js-bigints",
+        "js-date",
+        "lists",
+        "maybe",
+        "newtype",
+        "nullable",
+        "numbers",
+        "ordered-collections",
+        "partial",
+        "prelude",
+        "record",
+        "strings",
+        "transformers",
+        "tuples",
+        "typelevel-prelude",
+        "unsafe-coerce",
+        "variant",
+        "yoga-tree"
+      ]
+    },
     "yoga-om": {
       "type": "local",
       "path": "../purescript-yoga-om",
@@ -1647,6 +1826,17 @@
         "uncurried-transformers",
         "unsafe-coerce",
         "variant"
+      ]
+    },
+    "yoga-options": {
+      "type": "registry",
+      "version": "0.1.0",
+      "integrity": "sha256-8u9uwmxqwNX7bmA7U+hQ60ZnZxLzvlyYTVNXSIWeXv4=",
+      "dependencies": [
+        "identity",
+        "literals",
+        "unsafe-coerce",
+        "untagged-union"
       ]
     },
     "yoga-react": {
@@ -1701,6 +1891,20 @@
         "type-equality",
         "unsafe-coerce",
         "yoga-om"
+      ]
+    },
+    "yoga-tree": {
+      "type": "registry",
+      "version": "1.0.0",
+      "integrity": "sha256-s8rIVEQkRi1VrMc92T9ceXcY0X6r5A4QqT6f7GgmDQI=",
+      "dependencies": [
+        "arrays",
+        "control",
+        "foldable-traversable",
+        "free",
+        "maybe",
+        "prelude",
+        "tailrec"
       ]
     }
   }
