@@ -6,9 +6,12 @@ package:
     - console
     - react-basic
     - react-basic-hooks
+    - refs
     - tuples
+    - yoga-om
     - yoga-react
     - yoga-react-dom
+    - yoga-react-om
   build:
     strict: true
 workspace:
@@ -17,3 +20,5 @@ workspace:
   extraPackages:
     yoga-react: "1.0.1"
     yoga-react-dom: "1.0.3"
+    yoga-react-om:
+      path: ../purescript-yoga-react-om

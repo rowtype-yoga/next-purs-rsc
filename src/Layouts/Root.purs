@@ -17,6 +17,6 @@ layout = component "RootLayout" \{ children } -> pure $
             , text " | "
             , a { href: "/about" } [ text "About" ]
             ]
-        , main {} [ children ]
+        , main {} children
         ]
     ]

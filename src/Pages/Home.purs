@@ -13,9 +13,9 @@ page :: Component {}
 page = component "HomePage" \_ -> React.do
   count /\ setCount <- useState 0
   pure $ div {}
-    [ h1 {} [ text "Home" ]
-    , p {} [ text "This entire page is a PureScript client component." ]
-    , p {} [ text $ "Count: " <> show count ]
+    [ h1 {} "Homey"
+    , p {} "This entire page is a PureScript client component."
+    , p {} $ "Counter: " <> show count
     , button { onClick: handler_ $ setCount (_ + 1) }
-        [ text "Increment" ]
+        "Increment"
     ]
