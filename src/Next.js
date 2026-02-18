@@ -1,5 +1,6 @@
-export const _mapRecord = f => r => {
-  const o = {};
-  for (const k in r) o[k] = f(r[k]);
-  return o;
-};
+export const _mapRecord = f => r => new Proxy({}, {
+  get(_, prop) {
+    if (typeof prop === "symbol") return undefined;
+    return f(prop in r ? r[prop] : null);
+  }
+});
