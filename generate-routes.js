@@ -101,9 +101,9 @@ function moduleToRoute(mod, directive) {
   const parts = mod.split(".");
   const kind = parts[0];
 
-  if (kind !== "Pages" && kind !== "Layouts") return null;
+  if (kind !== "Page" && kind !== "Layout") return null;
 
-  const type = kind === "Pages" ? "page" : "layout";
+  const type = kind === "Page" ? "page" : "layout";
   const segments = parts.slice(1);
 
   const isIndex = segments.length === 1 && (segments[0] === "Home" || segments[0] === "Root");

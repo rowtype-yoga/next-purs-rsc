@@ -1,7 +1,7 @@
 -- @client
-module Pages.Home where
+module Page.Home where
 
-import Prelude
+import Prelude hiding (div)
 
 import Data.Tuple.Nested ((/\))
 import React.Basic.Events (handler_)

@@ -1,4 +1,4 @@
-module Layouts.Root where
+module Layout.Root where
 
 import Prelude
 

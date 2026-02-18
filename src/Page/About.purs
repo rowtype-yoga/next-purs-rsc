@@ -1,6 +1,6 @@
-module Pages.About where
+module Page.About where
 
-import Prelude
+import Prelude hiding (div)
 
 import React.Basic.Hooks (Component, component)
 import Yoga.React.DOM (div, h1, p)

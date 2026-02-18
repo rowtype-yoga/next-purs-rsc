@@ -1,4 +1,4 @@
-module Pages.Dashboard where
+module Page.Dashboard where
 
 import Prelude hiding (div)
 
