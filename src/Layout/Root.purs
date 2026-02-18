@@ -1,12 +1,10 @@
 module Layout.Root where
 
-import Effect (Effect)
-import Next (link, simpleLayout)
-import React.Basic (JSX)
+import Next (Layout, link, simpleLayout)
 import Route (Route(..))
 import Yoga.React.DOM (body, html, main, nav, strong, text)
 
-layout :: Effect ({ children :: JSX } -> JSX)
+layout :: Layout
 layout = simpleLayout \{ children } ->
   html { lang: "en" }
     [ body {}

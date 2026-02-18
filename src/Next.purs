@@ -1,4 +1,14 @@
-module Next where
+module Next
+  ( Page
+  , Layout
+  , PageProps
+  , simplePage
+  , simpleLayout
+  , nextPage
+  , nextLayout
+  , nullableToMaybe
+  , link
+  ) where
 
 import Prelude
 
@@ -22,29 +32,47 @@ type PageProps params searchParams =
   , searchParams :: { | searchParams }
   }
 
-simplePage :: forall params sp. (PageProps params sp -> JSX) -> Effect (PageProps params sp -> JSX)
-simplePage = pure
+newtype Page :: Row Type -> Row Type -> Type
+newtype Page params sp = Page (Effect (Promise (PageProps params sp -> JSX)))
 
-simpleLayout :: ({ children :: JSX } -> JSX) -> Effect ({ children :: JSX } -> JSX)
-simpleLayout = pure
+newtype Layout = Layout (Effect (Promise ({ children :: JSX } -> JSX)))
 
-omPage
-  :: forall ctx params searchParams hooks
-   . String
+simplePage
+  :: forall params sp spMaybe
+   . HFoldlWithIndex (MapRecordKind Nullable Maybe)
+       (Builder (Record ()) (Record ()))
+       (Record sp)
+       (Builder (Record ()) (Record spMaybe))
+  => ({ params :: { | params }, searchParams :: { | spMaybe } } -> JSX)
+  -> Page params sp
+simplePage render = Page $ Promise.fromAff $ pure \{ params, searchParams } ->
+  render { params, searchParams: nullableToMaybe searchParams }
+
+simpleLayout :: ({ children :: JSX } -> JSX) -> Layout
+simpleLayout render = Layout $ Promise.fromAff $ pure render
+
+nextPage
+  :: forall ctx params sp spMaybe hooks
+   . HFoldlWithIndex (MapRecordKind Nullable Maybe)
+       (Builder (Record ()) (Record ()))
+       (Record sp)
+       (Builder (Record ()) (Record spMaybe))
+  => String
   -> { | ctx }
-  -> (PageProps params searchParams -> OmRender ctx Unit hooks JSX)
-  -> Effect (Promise (PageProps params searchParams -> JSX))
-omPage name ctx render = Promise.fromAff do
+  -> ({ params :: { | params }, searchParams :: { | spMaybe } } -> OmRender ctx Unit hooks JSX)
+  -> Page params sp
+nextPage name ctx render = Page $ Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
-    omComponent name render
+    omComponent name \{ params, searchParams } ->
+      render { params, searchParams: nullableToMaybe searchParams }
 
-omLayout
+nextLayout
   :: forall ctx hooks
    . String
   -> { | ctx }
   -> ({ children :: JSX } -> OmRender ctx Unit hooks JSX)
-  -> Effect (Promise ({ children :: JSX } -> JSX))
-omLayout name ctx render = Promise.fromAff do
+  -> Layout
+nextLayout name ctx render = Layout $ Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
     omComponent name render
 
