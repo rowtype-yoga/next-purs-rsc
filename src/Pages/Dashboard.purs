@@ -9,17 +9,17 @@ import React.Basic (JSX)
 import React.Basic.Hooks (Component, component)
 import React.Basic.Hooks.Internal (unsafeRenderEffect)
 import Yoga.Om as Om
-import Yoga.React.DOM (div, h1, p, text)
+import Yoga.React.DOM (div, h1, p)
 import Yoga.React.Om (omComponent, useOm)
 import Yoga.React.Om as OmReact
 
 dashboardComponent :: forall err. Om.Om { greeting :: String } err ({} -> JSX)
-dashboardComponent = omComponent "Dashboard" \_ -> OmReact.do
+dashboardComponent = omComponent "Dashboard" \_props -> OmReact.do
   msg <- useOm \c -> pure c.greeting
   OmReact.pure $ div {}
-    [ h1 {} [ text "Dashboard" ]
-    , p {} [ text msg ]
-    , p {} [ text "Server component with Om dependency injection." ]
+    [ h1 {} "Dashboard"
+    , p {} msg
+    , p {} "Server component with Om dependency injection."
     ]
 
 page :: Component {}
