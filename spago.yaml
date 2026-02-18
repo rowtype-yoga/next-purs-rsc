@@ -5,8 +5,13 @@ package:
     - prelude
     - effect
     - console
+    - heterogeneous
+    - maybe
+    - nullable
     - react-basic
     - react-basic-hooks
+    - record
+    - record-studio
     - refs
     - tuples
     - yoga-om

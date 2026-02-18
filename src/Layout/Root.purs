@@ -1,21 +1,21 @@
 module Layout.Root where
 
-import Prelude
-
+import Effect (Effect)
+import Next (link, simpleLayout)
 import React.Basic (JSX)
-import React.Basic.Hooks (Component, component)
-import Yoga.React.DOM (a, body, html, main, nav, strong, text)
+import Route (Route(..))
+import Yoga.React.DOM (body, html, main, nav, strong, text)
 
-layout :: Component { children :: JSX }
-layout = component "RootLayout" \{ children } -> pure $
+layout :: Effect ({ children :: JSX } -> JSX)
+layout = simpleLayout \{ children } ->
   html { lang: "en" }
     [ body {}
         [ nav {}
             [ strong {} [ text "PureScript + Next.js RSC" ]
             , text " | "
-            , a { href: "/" } [ text "Home" ]
+            , link Home [ text "Home" ]
             , text " | "
-            , a { href: "/about" } [ text "About" ]
+            , link About [ text "About" ]
             ]
         , main {} children
         ]

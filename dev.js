@@ -33,8 +33,8 @@ async function generateRoutes() {
 async function rebuild() {
   try {
     console.log("[dev] Rebuilding...");
-    await build();
     await generateRoutes();
+    await build();
     console.log("[dev] Rebuild complete.");
   } catch (err) {
     console.error(`[dev] Rebuild failed: ${err.message}`);
@@ -105,8 +105,8 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 
 async function main() {
   console.log("[dev] Initial build...");
-  await build();
   await generateRoutes();
+  await build();
   console.log("[dev] Starting next dev...");
   startNextDev();
   watchSrc();

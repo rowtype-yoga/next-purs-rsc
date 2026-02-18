@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "generate": "spago build && bun generate-routes.js",
+    "generate": "bun generate-routes.js && spago build",
     "dev": "bun dev.js",
-    "build": "spago build && bun generate-routes.js && bunx next build",
+    "build": "bun generate-routes.js && spago build && bunx next build",
     "start": "bunx next start"
   },
   "dependencies": {
