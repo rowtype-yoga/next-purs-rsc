@@ -11,6 +11,10 @@ module Next.Navigation
   , searchParamsGetAll
   , searchParamsHas
   , searchParamsToString
+  , UseParams
+  , Params
+  , useParams
+  , paramsGet
   , UseSelectedLayoutSegment
   , useSelectedLayoutSegment
   , UseSelectedLayoutSegments
@@ -35,10 +39,12 @@ import Route (Route, toPath)
 
 foreign import data RouterImpl :: Type
 foreign import data SearchParams :: Type
+foreign import data Params :: Type
 
 foreign import _useRouterImpl :: Effect RouterImpl
 foreign import _usePathnameImpl :: Effect String
 foreign import _useSearchParamsImpl :: Effect SearchParams
+foreign import _useParamsImpl :: Effect Params
 foreign import _useSelectedLayoutSegmentImpl :: Effect (Nullable String)
 foreign import _useSelectedLayoutSegmentsImpl :: Effect (Array String)
 
@@ -53,6 +59,8 @@ foreign import _searchParamsGet :: EffectFn2 SearchParams String (Nullable Strin
 foreign import _searchParamsGetAll :: EffectFn2 SearchParams String (Array String)
 foreign import _searchParamsHas :: EffectFn2 SearchParams String Boolean
 foreign import _searchParamsToString :: EffectFn1 SearchParams String
+
+foreign import _paramsGet :: EffectFn2 Params String (Nullable String)
 
 foreign import _redirectImpl :: EffectFn1 String Unit
 foreign import _permanentRedirectImpl :: EffectFn1 String Unit
@@ -114,6 +122,18 @@ searchParamsHas sp key = runEffectFn2 _searchParamsHas sp key
 
 searchParamsToString :: SearchParams -> Effect String
 searchParamsToString sp = runEffectFn1 _searchParamsToString sp
+
+--------------------------------------------------------------------------------
+-- useParams
+--------------------------------------------------------------------------------
+
+foreign import data UseParams :: Type -> Type
+
+useParams :: Hook UseParams Params
+useParams = unsafeHook _useParamsImpl
+
+paramsGet :: Params -> String -> Effect (Maybe String)
+paramsGet p key = toMaybe <$> runEffectFn2 _paramsGet p key
 
 --------------------------------------------------------------------------------
 -- useSelectedLayoutSegment(s)
