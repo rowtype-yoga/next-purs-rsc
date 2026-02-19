@@ -202,10 +202,7 @@ moduleNameToSegments modName = do
   let segments = Array.drop 1 parts -- strip "Page" or "Layout"
   let isIndex = Array.length segments == 1 && (segments == [ "Home" ] || segments == [ "Root" ])
   if isIndex then []
-  else segments # map \s ->
-    if SCU.charAt 0 s == Just '$'
-    then Dynamic (String.toLower (String.drop 1 s))
-    else Static (String.toLower s)
+  else segments # map \s -> Static (String.toLower s)
 
 segmentsToNextPath :: Array Segment -> Array String
 segmentsToNextPath = map case _ of
@@ -487,8 +484,7 @@ generateRoutePursFromModules routes modules = String.joinWith "\n" allLines
     let parts = Array.drop 1 (String.split (String.Pattern ".") modName)
     let isIndex = parts == [ "Home" ]
     if isIndex then "Home"
-    else parts # map (\s -> if SCU.charAt 0 s == Just '$' then String.drop 1 s else s)
-      # String.joinWith "__"
+    else String.joinWith "__" parts
 
   isDynamic (Dynamic _) = true
   isDynamic _ = false
