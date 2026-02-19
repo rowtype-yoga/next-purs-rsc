@@ -3,102 +3,101 @@ module Test.Loader where
 import Prelude
 
 import Data.Maybe (Maybe(..))
-import Data.String as String
 import Loader.Main (Segment(..), detectDirective, extractModuleName, generateTsx, kindToDeclName, kindToFileName, segmentsToNextPath)
 import Loader.Plugin as Plugin
-import Effect.Aff (Aff)
-import ViTest (describe, test, viTest)
-import ViTest.Expect (expectToSatisfy, (===))
+import Test.Spec (Spec, describe, it)
+import Test.Spec.Assertions (shouldEqual)
+import Test.Spec.Assertions.String as String
 
-main :: Unit
-main = viTest do
+spec :: Spec Unit
+spec = do
 
   describe "detectDirective" do
-    test "comment @client" do
-      detectDirective "Foo" "module Foo where\n-- @client\nimport Prelude" === Just "use client"
-    test "comment @server" do
-      detectDirective "Foo" "module Foo where\n-- @server\nimport Prelude" === Just "use server"
-    test "convention .Client suffix" do
-      detectDirective "Page.Home.Client" "" === Just "use client"
-    test "convention .Server suffix" do
-      detectDirective "Page.Home.Server" "" === Just "use server"
-    test "convention Actions. prefix" do
-      detectDirective "Actions.Login" "" === Just "use server"
-    test "no directive" do
-      detectDirective "Page.Home" "module Page.Home where\nimport Prelude" === Nothing
+    it "comment @client" do
+      detectDirective "Foo" "module Foo where\n-- @client\nimport Prelude" `shouldEqual` Just "use client"
+    it "comment @server" do
+      detectDirective "Foo" "module Foo where\n-- @server\nimport Prelude" `shouldEqual` Just "use server"
+    it "convention .Client suffix" do
+      detectDirective "Page.Home.Client" "" `shouldEqual` Just "use client"
+    it "convention .Server suffix" do
+      detectDirective "Page.Home.Server" "" `shouldEqual` Just "use server"
+    it "convention Actions. prefix" do
+      detectDirective "Actions.Login" "" `shouldEqual` Just "use server"
+    it "no directive" do
+      detectDirective "Page.Home" "module Page.Home where\nimport Prelude" `shouldEqual` Nothing
 
   describe "extractModuleName" do
-    test "simple module" do
-      extractModuleName "module Foo.Bar where\n" === Just "Foo.Bar"
-    test "module with exports" do
-      extractModuleName "module Foo.Bar (baz) where\n" === Just "Foo.Bar"
-    test "no module declaration" do
-      extractModuleName "just some random text" === Nothing
+    it "simple module" do
+      extractModuleName "module Foo.Bar where\n" `shouldEqual` Just "Foo.Bar"
+    it "module with exports" do
+      extractModuleName "module Foo.Bar (baz) where\n" `shouldEqual` Just "Foo.Bar"
+    it "no module declaration" do
+      extractModuleName "just some random text" `shouldEqual` Nothing
 
   describe "segmentsToNextPath" do
-    test "static" do
-      segmentsToNextPath [ Static "blog" ] === [ "blog" ]
-    test "dynamic" do
-      segmentsToNextPath [ Dynamic "slug" ] === [ "[slug]" ]
-    test "catch-all" do
-      segmentsToNextPath [ CatchAll "slug" ] === [ "[...slug]" ]
-    test "optional catch-all" do
-      segmentsToNextPath [ OptCatchAll "slug" ] === [ "[[...slug]]" ]
-    test "mixed segments" do
-      segmentsToNextPath [ Static "blog", Dynamic "id" ] === [ "blog", "[id]" ]
+    it "static" do
+      segmentsToNextPath [ Static "blog" ] `shouldEqual` [ "blog" ]
+    it "dynamic" do
+      segmentsToNextPath [ Dynamic "slug" ] `shouldEqual` [ "[slug]" ]
+    it "catch-all" do
+      segmentsToNextPath [ CatchAll "slug" ] `shouldEqual` [ "[...slug]" ]
+    it "optional catch-all" do
+      segmentsToNextPath [ OptCatchAll "slug" ] `shouldEqual` [ "[[...slug]]" ]
+    it "mixed segments" do
+      segmentsToNextPath [ Static "blog", Dynamic "id" ] `shouldEqual` [ "blog", "[id]" ]
 
   describe "kindToFileName" do
-    test "notFound" do kindToFileName "notFound" === "not-found"
-    test "page" do kindToFileName "page" === "page"
-    test "layout" do kindToFileName "layout" === "layout"
-    test "error" do kindToFileName "error" === "error"
-    test "loading" do kindToFileName "loading" === "loading"
+    it "notFound" do kindToFileName "notFound" `shouldEqual` "not-found"
+    it "page" do kindToFileName "page" `shouldEqual` "page"
+    it "layout" do kindToFileName "layout" `shouldEqual` "layout"
+    it "error" do kindToFileName "error" `shouldEqual` "error"
+    it "loading" do kindToFileName "loading" `shouldEqual` "loading"
 
   describe "kindToDeclName" do
-    test "error" do kindToDeclName "error" === "error"
-    test "page" do kindToDeclName "page" === "page"
-    test "layout" do kindToDeclName "layout" === "layout"
-    test "notFound" do kindToDeclName "notFound" === "notFound"
+    it "error" do kindToDeclName "error" `shouldEqual` "error"
+    it "page" do kindToDeclName "page" `shouldEqual` "page"
+    it "layout" do kindToDeclName "layout" `shouldEqual` "layout"
+    it "notFound" do kindToDeclName "notFound" `shouldEqual` "notFound"
 
   describe "generateTsx" do
-    test "client gets use client directive" do
-      clientTsx `shouldContain` (show "use client" <> ";")
-    test "client awaits mk()" do
-      clientTsx `shouldContain` "await mk()"
-    test "server page is async" do
-      serverPageTsx `shouldContain` "async function(props)"
-    test "server page awaits params" do
-      serverPageTsx `shouldContain` "await (props.params"
-    test "server page awaits searchParams" do
-      serverPageTsx `shouldContain` "await (props.searchParams"
-    test "server page has no use client" do
-      serverPageTsx `shouldNotContain` show "use client"
-    test "layout renders props" do
-      layoutTsx `shouldContain` "render(props)"
-    test "layout has no params" do
-      layoutTsx `shouldNotContain` "params"
-    test "error gets use client" do
-      errorTsx `shouldContain` (show "use client" <> ";")
-    test "loading renders without args" do
-      loadingTsx `shouldContain` "render()"
-    test "loading has no props" do
-      loadingTsx `shouldNotContain` "props"
-    test "notFound renders without args" do
-      notFoundTsx `shouldContain` "render()"
-    test "has generator marker" do
-      serverPageTsx `shouldContain` "@generated by purescript-rsc"
-    test "import path is correct" do
-      fooTsx `shouldContain` show "../output/Page.Foo/index.js"
+    it "client gets use client directive" do
+      clientTsx `String.shouldContain` (show "use client" <> ";")
+    it "client awaits mk()" do
+      clientTsx `String.shouldContain` "await mk()"
+    it "server page is async" do
+      serverPageTsx `String.shouldContain` "async function(props)"
+    it "server page awaits params" do
+      serverPageTsx `String.shouldContain` "await (props.params"
+    it "server page awaits searchParams" do
+      serverPageTsx `String.shouldContain` "await (props.searchParams"
+    it "server page has no use client" do
+      serverPageTsx `String.shouldNotContain` show "use client"
+    it "layout renders props" do
+      layoutTsx `String.shouldContain` "render(props)"
+    it "layout has no params" do
+      layoutTsx `String.shouldNotContain` "params"
+    it "error gets use client" do
+      errorTsx `String.shouldContain` (show "use client" <> ";")
+    it "loading renders without args" do
+      loadingTsx `String.shouldContain` "render()"
+    it "loading has no props" do
+      loadingTsx `String.shouldNotContain` "props"
+    it "notFound renders without args" do
+      notFoundTsx `String.shouldContain` "render()"
+    it "has generator marker" do
+      serverPageTsx `String.shouldContain` "@generated by purescript-rsc"
+    it "import path is correct" do
+      fooTsx `String.shouldContain` show "../output/Page.Foo/index.js"
 
   describe "extractModule" do
-    test "unix path" do
-      Plugin.extractModule "/project/output/Page.Home/index.js" === Just "Page.Home"
-    test "windows path" do
-      Plugin.extractModule "C:\\project\\output\\Page.Home\\index.js" === Just "Page.Home"
-    test "non-matching path" do
-      Plugin.extractModule "/some/random/file.js" === Nothing
-    test "dotted module name" do
-      Plugin.extractModule "/project/output/Page.Blog.Slug/index.js" === Just "Page.Blog.Slug"
+    it "unix path" do
+      Plugin.extractModule "/project/output/Page.Home/index.js" `shouldEqual` Just "Page.Home"
+    it "windows path" do
+      Plugin.extractModule "C:\\project\\output\\Page.Home\\index.js" `shouldEqual` Just "Page.Home"
+    it "non-matching path" do
+      Plugin.extractModule "/some/random/file.js" `shouldEqual` Nothing
+    it "dotted module name" do
+      Plugin.extractModule "/project/output/Page.Blog.Slug/index.js" `shouldEqual` Just "Page.Blog.Slug"
 
   where
   route kind directive =
@@ -136,11 +135,3 @@ main = viTest do
     , relImport: "../output/Page.Foo/index.js", routePath: "app/foo"
     , directive: Nothing
     }
-
-shouldContain :: String -> String -> Aff Unit
-shouldContain haystack needle =
-  expectToSatisfy haystack (String.contains (String.Pattern needle))
-
-shouldNotContain :: String -> String -> Aff Unit
-shouldNotContain haystack needle =
-  expectToSatisfy haystack (not <<< String.contains (String.Pattern needle))

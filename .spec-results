@@ -1,0 +1,317 @@
+[
+  [
+    "detectDirective comment @client",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "detectDirective comment @server",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "detectDirective convention .Client suffix",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "detectDirective convention .Server suffix",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "detectDirective convention Actions. prefix",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "detectDirective no directive",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "extractModule dotted module name",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "extractModule non-matching path",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "extractModule unix path",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "extractModule windows path",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "extractModuleName module with exports",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "extractModuleName no module declaration",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "extractModuleName simple module",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "generateTsx client awaits mk()",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "generateTsx client gets use client directive",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "generateTsx error gets use client",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "generateTsx has generator marker",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "generateTsx import path is correct",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "generateTsx layout has no params",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "generateTsx layout renders props",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "generateTsx loading has no props",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "generateTsx loading renders without args",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "generateTsx notFound renders without args",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "generateTsx server page awaits params",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "generateTsx server page awaits searchParams",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "generateTsx server page has no use client",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "generateTsx server page is async",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "kindToDeclName error",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "kindToDeclName layout",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "kindToDeclName notFound",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "kindToDeclName page",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "kindToFileName error",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "kindToFileName layout",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "kindToFileName loading",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "kindToFileName notFound",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "kindToFileName page",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "segmentsToNextPath catch-all",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "segmentsToNextPath dynamic",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "segmentsToNextPath mixed segments",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "segmentsToNextPath optional catch-all",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "segmentsToNextPath static",
+    {
+      "timestamp": "1771527020804.0",
+      "success": true
+    }
+  ],
+  [
+    "toPath About",
+    {
+      "timestamp": "1771527020560.0",
+      "success": true
+    }
+  ],
+  [
+    "toPath Blog__Slug",
+    {
+      "timestamp": "1771527020560.0",
+      "success": true
+    }
+  ],
+  [
+    "toPath Dashboard",
+    {
+      "timestamp": "1771527020560.0",
+      "success": true
+    }
+  ],
+  [
+    "toPath Home",
+    {
+      "timestamp": "1771527020560.0",
+      "success": true
+    }
+  ]
+]

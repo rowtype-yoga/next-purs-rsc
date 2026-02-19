@@ -2,14 +2,17 @@ module Test.Main where
 
 import Prelude
 
+import Effect (Effect)
 import Route (Route(..), toPath)
-import ViTest (describe, test, viTest)
-import ViTest.Expect ((===))
+import Test.Spec (describe, it)
+import Test.Spec.Assertions (shouldEqual)
+import Test.Spec.Reporter (consoleReporter)
+import Test.Spec.Runner.Node (runSpecAndExitProcess)
 
-main :: Unit
-main = viTest do
+main :: Effect Unit
+main = runSpecAndExitProcess [consoleReporter] do
   describe "toPath" do
-    test "Home" do toPath Home === "/"
-    test "About" do toPath About === "/about"
-    test "Dashboard" do toPath Dashboard === "/dashboard"
-    test "Blog__Slug" do toPath (Blog__Slug "hello") === "/blog/hello"
+    it "Home" do toPath Home `shouldEqual` "/"
+    it "About" do toPath About `shouldEqual` "/about"
+    it "Dashboard" do toPath Dashboard `shouldEqual` "/dashboard"
+    it "Blog__Slug" do toPath (Blog__Slug "hello") `shouldEqual` "/blog/hello"

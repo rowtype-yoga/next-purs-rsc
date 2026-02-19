@@ -24,8 +24,9 @@ package:
   test:
     main: Test.Main
     dependencies:
-      - vitest
-      - strings
+      - spec
+      - spec-node
+      - aff
 workspace:
   packageSet:
     registry: 73.1.0
