@@ -272,10 +272,13 @@ computeRoutes appDir outputDir modules =
     moduleToRoute appDir outputDir info
 
 modulePathSegments :: Array String -> Array String
-modulePathSegments parts = Array.mapMaybe toGroupDir parts
+modulePathSegments parts = Array.mapMaybe toSpecialDir parts
   where
-  toGroupDir seg
+  toSpecialDir seg
     | String.null seg = Nothing
+    | seg == "Intercept_" = Just "(.)"
+    | seg == "InterceptUp_" = Just "(..)"
+    | seg == "InterceptRoot_" = Just "(...)"
     | SCU.charAt (String.length seg - 1) seg == Just '_' =
         Just $ "(" <> String.toLower (String.take (String.length seg - 1) seg) <> ")"
     | otherwise = Nothing

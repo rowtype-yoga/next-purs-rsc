@@ -158,6 +158,12 @@ spec = do
       modulePathSegments [ "Marketing_", "Auth_", "Login" ] `shouldEqual` [ "(marketing)", "(auth)" ]
     it "non-trailing underscore ignored" do
       modulePathSegments [ "DashBoard" ] `shouldEqual` []
+    it "intercept same level" do
+      modulePathSegments [ "Intercept_", "Photo" ] `shouldEqual` [ "(.)" ]
+    it "intercept up" do
+      modulePathSegments [ "InterceptUp_", "Modal" ] `shouldEqual` [ "(..)" ]
+    it "intercept root" do
+      modulePathSegments [ "InterceptRoot_", "Modal" ] `shouldEqual` [ "(...)" ]
 
   describe "extractJsonField" do
     it "extracts field with space after colon" do
@@ -225,6 +231,11 @@ spec = do
       let info = { name: "Page.Marketing_.About", source: "module Page.Marketing_.About where\npage :: Page \"about\"\npage = simplePage \\_ -> mempty", file: "src/Page/Marketing_/About.purs", directive: Nothing }
       let result = moduleToRoute "app" "output" info
       map _.routePath result `shouldEqual` Just "app/(marketing)/about"
+      map _.kind result `shouldEqual` Just "page"
+    it "intercepting route same level" do
+      let info = { name: "Page.Intercept_.Photo", source: "module Page.Intercept_.Photo where\npage :: Page \"photo\"\npage = simplePage \\_ -> mempty", file: "src/Page/Intercept_/Photo.purs", directive: Nothing }
+      let result = moduleToRoute "app" "output" info
+      map _.routePath result `shouldEqual` Just "app/(.)/photo"
       map _.kind result `shouldEqual` Just "page"
     it "returns Nothing for non-route module" do
       let info = { name: "Utils.Helpers", source: "module Utils.Helpers where\nfoo :: String\nfoo = \"bar\"", file: "src/Utils/Helpers.purs", directive: Nothing }
