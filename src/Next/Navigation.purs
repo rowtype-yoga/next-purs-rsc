@@ -4,6 +4,17 @@ module Next.Navigation
   , useRouter
   , UsePathname
   , usePathname
+  , UseSearchParams
+  , SearchParams
+  , useSearchParams
+  , searchParamsGet
+  , searchParamsGetAll
+  , searchParamsHas
+  , searchParamsToString
+  , UseSelectedLayoutSegment
+  , useSelectedLayoutSegment
+  , UseSelectedLayoutSegments
+  , useSelectedLayoutSegments
   , redirect
   , permanentRedirect
   , triggerNotFound
@@ -11,6 +22,8 @@ module Next.Navigation
 
 import Prelude
 
+import Data.Maybe (Maybe)
+import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
 import React.Basic.Hooks.Internal (Hook, unsafeHook)
@@ -21,9 +34,13 @@ import Route (Route, toPath)
 --------------------------------------------------------------------------------
 
 foreign import data RouterImpl :: Type
+foreign import data SearchParams :: Type
 
 foreign import _useRouterImpl :: Effect RouterImpl
 foreign import _usePathnameImpl :: Effect String
+foreign import _useSearchParamsImpl :: Effect SearchParams
+foreign import _useSelectedLayoutSegmentImpl :: Effect (Nullable String)
+foreign import _useSelectedLayoutSegmentsImpl :: Effect (Array String)
 
 foreign import _routerPush :: EffectFn2 RouterImpl String Unit
 foreign import _routerReplace :: EffectFn2 RouterImpl String Unit
@@ -31,6 +48,11 @@ foreign import _routerRefresh :: EffectFn1 RouterImpl Unit
 foreign import _routerPrefetch :: EffectFn2 RouterImpl String Unit
 foreign import _routerBack :: EffectFn1 RouterImpl Unit
 foreign import _routerForward :: EffectFn1 RouterImpl Unit
+
+foreign import _searchParamsGet :: EffectFn2 SearchParams String (Nullable String)
+foreign import _searchParamsGetAll :: EffectFn2 SearchParams String (Array String)
+foreign import _searchParamsHas :: EffectFn2 SearchParams String Boolean
+foreign import _searchParamsToString :: EffectFn1 SearchParams String
 
 foreign import _redirectImpl :: EffectFn1 String Unit
 foreign import _permanentRedirectImpl :: EffectFn1 String Unit
@@ -71,6 +93,41 @@ foreign import data UsePathname :: Type -> Type
 
 usePathname :: Hook UsePathname String
 usePathname = unsafeHook _usePathnameImpl
+
+--------------------------------------------------------------------------------
+-- useSearchParams
+--------------------------------------------------------------------------------
+
+foreign import data UseSearchParams :: Type -> Type
+
+useSearchParams :: Hook UseSearchParams SearchParams
+useSearchParams = unsafeHook _useSearchParamsImpl
+
+searchParamsGet :: SearchParams -> String -> Effect (Maybe String)
+searchParamsGet sp key = toMaybe <$> runEffectFn2 _searchParamsGet sp key
+
+searchParamsGetAll :: SearchParams -> String -> Effect (Array String)
+searchParamsGetAll sp key = runEffectFn2 _searchParamsGetAll sp key
+
+searchParamsHas :: SearchParams -> String -> Effect Boolean
+searchParamsHas sp key = runEffectFn2 _searchParamsHas sp key
+
+searchParamsToString :: SearchParams -> Effect String
+searchParamsToString sp = runEffectFn1 _searchParamsToString sp
+
+--------------------------------------------------------------------------------
+-- useSelectedLayoutSegment(s)
+--------------------------------------------------------------------------------
+
+foreign import data UseSelectedLayoutSegment :: Type -> Type
+
+useSelectedLayoutSegment :: Hook UseSelectedLayoutSegment (Maybe String)
+useSelectedLayoutSegment = unsafeHook (toMaybe <$> _useSelectedLayoutSegmentImpl)
+
+foreign import data UseSelectedLayoutSegments :: Type -> Type
+
+useSelectedLayoutSegments :: Hook UseSelectedLayoutSegments (Array String)
+useSelectedLayoutSegments = unsafeHook _useSelectedLayoutSegmentsImpl
 
 --------------------------------------------------------------------------------
 -- Server functions
