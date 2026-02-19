@@ -53,13 +53,14 @@ type ModuleInfo =
 
 type RouteInfo =
   { mod :: String
-  , kind :: String -- "page" | "layout"
+  , kind :: String -- "page" | "layout" | "handler" | ...
   , filePath :: String
   , relImport :: String
   , routePath :: String
   , directive :: Maybe String
   , hasMetadata :: Boolean
   , hasStaticParams :: Boolean
+  , handlerMethods :: Array String
   }
 
 --------------------------------------------------------------------------------
@@ -156,7 +157,8 @@ extractFromType = case _ of
   -- Page/Loading/ErrorBoundary/NotFound Root, Page "about", etc.
   CST.TypeApp head args -> case head of
     CST.TypeConstructor (CST.QualifiedName { name: CST.Proper ctor })
-      | ctor == "Page" || ctor == "Loading" || ctor == "ErrorBoundary" || ctor == "NotFound" || ctor == "Template" || ctor == "GlobalError" ->
+      | ctor == "Page" || ctor == "Loading" || ctor == "ErrorBoundary" || ctor == "NotFound" || ctor == "Template" || ctor == "GlobalError"
+        || ctor == "GET" || ctor == "POST" || ctor == "PUT" || ctor == "DELETE" || ctor == "PATCH" || ctor == "HEAD" || ctor == "OPTIONS" ->
           case Array.head (Array.fromFoldable args) of
             Just arg -> Just (walkTypeArg arg)
             Nothing -> Nothing
@@ -232,6 +234,27 @@ hasStaticParamsSig (CST.ModuleBody { decls }) = Array.any matchSP decls
     | ident == "staticParams" = true
   matchSP _ = false
 
+handlerMethodNames :: Array String
+handlerMethodNames = [ "get", "post", "put", "delete_", "patch", "head_", "options" ]
+
+findHandlerMethods :: String -> Array String
+findHandlerMethods src = case parseModule src of
+  ParseSucceeded (CST.Module m) -> findMethods m.body
+  ParseSucceededWithErrors (CST.Module m) _ -> findMethods m.body
+  ParseFailed _ -> []
+
+findMethods :: forall e. CST.ModuleBody e -> Array String
+findMethods (CST.ModuleBody { decls }) = Array.mapMaybe matchMethod decls
+  where
+  matchMethod (CST.DeclSignature (CST.Labeled { label: CST.Name { name: CST.Ident ident } }))
+    | Array.elem ident handlerMethodNames = Just ident
+  matchMethod _ = Nothing
+
+methodToExportName :: String -> String
+methodToExportName "delete_" = "DELETE"
+methodToExportName "head_" = "HEAD"
+methodToExportName m = String.toUpper m
+
 segmentsToNextPath :: Array Segment -> Array String
 segmentsToNextPath = map case _ of
   Static s -> s
@@ -260,6 +283,7 @@ modulePathSegments parts = Array.mapMaybe toGroupDir parts
 kindToFileName :: String -> String
 kindToFileName "notFound" = "not-found"
 kindToFileName "globalError" = "global-error"
+kindToFileName "handler" = "route"
 kindToFileName k = k
 
 kindToDeclName :: String -> String
@@ -278,15 +302,23 @@ moduleToRoute appDir outputDir info = do
     Just "ErrorBoundary" -> Just "error"
     Just "GlobalError" -> Just "globalError"
     Just "NotFound" -> Just "notFound"
+    Just "Handler" -> Just "handler"
     _ -> Nothing
 
-  -- Route segments from type annotation (required)
+  -- Route segments from type annotation
+  let methods = if kind == "handler" then findHandlerMethods info.source else []
   let declName = kindToDeclName kind
-  segments <- extractPageType declName info.source
+  let firstMethodDecl = Array.head methods
+  segments <- if kind == "handler"
+    then case firstMethodDecl of
+      Just m -> extractPageType m info.source
+      Nothing -> Nothing
+    else extractPageType declName info.source
   let nextPathSegs = segmentsToNextPath segments
   let groupSegs = modulePathSegments (Array.drop 1 parts)
   let routePath = foldl joinPath (foldl joinPath appDir groupSegs) nextPathSegs
-  let filePath = joinPath routePath (kindToFileName kind <> ".tsx")
+  let ext = if kind == "handler" then ".ts" else ".tsx"
+  let filePath = joinPath routePath (kindToFileName kind <> ext)
   let outputModule = joinPath outputDir (info.name <> "/index.js")
   let relImport = relativePath routePath outputModule
 
@@ -294,7 +326,7 @@ moduleToRoute appDir outputDir info = do
   let hasMetadata = canHaveMeta && hasMetadataDecl info.source
   let hasStaticParams = kind == "page" && hasStaticParamsDecl info.source
 
-  Just { mod: info.name, kind, filePath, relImport, routePath, directive: info.directive, hasMetadata, hasStaticParams }
+  Just { mod: info.name, kind, filePath, relImport, routePath, directive: info.directive, hasMetadata, hasStaticParams, handlerMethods: methods }
 
 --------------------------------------------------------------------------------
 -- .tsx generation
@@ -307,9 +339,11 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
 
   declName = kindToDeclName route.kind
 
-  imports = declName
-    <> (if route.hasMetadata then ", metadata" else "")
-    <> (if route.hasStaticParams then ", staticParams" else "")
+  imports
+    | route.kind == "handler" = String.joinWith ", " route.handlerMethods
+    | otherwise = declName
+        <> (if route.hasMetadata then ", metadata" else "")
+        <> (if route.hasStaticParams then ", staticParams" else "")
 
   importLine = "import { " <> imports <> " } from " <> show route.relImport <> ";"
 
@@ -322,6 +356,12 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
   isClient = route.directive == Just "use client" || route.kind == "error" || route.kind == "globalError"
 
   contentLines
+    -- Handler: named exports for each HTTP method
+    | route.kind == "handler" =
+        [ marker
+        , "// @ts-expect-error — PureScript output"
+        , importLine
+        ] <> handlerExports
     -- Client component: top-level await
     | isClient =
         [ marker
@@ -386,6 +426,14 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         , "}"
         ]
 
+  handlerExports = route.handlerMethods # Array.concatMap \method -> do
+    let exportName = methodToExportName method
+    [ "export async function " <> exportName <> "(request, context) {"
+    , "  const params = await (context.params ?? {});"
+    , "  return " <> method <> "()(request, params);"
+    , "}"
+    ]
+
 --------------------------------------------------------------------------------
 -- Helpers
 --------------------------------------------------------------------------------
@@ -413,7 +461,7 @@ removeStaleIn dir keepPaths = do
     for_ entries \entry -> do
       let full = joinPath dir entry.name
       if entry.isDirectory then removeStaleIn full keepPaths
-      else when (String.contains (String.Pattern ".tsx") entry.name) do
+      else when (String.contains (String.Pattern ".tsx") entry.name || String.contains (String.Pattern ".ts") entry.name) do
         content <- readFileSync full
         when (String.contains (String.Pattern marker) content && not (Array.elem full keepPaths)) do
           unlinkSync full

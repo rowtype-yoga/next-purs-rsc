@@ -27,6 +27,20 @@ module Next
   , image
   , script
   , ScriptStrategy(..)
+  , GET
+  , POST
+  , PUT
+  , DELETE
+  , PATCH
+  , HEAD
+  , OPTIONS
+  , simpleGet
+  , simplePost
+  , simplePut
+  , simpleDelete
+  , simplePatch
+  , simpleHead
+  , simpleOptions
   , module Path
   ) where
 
@@ -38,6 +52,7 @@ import Data.Maybe (Maybe)
 import Data.Nullable (Nullable, toMaybe)
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Effect (Effect)
+import Effect.Aff (Aff)
 import Foreign (Foreign)
 import Prim.Row as Row
 import Prim.Row (class Union)
@@ -90,6 +105,27 @@ newtype GlobalError path = GlobalError Unit
 
 newtype NotFound :: forall k. k -> Type
 newtype NotFound path = NotFound Unit
+
+newtype GET :: forall k. k -> Type
+newtype GET path = GET Unit
+
+newtype POST :: forall k. k -> Type
+newtype POST path = POST Unit
+
+newtype PUT :: forall k. k -> Type
+newtype PUT path = PUT Unit
+
+newtype DELETE :: forall k. k -> Type
+newtype DELETE path = DELETE Unit
+
+newtype PATCH :: forall k. k -> Type
+newtype PATCH path = PATCH Unit
+
+newtype HEAD :: forall k. k -> Type
+newtype HEAD path = HEAD Unit
+
+newtype OPTIONS :: forall k. k -> Type
+newtype OPTIONS path = OPTIONS Unit
 
 --------------------------------------------------------------------------------
 -- FFI
@@ -273,6 +309,42 @@ nextLayout name ctx om = unsafeCoerce $ Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
     render <- om
     omComponent name render
+
+--------------------------------------------------------------------------------
+-- Route handlers
+--------------------------------------------------------------------------------
+
+simpleHandler
+  :: forall path pathParams pathRL
+   . SegmentPathParams path pathParams
+  => RL.RowToList pathParams pathRL
+  => ParsePathFields pathRL pathParams
+  => (Foreign -> { | pathParams } -> Aff Foreign)
+  -> Foreign
+simpleHandler f = unsafeCoerce \request rawParams -> Promise.fromAff do
+  let params = parsePathFields (unsafeCoerce rawParams)
+  f request params
+
+simpleGet :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Foreign -> { | pathParams } -> Aff Foreign) -> GET path
+simpleGet f = unsafeCoerce (simpleHandler f)
+
+simplePost :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Foreign -> { | pathParams } -> Aff Foreign) -> POST path
+simplePost f = unsafeCoerce (simpleHandler f)
+
+simplePut :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Foreign -> { | pathParams } -> Aff Foreign) -> PUT path
+simplePut f = unsafeCoerce (simpleHandler f)
+
+simpleDelete :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Foreign -> { | pathParams } -> Aff Foreign) -> DELETE path
+simpleDelete f = unsafeCoerce (simpleHandler f)
+
+simplePatch :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Foreign -> { | pathParams } -> Aff Foreign) -> PATCH path
+simplePatch f = unsafeCoerce (simpleHandler f)
+
+simpleHead :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Foreign -> { | pathParams } -> Aff Foreign) -> HEAD path
+simpleHead f = unsafeCoerce (simpleHandler f)
+
+simpleOptions :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Foreign -> { | pathParams } -> Aff Foreign) -> OPTIONS path
+simpleOptions f = unsafeCoerce (simpleHandler f)
 
 --------------------------------------------------------------------------------
 -- Links
