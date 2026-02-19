@@ -7,7 +7,7 @@ import Data.String as String
 import Effect (Effect)
 import Effect.Console as Console
 import Loader.Main (Segment(..), detectDirective, extractModuleName, generateTsx, kindToDeclName, kindToFileName, segmentsToNextPath)
-import Loader.Webpack as Webpack
+import Loader.Plugin as Plugin
 import Test.Assert (assertEqual, assertTrue', assertFalse')
 
 main :: Effect Unit
@@ -192,19 +192,19 @@ testGenerateTsx = do
 testExtractModule :: Effect Unit
 testExtractModule = do
   assertEqual
-    { actual: Webpack.extractModule "/project/output/Page.Home/index.js"
+    { actual: Plugin.extractModule "/project/output/Page.Home/index.js"
     , expected: Just "Page.Home"
     }
   assertEqual
-    { actual: Webpack.extractModule "C:\\project\\output\\Page.Home\\index.js"
+    { actual: Plugin.extractModule "C:\\project\\output\\Page.Home\\index.js"
     , expected: Just "Page.Home"
     }
   assertEqual
-    { actual: Webpack.extractModule "/some/random/file.js"
+    { actual: Plugin.extractModule "/some/random/file.js"
     , expected: Nothing
     }
   assertEqual
-    { actual: Webpack.extractModule "/project/output/Page.Blog.Slug/index.js"
+    { actual: Plugin.extractModule "/project/output/Page.Blog.Slug/index.js"
     , expected: Just "Page.Blog.Slug"
     }
 

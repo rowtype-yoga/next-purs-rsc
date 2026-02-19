@@ -42,16 +42,18 @@ var __export = (target, all) => {
 // loader-entry.js
 var exports_loader_entry = {};
 __export(exports_loader_entry, {
-  default: () => purscriptRscLoader
+  default: () => loader_entry_default
 });
 module.exports = __toCommonJS(exports_loader_entry);
 
-// output-loader/Loader.Webpack/foreign.js
+// output-loader/Loader.Plugin/foreign.js
 var import_fs = __toESM(require("fs"));
 var import_path = __toESM(require("path"));
+var import_unplugin = require("unplugin");
 var cache = null;
 var mtime = 0;
-var loadDirectivesImpl = (rootDir) => () => {
+var loadDirectivesImpl = () => {
+  const rootDir = process.cwd();
   const manifestPath = import_path.default.join(rootDir, "output", "directives.json");
   if (!import_fs.default.existsSync(manifestPath))
     return;
@@ -68,9 +70,28 @@ var lookupDirectiveImpl = (nothing) => (just) => (moduleName) => () => {
   const d = cache[moduleName];
   return d ? just(d) : nothing;
 };
-var extractModuleImpl = (nothing) => (just) => (resourcePath) => {
-  const match = resourcePath.match(/output[/\\]([^/\\]+)[/\\]index\.js$/);
+var extractModuleImpl = (nothing) => (just) => (id) => {
+  const match = id.match(/output[/\\]([^/\\]+)[/\\]index\.js$/);
   return match ? just(match[1]) : nothing;
+};
+var createPluginImpl = (transformFn) => {
+  const unplugin = import_unplugin.createUnplugin(() => ({
+    name: "purescript-rsc",
+    transform: {
+      filter: { id: /output[/\\].*[/\\]index\.js$/ },
+      handler(code, id) {
+        return transformFn(id)(code)();
+      }
+    }
+  }));
+  function raw(source) {
+    return transformFn(this.resourcePath)(source)();
+  }
+  raw.webpack = unplugin.webpack;
+  raw.vite = unplugin.vite;
+  raw.rollup = unplugin.rollup;
+  raw.esbuild = unplugin.esbuild;
+  return raw;
 };
 // output-loader/Data.Bounded/foreign.js
 var topChar = String.fromCharCode(65535);
@@ -137,7 +158,7 @@ var log = function(s) {
     console.log(s);
   };
 };
-// output-loader/Loader.Webpack/index.js
+// output-loader/Loader.Plugin/index.js
 var show2 = /* @__PURE__ */ show(showString);
 var lookupDirective = /* @__PURE__ */ function() {
   return lookupDirectiveImpl(Nothing.value)(Just.create);
@@ -145,36 +166,33 @@ var lookupDirective = /* @__PURE__ */ function() {
 var extractModule = /* @__PURE__ */ function() {
   return extractModuleImpl(Nothing.value)(Just.create);
 }();
-var loader = function(rootContext) {
-  return function(resourcePath) {
-    return function(source) {
-      return function __do() {
-        loadDirectivesImpl(rootContext)();
-        var v = extractModule(resourcePath);
-        if (v instanceof Nothing) {
+var transform = function(id) {
+  return function(source) {
+    return function __do() {
+      loadDirectivesImpl();
+      var v = extractModule(id);
+      if (v instanceof Nothing) {
+        return source;
+      }
+      if (v instanceof Just) {
+        var directive = lookupDirective(v.value0)();
+        if (directive instanceof Nothing) {
           return source;
         }
-        if (v instanceof Just) {
-          var directive = lookupDirective(v.value0)();
-          if (directive instanceof Nothing) {
-            return source;
-          }
-          if (directive instanceof Just) {
-            log("[purescript-rsc] " + (v.value0 + (" -> " + show2(directive.value0))))();
-            return show2(directive.value0) + (`;
+        if (directive instanceof Just) {
+          log("[purescript-rsc] " + (v.value0 + (" -> " + show2(directive.value0))))();
+          return show2(directive.value0) + (`;
 ` + source);
-          }
-          throw new Error("Failed pattern match at Loader.Webpack (line 28, column 7 - line 32, column 43): " + [directive.constructor.name]);
         }
-        throw new Error("Failed pattern match at Loader.Webpack (line 24, column 3 - line 32, column 43): " + [v.constructor.name]);
-      };
+        throw new Error("Failed pattern match at Loader.Plugin (line 32, column 7 - line 36, column 43): " + [directive.constructor.name]);
+      }
+      throw new Error("Failed pattern match at Loader.Plugin (line 28, column 3 - line 36, column 43): " + [v.constructor.name]);
     };
   };
 };
+var plugin = /* @__PURE__ */ createPluginImpl(transform);
 
 // loader-entry.js
-function purscriptRscLoader(source) {
-  return loader(this.rootContext || process.cwd())(this.resourcePath)(source)();
-}
+var loader_entry_default = plugin;
 
 module.exports=module.exports.default;

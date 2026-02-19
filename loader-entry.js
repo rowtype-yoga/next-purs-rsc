@@ -1,5 +1,2 @@
-import { loader } from "./output-loader/Loader.Webpack/index.js";
-
-export default function purscriptRscLoader(source) {
-  return loader(this.rootContext || process.cwd())(this.resourcePath)(source)();
-}
+import { plugin } from "./output-loader/Loader.Plugin/index.js";
+export default plugin;
