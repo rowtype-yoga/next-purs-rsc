@@ -283,8 +283,17 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         , "  return render({ params, searchParams });"
         , "}"
         ]
-    -- Loading/NotFound: async server, no props
-    | route.kind == "loading" || route.kind == "notFound" =
+    -- NotFound: direct call, no props
+    | route.kind == "notFound" =
+        [ marker
+        , "// @ts-expect-error — PureScript output"
+        , "import { " <> declName <> " } from " <> show route.relImport <> ";"
+        , "export default async function() {"
+        , "  return " <> declName <> "()"
+        , "}"
+        ]
+    -- Loading: async server, no props
+    | route.kind == "loading" =
         [ marker
         , "// @ts-expect-error — PureScript output"
         , importLine
