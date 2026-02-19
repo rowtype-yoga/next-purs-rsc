@@ -30,18 +30,18 @@ import Effect (Effect)
 import Foreign (Foreign)
 import Prim.Row as Row
 import Prim.RowList as RL
-import React.Basic (JSX)
+import React.Basic (JSX, ReactComponent)
 import React.Basic.Hooks (ReactChildren)
 import Record.Builder as Builder
 import Route (Route, toPath)
 import Type.Proxy (Proxy(..))
+import Partial.Unsafe (unsafeCrashWith)
 import Unsafe.Coerce (unsafeCoerce)
 import Yoga.HTTP.API.Path (Path, Root, Lit, Capture, PathCons, type (/), Param, type (:), QueryParams, type (:?), Required) as Path
 import Yoga.HTTP.API.Path (class ParseParam, parseParam)
 import Yoga.HTTP.API.Route.Handler (class SegmentPathParams, class SegmentQueryParams)
 import Yoga.Om as Om
-import Yoga.React.DOM (a)
-import Yoga.React.DOM.Internal (class IsJSX)
+import Yoga.React.DOM.Internal (class IsJSX, createElement)
 import Yoga.React.Om (OmRender, omComponent)
 
 -- | Opaque page type. The path DSL encodes both URL segments and query params.
@@ -74,6 +74,7 @@ foreign import data RawRecord :: Type
 
 foreign import _mapRecord :: forall rin rout. (forall x. Nullable x -> Maybe x) -> { | rin } -> { | rout }
 foreign import _getField :: String -> RawRecord -> String
+foreign import _linkComponent :: ReactComponent { href :: String, children :: ReactChildren JSX }
 
 --------------------------------------------------------------------------------
 -- ParsePathFields: parse path params from JS string values
@@ -96,9 +97,10 @@ instance
   buildParsedPath _ raw =
     Builder.insert (Proxy :: Proxy name) parsedValue <<< buildParsedPath (Proxy :: Proxy tail) raw
     where
-    parsedValue = case parseParam (_getField (reflectSymbol (Proxy :: Proxy name)) raw) of
+    parsedValue = case parseParam (_getField fieldName raw) of
       Right v -> v
-      Left _ -> unsafeCoerce unit
+      Left err -> unsafeCrashWith ("Failed to parse path param \"" <> fieldName <> "\": " <> err)
+    fieldName = reflectSymbol (Proxy :: Proxy name)
 
 parsePathFields
   :: forall rl parsed
@@ -213,4 +215,4 @@ nextLayout name ctx om = unsafeCoerce $ Promise.fromAff do
 --------------------------------------------------------------------------------
 
 link :: forall kids. IsJSX kids => Route -> kids -> JSX
-link route children = a { href: toPath route } children
+link route children = createElement _linkComponent { href: toPath route } children

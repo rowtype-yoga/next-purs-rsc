@@ -26,15 +26,17 @@ import * as PureScript_CST from "../PureScript.CST/index.js";
 import * as PureScript_CST_Types from "../PureScript.CST.Types/index.js";
 var eq = /* #__PURE__ */ Data_Eq.eq(Data_Eq.eqString);
 var pure = /* #__PURE__ */ Control_Applicative.pure(Effect.applicativeEffect);
-var map = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
+var map = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
+var show = /* #__PURE__ */ Data_Show.show(Data_Show.showString);
+var toUnfoldable = /* #__PURE__ */ Data_Map_Internal.toUnfoldable(Data_Unfoldable.unfoldableArray);
 var when = /* #__PURE__ */ Control_Applicative.when(Effect.applicativeEffect);
+var map1 = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
 var for_ = /* #__PURE__ */ Data_Foldable.for_(Effect.applicativeEffect)(Data_Foldable.foldableArray);
 var elem = /* #__PURE__ */ Data_Array.elem(Data_Eq.eqString);
 var append1 = /* #__PURE__ */ Data_Semigroup.append(Data_Semigroup.semigroupArray);
 var fromFoldable = /* #__PURE__ */ Data_Array.fromFoldable(Data_Array_NonEmpty_Internal.foldableNonEmptyArray);
 var eq1 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Maybe.eqMaybe(Data_Eq.eqString));
-var show = /* #__PURE__ */ Data_Show.show(Data_Show.showString);
-var map1 = /* #__PURE__ */ Data_Functor.map(Effect.functorEffect);
+var map2 = /* #__PURE__ */ Data_Functor.map(Effect.functorEffect);
 var bind1 = /* #__PURE__ */ Control_Bind.bind(Data_Maybe.bindMaybe);
 var eq2 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Maybe.eqMaybe(Data_Eq.eqChar));
 var lookup = /* #__PURE__ */ Data_Map_Internal.lookup(Data_Ord.ordString);
@@ -42,7 +44,6 @@ var eq3 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Eq.eqArray(Data_Eq.eqS
 var foldMap = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableArray)(Data_Monoid.monoidString);
 var foldl = /* #__PURE__ */ Data_Foldable.foldl(Data_Foldable.foldableArray);
 var insert = /* #__PURE__ */ Data_Map_Internal.insert(Data_Ord.ordString);
-var toUnfoldable = /* #__PURE__ */ Data_Map_Internal.toUnfoldable(Data_Unfoldable.unfoldableArray);
 var unless = /* #__PURE__ */ Control_Applicative.unless(Effect.applicativeEffect);
 var show1 = /* #__PURE__ */ Data_Show.show(Data_Show.showInt);
 var Static = /* #__PURE__ */ (function () {
@@ -106,8 +107,8 @@ var writeIfChanged = function (filePath) {
             var exists = $foreign.existsSync(filePath)();
             if (exists) {
                 var existing = $foreign.readFileSync(filePath)();
-                var $95 = existing === content;
-                if ($95) {
+                var $97 = existing === content;
+                if ($97) {
                     return false;
                 };
                 $foreign.writeFileSync(filePath)(content)();
@@ -115,6 +116,21 @@ var writeIfChanged = function (filePath) {
             };
             $foreign.writeFileSync(filePath)(content)();
             return true;
+        };
+    };
+};
+var writeDirectivesManifest = function (outputDir) {
+    return function (modules) {
+        var entries = Data_Array.mapMaybe(function (v) {
+            return map(function (d) {
+                return show(v.value0) + (": " + show(d));
+            })(v.value1.directive);
+        })(toUnfoldable(modules));
+        var json = "{\x0a  " + (Data_String_Common.joinWith(",\x0a  ")(entries) + "\x0a}\x0a");
+        var manifestPath = $foreign.joinPath(outputDir)("directives.json");
+        return function __do() {
+            var changed = writeIfChanged(manifestPath)(json)();
+            return when(changed)(Effect_Console.log("[purescript-rsc] Updated output/directives.json"))();
         };
     };
 };
@@ -128,7 +144,7 @@ var typeToSegment = function (v) {
     };
     return new Static("unknown");
 };
-var segmentsToNextPath = /* #__PURE__ */ map(function (v) {
+var segmentsToNextPath = /* #__PURE__ */ map1(function (v) {
     if (v instanceof Static) {
         return v.value0;
     };
@@ -385,12 +401,12 @@ var findPursFiles = function (dir) {
     };
     return function __do() {
         var exists = $foreign.existsSync(dir)();
-        var $146 = !exists;
-        if ($146) {
+        var $151 = !exists;
+        if ($151) {
             return [  ];
         };
         var entries = $foreign.readdirSync(dir)();
-        return map1(Data_Array.concat)(traverse(processEntry)(entries))();
+        return map2(Data_Array.concat)(traverse(processEntry)(entries))();
     };
 };
 var extractModuleName = function (src) {
@@ -401,8 +417,8 @@ var extractModuleName = function (src) {
         var name = Data_String_CodeUnits.takeWhile(function (c) {
             return c !== " " && c !== "(";
         })(afterModule);
-        var $147 = Data_String_CodePoints.length(name) > 0;
-        if ($147) {
+        var $152 = Data_String_CodePoints.length(name) > 0;
+        if ($152) {
             return new Data_Maybe.Just(name);
         };
         return Data_Maybe.Nothing.value;
@@ -420,8 +436,8 @@ var extractJsonField = function (field) {
                 };
                 if (v instanceof Data_Maybe.Just && v1 instanceof Data_Maybe.Just) {
                     return new Data_Maybe.Just((function () {
-                        var $150 = v.value0 > v1.value0;
-                        if ($150) {
+                        var $155 = v.value0 > v1.value0;
+                        if ($155) {
                             return v.value0;
                         };
                         return v1.value0;
@@ -439,8 +455,8 @@ var extractJsonField = function (field) {
         if (idx instanceof Data_Maybe.Just) {
             var rest = Data_String_CodePoints.drop((idx.value0 + Data_String_CodePoints.length(needle) | 0) + 1 | 0)(json);
             var trimmed = Data_String_Common.trim(rest);
-            var $154 = eq2(Data_String_CodeUnits.charAt(0)(trimmed))(new Data_Maybe.Just("\""));
-            if ($154) {
+            var $159 = eq2(Data_String_CodeUnits.charAt(0)(trimmed))(new Data_Maybe.Just("\""));
+            if ($159) {
                 var inner = Data_String_CodePoints.drop(1)(trimmed);
                 var endIdx = Data_String_CodePoints.indexOf("\"")(inner);
                 if (endIdx instanceof Data_Maybe.Just) {
@@ -515,7 +531,7 @@ var generateRoutePursFromModules = function (routes) {
         var pageRoutes = Data_Array.filter(function (r) {
             return r.kind === "page";
         })(routes);
-        var routeEntries = map(function (route) {
+        var routeEntries = map1(function (route) {
             var src = Data_Maybe.maybe("")(function (v) {
                 return v.source;
             })(lookup(route.mod)(modules));
@@ -546,14 +562,14 @@ var generateRoutePursFromModules = function (routes) {
             return function (segments) {
                 var name = constructorName(route.mod);
                 var paramSegs = Data_Array.filter(isParam)(segments);
-                var $189 = Data_Array.length(paramSegs) > 0;
-                if ($189) {
+                var $194 = Data_Array.length(paramSegs) > 0;
+                if ($194) {
                     return name + foldMap(segmentParamType)(paramSegs);
                 };
                 return name;
             };
         };
-        var constructors = map(function (v) {
+        var constructors = map1(function (v) {
             return constructorEntry(v.value0)(v.value1);
         })(routeEntries);
         var appendExpr = function (v) {
@@ -593,7 +609,7 @@ var generateRoutePursFromModules = function (routes) {
                         varIdx: v.varIdx + 1 | 0
                     };
                 };
-                throw new Error("Failed pattern match at Loader.Main (line 521, column 3 - line 522, column 56): " + [ v.constructor.name, v1.constructor.name ]);
+                throw new Error("Failed pattern match at Loader.Main (line 534, column 3 - line 535, column 56): " + [ v.constructor.name, v1.constructor.name ]);
             };
         };
         var buildPathExpr = function (segments) {
@@ -601,8 +617,8 @@ var generateRoutePursFromModules = function (routes) {
                 expr: "",
                 varIdx: 0
             })(segments);
-            var $210 = Data_String_Common["null"](v.expr);
-            if ($210) {
+            var $215 = Data_String_Common["null"](v.expr);
+            if ($215) {
                 return show("/");
             };
             return v.expr;
@@ -617,8 +633,8 @@ var generateRoutePursFromModules = function (routes) {
                     };
                 })(paramSegs);
                 var patVars = (function () {
-                    var $212 = Data_Array["null"](vars);
-                    if ($212) {
+                    var $217 = Data_Array["null"](vars);
+                    if ($217) {
                         return "";
                     };
                     return " " + Data_String_Common.joinWith(" ")(vars);
@@ -627,7 +643,7 @@ var generateRoutePursFromModules = function (routes) {
                 return "  " + (name + (patVars + (" -> " + pathExpr)));
             };
         };
-        var cases = map(function (v) {
+        var cases = map1(function (v) {
             return caseEntry(v.value0)(v.value1);
         })(routeEntries);
         var allLines = append1([ pursMarker, "module Route where", "", "import Prelude", "", "data Route = " + Data_String_Common.joinWith(" | ")(constructors), "", "derive instance Eq Route", "derive instance Ord Route", "", "toPath :: Route -> String", "toPath = case _ of" ])(append1(cases)([ "" ]));
@@ -680,17 +696,17 @@ var moduleToRoute = function (appDir) {
 var detectDirective = function (modName) {
     return function (src) {
         if (Data_Array.any((function () {
-            var $232 = eq("-- @client");
-            return function ($233) {
-                return $232(Data_String_Common.trim($233));
+            var $237 = eq("-- @client");
+            return function ($238) {
+                return $237(Data_String_Common.trim($238));
             };
         })())(Data_String_Common.split("\x0a")(src))) {
             return new Data_Maybe.Just("use client");
         };
         if (Data_Array.any((function () {
-            var $234 = eq("-- @server");
-            return function ($235) {
-                return $234(Data_String_Common.trim($235));
+            var $239 = eq("-- @server");
+            return function ($240) {
+                return $239(Data_String_Common.trim($240));
             };
         })())(Data_String_Common.split("\x0a")(src))) {
             return new Data_Maybe.Just("use server");
@@ -749,7 +765,7 @@ var computeRoutes = function (appDir) {
 };
 var cleanStaleRoutes = function (appDir) {
     return function (currentRoutes) {
-        var keepPaths = map(function (v) {
+        var keepPaths = map1(function (v) {
             return v.filePath;
         })(currentRoutes);
         return removeStaleIn(appDir)(keepPaths);
@@ -792,6 +808,7 @@ var main = /* #__PURE__ */ (function () {
     var outputDir = $foreign.resolvePath(".")("output");
     return function __do() {
         var modules = scanModules(srcDir)();
+        writeDirectivesManifest(outputDir)(modules)();
         cleanStaleOutput(outputDir)();
         var routes = computeRoutes(appDir)(outputDir)(modules);
         var routePurs = generateRoutePursFromModules(routes)(modules);
@@ -857,6 +874,7 @@ export {
     extractJsonField,
     writeIfChanged,
     main,
+    writeDirectivesManifest,
     writeRouteFile,
     generateRoutePursFromModules,
     eqSegment

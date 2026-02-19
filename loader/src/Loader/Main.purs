@@ -417,13 +417,16 @@ main = do
   -- 1. Scan source modules
   modules <- scanModules srcDir
 
-  -- 2. Clean stale output
+  -- 2. Write directives manifest
+  writeDirectivesManifest outputDir modules
+
+  -- 3. Clean stale output
   cleanStaleOutput outputDir
 
-  -- 3. Compute routes
+  -- 4. Compute routes
   let routes = computeRoutes appDir outputDir modules
 
-  -- 4. Generate Route.purs
+  -- 5. Generate Route.purs
   let routePurs = generateRoutePursFromModules routes modules
   let routeFile = joinPath srcDir "Route.purs"
   changed <- writeIfChanged routeFile routePurs
@@ -431,14 +434,24 @@ main = do
     then Console.log "[purescript-rsc] Generated src/Route.purs"
     else Console.log "[purescript-rsc] Route.purs unchanged"
 
-  -- 5. Clean stale routes
+  -- 6. Clean stale routes
   cleanStaleRoutes appDir routes
 
-  -- 6. Write .tsx wrappers
+  -- 7. Write .tsx wrappers
   result <- foldl (writeRouteFile) (pure { written: 0, skipped: 0 }) routes
   Console.log $ "[purescript-rsc] " <> show result.written <> " written, "
     <> show result.skipped <> " unchanged, "
     <> show (Array.length routes) <> " total route(s)"
+
+writeDirectivesManifest :: String -> Map String ModuleInfo -> Effect Unit
+writeDirectivesManifest outputDir modules = do
+  let entries = Map.toUnfoldable modules # Array.mapMaybe \(name /\ info) ->
+        map (\d -> show name <> ": " <> show d) info.directive
+  let json = "{\n  " <> String.joinWith ",\n  " entries <> "\n}\n"
+  let manifestPath = joinPath outputDir "directives.json"
+  changed <- writeIfChanged manifestPath json
+  when changed do
+    Console.log "[purescript-rsc] Updated output/directives.json"
 
 writeRouteFile :: Effect { written :: Int, skipped :: Int } -> RouteInfo -> Effect { written :: Int, skipped :: Int }
 writeRouteFile accEff route = do
