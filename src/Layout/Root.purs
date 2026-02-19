@@ -1,13 +1,15 @@
 module Layout.Root where
 
 import Next (Layout, link, simpleLayout)
+import React.Basic.Hooks (reactChildrenToArray)
 import Route (Route(..))
 import Yoga.React.DOM (body, html, main, nav, strong, text)
+import Yoga.React.DOM.Internal (css)
 
 layout :: Layout
 layout = simpleLayout \{ children } ->
   html { lang: "en" }
-    [ body {}
+    [ body { style: css { fontFamily: "sans-serif", background: "#001", color: "#d0d0e7" } }
         [ nav {}
             [ strong {} [ text "PureScript + Next.js RSC" ]
             , text " | "
@@ -15,6 +17,6 @@ layout = simpleLayout \{ children } ->
             , text " | "
             , link About [ text "About" ]
             ]
-        , main {} children
+        , main {} (reactChildrenToArray children)
         ]
     ]

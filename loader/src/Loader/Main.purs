@@ -42,6 +42,7 @@ type ModuleInfo =
   { name :: String
   , source :: String
   , file :: String
+  , directive :: Maybe String
   }
 
 type RouteInfo =
@@ -91,6 +92,15 @@ findPursFiles dir = do
             r <- f x
             go (i + 1) (acc <> [ r ])
 
+detectDirective :: String -> String -> Maybe String
+detectDirective modName src
+  | Array.any (eq "-- @client" <<< String.trim) (String.split (String.Pattern "\n") src) = Just "use client"
+  | Array.any (eq "-- @server" <<< String.trim) (String.split (String.Pattern "\n") src) = Just "use server"
+  | String.contains (String.Pattern ".Client") modName = Just "use client"
+  | String.contains (String.Pattern ".Server") modName = Just "use server"
+  | String.contains (String.Pattern "Actions.") modName = Just "use server"
+  | otherwise = Nothing
+
 scanModules :: String -> Effect (Map String ModuleInfo)
 scanModules srcDir = do
   files <- findPursFiles srcDir
@@ -101,8 +111,9 @@ scanModules srcDir = do
     src <- readFileSync file
     case extractModuleName src of
       Nothing -> pure acc
-      Just name ->
-        pure $ Map.insert name { name, source: src, file } acc
+      Just name -> do
+        let directive = detectDirective name src
+        pure $ Map.insert name { name, source: src, file, directive } acc
 
 extractModuleName :: String -> Maybe String
 extractModuleName src = do
@@ -118,18 +129,13 @@ extractModuleName src = do
 -- CST parsing — extract Page/ClientPage type argument
 --------------------------------------------------------------------------------
 
-type PageTypeInfo =
-  { segments :: Array Segment
-  , client :: Boolean
-  }
-
-extractPageType :: String -> String -> Maybe PageTypeInfo
+extractPageType :: String -> String -> Maybe (Array Segment)
 extractPageType declName src = case parseModule src of
   ParseSucceeded (CST.Module m) -> findSignature declName m.body
   ParseSucceededWithErrors (CST.Module m) _ -> findSignature declName m.body
   ParseFailed _ -> Nothing
 
-findSignature :: forall e. String -> CST.ModuleBody e -> Maybe PageTypeInfo
+findSignature :: forall e. String -> CST.ModuleBody e -> Maybe (Array Segment)
 findSignature declName (CST.ModuleBody { decls }) =
   Array.findMap matchDecl decls
   where
@@ -137,19 +143,17 @@ findSignature declName (CST.ModuleBody { decls }) =
     | ident == declName = extractFromType ty
   matchDecl _ = Nothing
 
-extractFromType :: forall e. CST.Type e -> Maybe PageTypeInfo
+extractFromType :: forall e. CST.Type e -> Maybe (Array Segment)
 extractFromType = case _ of
-  CST.TypeApp head args -> do
-    let isClient = case head of
-          CST.TypeConstructor (CST.QualifiedName { name: CST.Proper "ClientPage" }) -> true
-          _ -> false
-    let isPage = case head of
-          CST.TypeConstructor (CST.QualifiedName { name: CST.Proper n }) -> n == "Page" || n == "ClientPage"
-          _ -> false
-    if isPage then case Array.head (Array.fromFoldable args) of
-      Just arg -> Just { segments: walkTypeArg arg, client: isClient }
-      Nothing -> Nothing
-    else Nothing
+  -- Page Root, Page "about", Page ("blog" / "slug" : String)
+  CST.TypeApp head args -> case head of
+    CST.TypeConstructor (CST.QualifiedName { name: CST.Proper "Page" }) ->
+      case Array.head (Array.fromFoldable args) of
+        Just arg -> Just (walkTypeArg arg)
+        Nothing -> Nothing
+    _ -> Nothing
+  -- Bare Layout (no type arg)
+  CST.TypeConstructor (CST.QualifiedName { name: CST.Proper "Layout" }) -> Just []
   _ -> Nothing
 
 walkTypeArg :: forall e. CST.Type e -> Array Segment
@@ -203,18 +207,15 @@ moduleToRoute appDir outputDir info = do
     Just "Layout" -> Just "layout"
     _ -> Nothing
 
-  -- Extract route from type annotation (Page/ClientPage/Layout)
-  let declName = kind
-  let typeInfo = extractPageType declName info.source
-  let segments = maybe [] _.segments typeInfo
-  let directive = if maybe false _.client typeInfo then Just "use client" else Nothing
+  -- Route segments from Page type annotation (required)
+  segments <- extractPageType kind info.source
   let nextPathSegs = segmentsToNextPath segments
   let routePath = foldl joinPath appDir nextPathSegs
   let filePath = joinPath routePath (kind <> ".tsx")
   let outputModule = joinPath outputDir (info.name <> "/index.js")
   let relImport = relativePath routePath outputModule
 
-  Just { mod: info.name, kind, filePath, relImport, routePath, directive }
+  Just { mod: info.name, kind, filePath, relImport, routePath, directive: info.directive }
 
 --------------------------------------------------------------------------------
 -- .tsx generation
@@ -428,7 +429,7 @@ generateRoutePursFromModules routes modules = String.joinWith "\n" allLines
 
   routeEntries = pageRoutes # map \route -> do
     let src = maybe "" _.source (Map.lookup route.mod modules)
-    let segments = maybe [] _.segments (extractPageType "page" src)
+    let segments = fromMaybe [] (extractPageType "page" src)
     route /\ segments
 
   constructors = routeEntries # map \(route /\ segments) ->

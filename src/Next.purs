@@ -1,7 +1,5 @@
 module Next
   ( Page
-  , ClientPage
-  , clientPage
   , Layout
   , class ParsePathFields
   , buildParsedPath
@@ -25,7 +23,7 @@ import Data.Symbol (class IsSymbol, reflectSymbol)
 import Prim.Row as Row
 import Prim.RowList as RL
 import React.Basic (JSX)
-import React.Basic.Hooks (Component)
+import React.Basic.Hooks (ReactChildren)
 import Record.Builder as Builder
 import Route (Route, toPath)
 import Type.Proxy (Proxy(..))
@@ -47,9 +45,6 @@ import Yoga.React.Om (OmRender, omComponent)
 -- | ```
 newtype Page :: forall k. k -> Type
 newtype Page path = Page Unit
-
-newtype ClientPage :: forall k. k -> Type
-newtype ClientPage path = ClientPage Unit
 
 -- | Opaque layout type.
 newtype Layout = Layout Unit
@@ -92,7 +87,8 @@ parsePathFields
   :: forall rl parsed
    . RL.RowToList parsed rl
   => ParsePathFields rl parsed
-  => RawRecord -> { | parsed }
+  => RawRecord
+  -> { | parsed }
 parsePathFields raw = Builder.buildFromScratch (buildParsedPath (Proxy :: Proxy rl) raw)
 
 --------------------------------------------------------------------------------
@@ -125,10 +121,7 @@ simplePage render = unsafeCoerce $ Promise.fromAff $ pure \rawProps -> do
   let searchParams = _mapRecord toMaybe (unsafeCoerce rawProps).searchParams
   render { params, searchParams }
 
-clientPage :: forall path. Component {} -> ClientPage path
-clientPage = unsafeCoerce
-
-simpleLayout :: ({ children :: JSX } -> JSX) -> Layout
+simpleLayout :: ({ children :: ReactChildren JSX } -> JSX) -> Layout
 simpleLayout render = unsafeCoerce $ Promise.fromAff $ pure render
 
 nextPage

@@ -1,16 +1,18 @@
+-- @client
 module Page.Home where
 
 import Prelude hiding (div)
 
 import Data.Tuple.Nested ((/\))
-import Next (ClientPage, Root, clientPage)
+import Next (Page, Root)
 import React.Basic.Events (handler_)
+import Unsafe.Coerce (unsafeCoerce)
 import React.Basic.Hooks (component, useState)
 import React.Basic.Hooks as React
 import Yoga.React.DOM (button, div, h1, p)
 
-page :: ClientPage Root
-page = clientPage $ component "HomePage" \_ -> React.do
+page :: Page Root
+page = unsafeCoerce $ component "HomePage" \_ -> React.do
   count /\ setCount <- useState 0
   pure $ div {}
     [ h1 {} "Homey"
