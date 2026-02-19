@@ -5,7 +5,7 @@ import Prelude
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
-import Loader.Main (Segment(..), detectDirective, extractModuleName, generateTsx, kindToDeclName, kindToFileName, segmentsToNextPath)
+import Loader.Main (Segment(..), detectDirective, extractJsonField, extractModuleName, extractPageType, generateTsx, hasMetadataDecl, kindToDeclName, kindToFileName, moduleToRoute, segmentsToNextPath)
 import Loader.Plugin as Plugin
 import Test.Golden (goldenTest)
 import Test.Spec (Spec, describe, it)
@@ -66,6 +66,80 @@ spec = do
     for_ goldenCases \(name /\ actual) ->
       golden name actual
 
+  describe "hasMetadataDecl" do
+    it "detects metadata signature" do
+      hasMetadataDecl "module Foo where\nmetadata :: Metadata (\"blog\" / \"slug\" : String)\nmetadata = simpleMetadata \\_ -> {}" `shouldEqual` true
+    it "false when no metadata signature" do
+      hasMetadataDecl "module Foo where\npage :: Page (\"about\")\npage = simplePage \\_ -> mempty" `shouldEqual` false
+    it "false when metadata is a value binding without signature" do
+      hasMetadataDecl "module Foo where\nmetadata = simpleMetadata \\_ -> {}" `shouldEqual` false
+    it "false on parse failure" do
+      hasMetadataDecl "not valid purescript {{{}}" `shouldEqual` false
+
+  describe "extractPageType" do
+    it "static segment" do
+      extractPageType "page" "module Foo where\npage :: Page \"about\"" `shouldEqual` Just [ Static "about" ]
+    it "dynamic segment" do
+      extractPageType "page" "module Foo where\npage :: Page (\"slug\" : String)" `shouldEqual` Just [ Dynamic "slug" ]
+    it "nested static segments" do
+      extractPageType "page" "module Foo where\npage :: Page (\"blog\" / \"posts\")" `shouldEqual` Just [ Static "blog", Static "posts" ]
+    it "mixed static and dynamic" do
+      extractPageType "page" "module Foo where\npage :: Page (\"blog\" / \"slug\" : String)" `shouldEqual` Just [ Static "blog", Dynamic "slug" ]
+    it "Root" do
+      extractPageType "page" "module Foo where\npage :: Page Root" `shouldEqual` Just []
+    it "Layout has no type arg" do
+      extractPageType "layout" "module Foo where\nlayout :: Layout" `shouldEqual` Just []
+    it "catch-all segment" do
+      extractPageType "page" "module Foo where\npage :: Page (\"docs\" / \"path\" :.. String)" `shouldEqual` Just [ Static "docs", CatchAll "path" ]
+    it "optional catch-all segment" do
+      extractPageType "page" "module Foo where\npage :: Page (\"docs\" / \"path\" :..? String)" `shouldEqual` Just [ Static "docs", OptCatchAll "path" ]
+    it "query params are ignored for segments" do
+      extractPageType "page" "module Foo where\npage :: Page (\"dashboard\" :? { name :: String })" `shouldEqual` Just [ Static "dashboard" ]
+    it "Nothing for non-matching decl" do
+      extractPageType "page" "module Foo where\nother :: String" `shouldEqual` Nothing
+    it "Loading type" do
+      extractPageType "loading" "module Foo where\nloading :: Loading (\"dashboard\")" `shouldEqual` Just [ Static "dashboard" ]
+    it "ErrorBoundary type" do
+      extractPageType "error" "module Foo where\nerror :: ErrorBoundary Root" `shouldEqual` Just []
+    it "NotFound type" do
+      extractPageType "notFound" "module Foo where\nnotFound :: NotFound Root" `shouldEqual` Just []
+
+  describe "extractJsonField" do
+    it "extracts field with space after colon" do
+      extractJsonField "modulePath" "{\"modulePath\": \"src/Foo.purs\"}" `shouldEqual` Just "src/Foo.purs"
+    it "extracts field with space before colon" do
+      extractJsonField "modulePath" "{\"modulePath\" : \"src/Foo.purs\"}" `shouldEqual` Just "src/Foo.purs"
+    it "returns Nothing for missing field" do
+      extractJsonField "modulePath" "{\"other\": \"value\"}" `shouldEqual` Nothing
+    it "returns Nothing for non-string value" do
+      extractJsonField "count" "{\"count\": 42}" `shouldEqual` Nothing
+
+  describe "moduleToRoute" do
+    it "page without metadata" do
+      let info = { name: "Page.About", source: "module Page.About where\npage :: Page \"about\"\npage = simplePage \\_ -> mempty", file: "src/Page/About.purs", directive: Nothing }
+      let result = moduleToRoute "app" "output" info
+      map _.hasMetadata result `shouldEqual` Just false
+      map _.kind result `shouldEqual` Just "page"
+    it "page with metadata" do
+      let info = { name: "Page.Blog", source: "module Page.Blog where\npage :: Page \"blog\"\npage = simplePage \\_ -> mempty\nmetadata :: Metadata \"blog\"\nmetadata = simpleMetadata \\_ -> {}", file: "src/Page/Blog.purs", directive: Nothing }
+      let result = moduleToRoute "app" "output" info
+      map _.hasMetadata result `shouldEqual` Just true
+    it "client page never has metadata" do
+      let info = { name: "Page.Home.Client", source: "module Page.Home.Client where\npage :: Page Root\npage = simplePage \\_ -> mempty\nmetadata :: Metadata Root\nmetadata = simpleMetadata \\_ -> {}", file: "src/Page/Home/Client.purs", directive: Just "use client" }
+      let result = moduleToRoute "app" "output" info
+      map _.hasMetadata result `shouldEqual` Just false
+    it "layout with metadata" do
+      let info = { name: "Layout.Root", source: "module Layout.Root where\nlayout :: Layout\nlayout = simpleLayout \\_ -> mempty\nmetadata :: Metadata Root\nmetadata = simpleMetadata \\_ -> {}", file: "src/Layout/Root.purs", directive: Nothing }
+      let result = moduleToRoute "app" "output" info
+      map _.hasMetadata result `shouldEqual` Just true
+    it "loading never has metadata" do
+      let info = { name: "Loading.Dashboard", source: "module Loading.Dashboard where\nloading :: Loading (\"dashboard\")\nloading = undefined\nmetadata :: Metadata (\"dashboard\")\nmetadata = undefined", file: "src/Loading/Dashboard.purs", directive: Nothing }
+      let result = moduleToRoute "app" "output" info
+      map _.hasMetadata result `shouldEqual` Just false
+    it "returns Nothing for non-route module" do
+      let info = { name: "Utils.Helpers", source: "module Utils.Helpers where\nfoo :: String\nfoo = \"bar\"", file: "src/Utils/Helpers.purs", directive: Nothing }
+      moduleToRoute "app" "output" info `shouldEqual` Nothing
+
   describe "extractModule" do
     it "unix path" do
       Plugin.extractModule "/project/output/Page.Home/index.js" `shouldEqual` Just "Page.Home"
@@ -114,6 +188,7 @@ spec = do
         , relImport: "../output/Page.Foo/index.js", routePath: "app/foo"
         , directive: Nothing, hasMetadata: false
         }
+    , "server-directive-page" /\ generateTsx (route "page" (Just "use server"))
     , "server-page-metadata" /\ generateTsx
         { mod: "Page.Blog.Slug", kind: "page", filePath: "app/blog/[slug]/page.tsx"
         , relImport: "../output/Page.Blog.Slug/index.js", routePath: "app/blog/[slug]"

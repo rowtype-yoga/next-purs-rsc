@@ -38,6 +38,12 @@ data Segment = Static String | Dynamic String | CatchAll String | OptCatchAll St
 
 derive instance Eq Segment
 
+instance Show Segment where
+  show (Static s) = "(Static " <> show s <> ")"
+  show (Dynamic s) = "(Dynamic " <> show s <> ")"
+  show (CatchAll s) = "(CatchAll " <> show s <> ")"
+  show (OptCatchAll s) = "(OptCatchAll " <> show s <> ")"
+
 type ModuleInfo =
   { name :: String
   , source :: String
