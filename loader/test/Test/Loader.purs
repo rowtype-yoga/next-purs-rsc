@@ -5,7 +5,7 @@ import Prelude
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
-import Loader.Main (Segment(..), detectDirective, extractJsonField, extractModuleName, extractPageType, findHandlerMethods, generateTsx, hasMetadataDecl, hasStaticParamsDecl, kindToDeclName, kindToFileName, methodToExportName, modulePathSegments, moduleToRoute, segmentsToNextPath)
+import Loader.Main (Segment(..), detectDirective, extractJsonField, extractModuleName, extractPageType, findHandlerMethods, generateMiddleware, generateTsx, hasConfigDecl, hasMetadataDecl, hasStaticParamsDecl, kindToDeclName, kindToFileName, methodToExportName, modulePathSegments, moduleToRoute, segmentsToNextPath)
 import Loader.Plugin as Plugin
 import Test.Golden (goldenTest)
 import Test.Spec (Spec, describe, it)
@@ -209,6 +209,19 @@ spec = do
     it "returns Nothing for non-route module" do
       let info = { name: "Utils.Helpers", source: "module Utils.Helpers where\nfoo :: String\nfoo = \"bar\"", file: "src/Utils/Helpers.purs", directive: Nothing }
       moduleToRoute "app" "output" info `shouldEqual` Nothing
+
+  describe "hasConfigDecl" do
+    it "detects config signature" do
+      hasConfigDecl "module Middleware where\nconfig :: { matcher :: Array String }\nconfig = { matcher: [\"/api/:path*\"] }" `shouldEqual` true
+    it "false when no config" do
+      hasConfigDecl "module Middleware where\nmiddleware :: Foreign -> Effect Foreign\nmiddleware = undefined" `shouldEqual` false
+
+  describe "generateMiddleware" do
+    let golden = goldenTest { goldenDir: "loader/test/golden", diffDir: "loader/test/diffs" }
+    golden "middleware" $ generateMiddleware "output"
+      { name: "Middleware", source: "module Middleware where\nmiddleware :: Foreign\nmiddleware = undefined\nconfig :: { matcher :: Array String }\nconfig = undefined", file: "src/Middleware.purs", directive: Nothing }
+    golden "middleware-no-config" $ generateMiddleware "output"
+      { name: "Middleware", source: "module Middleware where\nmiddleware :: Foreign\nmiddleware = undefined", file: "src/Middleware.purs", directive: Nothing }
 
   describe "extractModule" do
     it "unix path" do

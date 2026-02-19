@@ -126,8 +126,8 @@ var writeIfChanged = function (filePath) {
             var exists = $foreign.existsSync(filePath)();
             if (exists) {
                 var existing = $foreign.readFileSync(filePath)();
-                var $116 = existing === content;
-                if ($116) {
+                var $120 = existing === content;
+                if ($120) {
                     return false;
                 };
                 $foreign.writeFileSync(filePath)(content)();
@@ -398,6 +398,28 @@ var hasMetadataDecl = function (src) {
     };
     throw new Error("Failed pattern match at Loader.Main (line 212, column 23 - line 215, column 25): " + [ v.constructor.name ]);
 };
+var hasConfigSig = function (v) {
+    var matchConfig = function (v1) {
+        if (v1 instanceof PureScript_CST_Types.DeclSignature && v1.value0.label.name === "config") {
+            return true;
+        };
+        return false;
+    };
+    return Data_Array.any(matchConfig)(v.decls);
+};
+var hasConfigDecl = function (src) {
+    var v = PureScript_CST.parseModule(src);
+    if (v instanceof PureScript_CST.ParseSucceeded) {
+        return hasConfigSig(v.value0.body);
+    };
+    if (v instanceof PureScript_CST.ParseSucceededWithErrors) {
+        return hasConfigSig(v.value0.body);
+    };
+    if (v instanceof PureScript_CST.ParseFailed) {
+        return false;
+    };
+    throw new Error("Failed pattern match at Loader.Main (line 601, column 21 - line 604, column 25): " + [ v.constructor.name ]);
+};
 var handlerMethodNames = [ "get", "post", "put", "delete_", "patch", "head_", "options" ];
 var generateTsx = function (route) {
     var staticParamsLines = (function () {
@@ -504,6 +526,25 @@ var writeRouteFile = function (accEff) {
         };
     };
 };
+var generateMiddleware = function (outputDir) {
+    return function (info) {
+        var outputModule = $foreign.joinPath(outputDir)(info.name + "/index.js");
+        var relImport = $foreign.relativePath(".")(outputModule);
+        var hasConfig = hasConfigDecl(info.source);
+        var lines = [ marker, "// @ts-expect-error \u2014 PureScript output", "import { middleware" + ((function () {
+            if (hasConfig) {
+                return ", config";
+            };
+            return "";
+        })() + (" } from " + (show(relImport) + ";"))), "export { middleware" + ((function () {
+            if (hasConfig) {
+                return ", config";
+            };
+            return "";
+        })() + " };") ];
+        return Data_String_Common.joinWith("\x0a")(append1(lines)([ "" ]));
+    };
+};
 var findPursFiles = function (dir) {
     var traverse = function (f) {
         return function (xs) {
@@ -545,8 +586,8 @@ var findPursFiles = function (dir) {
     };
     return function __do() {
         var exists = $foreign.existsSync(dir)();
-        var $196 = !exists;
-        if ($196) {
+        var $213 = !exists;
+        if ($213) {
             return [  ];
         };
         var entries = $foreign.readdirSync(dir)();
@@ -583,8 +624,8 @@ var extractModuleName = function (src) {
         var name = Data_String_CodeUnits.takeWhile(function (c) {
             return c !== " " && c !== "(";
         })(afterModule);
-        var $208 = Data_String_CodePoints.length(name) > 0;
-        if ($208) {
+        var $225 = Data_String_CodePoints.length(name) > 0;
+        if ($225) {
             return new Data_Maybe.Just(name);
         };
         return Data_Maybe.Nothing.value;
@@ -602,8 +643,8 @@ var extractJsonField = function (field) {
                 };
                 if (v instanceof Data_Maybe.Just && v1 instanceof Data_Maybe.Just) {
                     return new Data_Maybe.Just((function () {
-                        var $211 = v.value0 > v1.value0;
-                        if ($211) {
+                        var $228 = v.value0 > v1.value0;
+                        if ($228) {
                             return v.value0;
                         };
                         return v1.value0;
@@ -621,8 +662,8 @@ var extractJsonField = function (field) {
         if (idx instanceof Data_Maybe.Just) {
             var rest = Data_String_CodePoints.drop((idx.value0 + Data_String_CodePoints.length(needle) | 0) + 1 | 0)(json);
             var trimmed = Data_String_Common.trim(rest);
-            var $215 = eq1(Data_String_CodeUnits.charAt(0)(trimmed))(new Data_Maybe.Just("\""));
-            if ($215) {
+            var $232 = eq1(Data_String_CodeUnits.charAt(0)(trimmed))(new Data_Maybe.Just("\""));
+            if ($232) {
                 var inner = Data_String_CodePoints.drop(1)(trimmed);
                 var endIdx = Data_String_CodePoints.indexOf("\"")(inner);
                 if (endIdx instanceof Data_Maybe.Just) {
@@ -728,8 +769,8 @@ var generateRoutePursFromModules = function (routes) {
             return function (segments) {
                 var name = constructorName(route.mod);
                 var paramSegs = Data_Array.filter(isParam)(segments);
-                var $250 = Data_Array.length(paramSegs) > 0;
-                if ($250) {
+                var $267 = Data_Array.length(paramSegs) > 0;
+                if ($267) {
                     return name + foldMap(segmentParamType)(paramSegs);
                 };
                 return name;
@@ -775,7 +816,7 @@ var generateRoutePursFromModules = function (routes) {
                         varIdx: v.varIdx + 1 | 0
                     };
                 };
-                throw new Error("Failed pattern match at Loader.Main (line 664, column 3 - line 665, column 56): " + [ v.constructor.name, v1.constructor.name ]);
+                throw new Error("Failed pattern match at Loader.Main (line 701, column 3 - line 702, column 56): " + [ v.constructor.name, v1.constructor.name ]);
             };
         };
         var buildPathExpr = function (segments) {
@@ -783,8 +824,8 @@ var generateRoutePursFromModules = function (routes) {
                 expr: "",
                 varIdx: 0
             })(segments);
-            var $271 = Data_String_Common["null"](v.expr);
-            if ($271) {
+            var $288 = Data_String_Common["null"](v.expr);
+            if ($288) {
                 return show("/");
             };
             return v.expr;
@@ -799,8 +840,8 @@ var generateRoutePursFromModules = function (routes) {
                     };
                 })(paramSegs);
                 var patVars = (function () {
-                    var $273 = Data_Array["null"](vars);
-                    if ($273) {
+                    var $290 = Data_Array["null"](vars);
+                    if ($290) {
                         return "";
                     };
                     return " " + Data_String_Common.joinWith(" ")(vars);
@@ -849,8 +890,8 @@ var moduleToRoute = function (appDir) {
                 return Data_Maybe.Nothing.value;
             })())(function (kind) {
                 var methods = (function () {
-                    var $286 = kind === "handler";
-                    if ($286) {
+                    var $303 = kind === "handler";
+                    if ($303) {
                         return findHandlerMethods(info.source);
                     };
                     return [  ];
@@ -858,8 +899,8 @@ var moduleToRoute = function (appDir) {
                 var declName = kindToDeclName(kind);
                 var firstMethodDecl = Data_Array.head(methods);
                 return bind1((function () {
-                    var $287 = kind === "handler";
-                    if ($287) {
+                    var $304 = kind === "handler";
+                    if ($304) {
                         if (firstMethodDecl instanceof Data_Maybe.Just) {
                             return extractPageType(firstMethodDecl.value0)(info.source);
                         };
@@ -874,8 +915,8 @@ var moduleToRoute = function (appDir) {
                     var groupSegs = modulePathSegments(Data_Array.drop(1)(parts));
                     var routePath = foldl($foreign.joinPath)(foldl($foreign.joinPath)(appDir)(groupSegs))(nextPathSegs);
                     var ext = (function () {
-                        var $290 = kind === "handler";
-                        if ($290) {
+                        var $307 = kind === "handler";
+                        if ($307) {
                             return ".ts";
                         };
                         return ".tsx";
@@ -905,17 +946,17 @@ var moduleToRoute = function (appDir) {
 var detectDirective = function (modName) {
     return function (src) {
         if (Data_Array.any((function () {
-            var $301 = eq("-- @client");
-            return function ($302) {
-                return $301(Data_String_Common.trim($302));
+            var $320 = eq("-- @client");
+            return function ($321) {
+                return $320(Data_String_Common.trim($321));
             };
         })())(Data_String_Common.split("\x0a")(src))) {
             return new Data_Maybe.Just("use client");
         };
         if (Data_Array.any((function () {
-            var $303 = eq("-- @server");
-            return function ($304) {
-                return $303(Data_String_Common.trim($304));
+            var $322 = eq("-- @server");
+            return function ($323) {
+                return $322(Data_String_Common.trim($323));
             };
         })())(Data_String_Common.split("\x0a")(src))) {
             return new Data_Maybe.Just("use server");
@@ -1034,7 +1075,18 @@ var main = /* #__PURE__ */ (function () {
             written: 0,
             skipped: 0
         }))(routes)();
-        return Effect_Console.log("[purescript-rsc] " + (show1(result.written) + (" written, " + (show1(result.skipped) + (" unchanged, " + (show1(Data_Array.length(routes)) + " total route(s)"))))))();
+        Effect_Console.log("[purescript-rsc] " + (show1(result.written) + (" written, " + (show1(result.skipped) + (" unchanged, " + (show1(Data_Array.length(routes)) + " total route(s)"))))))();
+        var v = lookup("Middleware")(modules);
+        if (v instanceof Data_Maybe.Just) {
+            var middlewarePath = $foreign.resolvePath(".")("middleware.ts");
+            var content = generateMiddleware(outputDir)(v.value0);
+            var middlewareChanged = writeIfChanged(middlewarePath)(content)();
+            return when(middlewareChanged)(Effect_Console.log("[purescript-rsc] Generated middleware.ts"))();
+        };
+        if (v instanceof Data_Maybe.Nothing) {
+            return Data_Unit.unit;
+        };
+        throw new Error("Failed pattern match at Loader.Main (line 577, column 3 - line 584, column 25): " + [ v.constructor.name ]);
     };
 })();
 export {
@@ -1092,6 +1144,9 @@ export {
     extractJsonField,
     writeIfChanged,
     main,
+    generateMiddleware,
+    hasConfigDecl,
+    hasConfigSig,
     writeDirectivesManifest,
     writeRouteFile,
     generateRoutePursFromModules,

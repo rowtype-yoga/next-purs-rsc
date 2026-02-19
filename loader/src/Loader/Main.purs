@@ -573,6 +573,43 @@ main = do
     <> show result.skipped <> " unchanged, "
     <> show (Array.length routes) <> " total route(s)"
 
+  -- 8. Generate middleware if Middleware module exists
+  case Map.lookup "Middleware" modules of
+    Just middlewareInfo -> do
+      let middlewarePath = resolvePath "." "middleware.ts"
+      let content = generateMiddleware outputDir middlewareInfo
+      middlewareChanged <- writeIfChanged middlewarePath content
+      when middlewareChanged do
+        Console.log "[purescript-rsc] Generated middleware.ts"
+    Nothing -> pure unit
+
+generateMiddleware :: String -> ModuleInfo -> String
+generateMiddleware outputDir info = String.joinWith "\n" (lines <> [ "" ])
+  where
+  outputModule = joinPath outputDir (info.name <> "/index.js")
+  relImport = relativePath "." outputModule
+  hasConfig = hasConfigDecl info.source
+
+  lines =
+    [ marker
+    , "// @ts-expect-error — PureScript output"
+    , "import { middleware" <> (if hasConfig then ", config" else "") <> " } from " <> show relImport <> ";"
+    , "export { middleware" <> (if hasConfig then ", config" else "") <> " };"
+    ]
+
+hasConfigDecl :: String -> Boolean
+hasConfigDecl src = case parseModule src of
+  ParseSucceeded (CST.Module m) -> hasConfigSig m.body
+  ParseSucceededWithErrors (CST.Module m) _ -> hasConfigSig m.body
+  ParseFailed _ -> false
+
+hasConfigSig :: forall e. CST.ModuleBody e -> Boolean
+hasConfigSig (CST.ModuleBody { decls }) = Array.any matchConfig decls
+  where
+  matchConfig (CST.DeclSignature (CST.Labeled { label: CST.Name { name: CST.Ident ident } }))
+    | ident == "config" = true
+  matchConfig _ = false
+
 writeDirectivesManifest :: String -> Map String ModuleInfo -> Effect Unit
 writeDirectivesManifest outputDir modules = do
   let entries = Map.toUnfoldable modules # Array.mapMaybe \(name /\ info) ->
