@@ -7,6 +7,7 @@ module Next
   , Loading
   , ErrorBoundary
   , GlobalError
+  , Default
   , NotFound
   , class ParsePathFields
   , buildParsedPath
@@ -102,6 +103,9 @@ newtype Template path = Template Unit
 
 newtype GlobalError :: forall k. k -> Type
 newtype GlobalError path = GlobalError Unit
+
+newtype Default :: forall k. k -> Type
+newtype Default path = Default Unit
 
 newtype NotFound :: forall k. k -> Type
 newtype NotFound path = NotFound Unit

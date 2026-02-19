@@ -157,7 +157,7 @@ extractFromType = case _ of
   -- Page/Loading/ErrorBoundary/NotFound Root, Page "about", etc.
   CST.TypeApp head args -> case head of
     CST.TypeConstructor (CST.QualifiedName { name: CST.Proper ctor })
-      | ctor == "Page" || ctor == "Loading" || ctor == "ErrorBoundary" || ctor == "NotFound" || ctor == "Template" || ctor == "GlobalError"
+      | ctor == "Page" || ctor == "Loading" || ctor == "ErrorBoundary" || ctor == "NotFound" || ctor == "Template" || ctor == "GlobalError" || ctor == "Default"
         || ctor == "GET" || ctor == "POST" || ctor == "PUT" || ctor == "DELETE" || ctor == "PATCH" || ctor == "HEAD" || ctor == "OPTIONS" ->
           case Array.head (Array.fromFoldable args) of
             Just arg -> Just (walkTypeArg arg)
@@ -289,21 +289,42 @@ kindToFileName k = k
 kindToDeclName :: String -> String
 kindToDeclName "error" = "error"
 kindToDeclName "globalError" = "globalError"
+kindToDeclName "default" = "default_"
 kindToDeclName k = k
+
+detectKind :: Array String -> Maybe String
+detectKind parts = case Array.head parts of
+  Just "Page" -> Just "page"
+  Just "Layout" -> Just "layout"
+  Just "Template" -> Just "template"
+  Just "Loading" -> Just "loading"
+  Just "ErrorBoundary" -> Just "error"
+  Just "GlobalError" -> Just "globalError"
+  Just "NotFound" -> Just "notFound"
+  Just "Handler" -> Just "handler"
+  Just "Default" -> Just "default"
+  _ -> Nothing
 
 moduleToRoute :: String -> String -> ModuleInfo -> Maybe RouteInfo
 moduleToRoute appDir outputDir info = do
   let parts = String.split (String.Pattern ".") info.name
-  kind <- case Array.head parts of
-    Just "Page" -> Just "page"
-    Just "Layout" -> Just "layout"
-    Just "Template" -> Just "template"
-    Just "Loading" -> Just "loading"
-    Just "ErrorBoundary" -> Just "error"
-    Just "GlobalError" -> Just "globalError"
-    Just "NotFound" -> Just "notFound"
-    Just "Handler" -> Just "handler"
-    _ -> Nothing
+
+  -- Handle Slot prefix: Slot.Name.* → @name directory + detect kind from remaining
+  let slotPrefix /\ kindParts = case Array.head parts of
+        Just "Slot" -> case Array.index parts 1 of
+          Just slotName -> [ "@" <> String.toLower slotName ] /\ Array.drop 2 parts
+          Nothing -> [] /\ parts
+        _ -> [] /\ parts
+
+  -- Detect kind from the relevant parts (after slot prefix if any)
+  kind <- case detectKind kindParts of
+    Just k -> Just k
+    Nothing
+      | not (Array.null slotPrefix) -> Just "page"
+      | otherwise -> Nothing
+
+  let hasExplicitKind = detectKind kindParts /= Nothing
+  let modParts = if hasExplicitKind then Array.drop 1 kindParts else kindParts
 
   -- Route segments from type annotation
   let methods = if kind == "handler" then findHandlerMethods info.source else []
@@ -315,8 +336,8 @@ moduleToRoute appDir outputDir info = do
       Nothing -> Nothing
     else extractPageType declName info.source
   let nextPathSegs = segmentsToNextPath segments
-  let groupSegs = modulePathSegments (Array.drop 1 parts)
-  let routePath = foldl joinPath (foldl joinPath appDir groupSegs) nextPathSegs
+  let groupSegs = modulePathSegments modParts
+  let routePath = foldl joinPath (foldl joinPath (foldl joinPath appDir slotPrefix) groupSegs) nextPathSegs
   let ext = if kind == "handler" then ".ts" else ".tsx"
   let filePath = joinPath routePath (kindToFileName kind <> ext)
   let outputModule = joinPath outputDir (info.name <> "/index.js")
@@ -369,8 +390,8 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         , importLine
         , "export default await " <> declName <> "();"
         ]
-    -- Page: async server with params
-    | route.kind == "page" =
+    -- Page/Default: async server with params
+    | route.kind == "page" || route.kind == "default" =
         [ marker
         , "// @ts-expect-error — PureScript output"
         , importLine
@@ -403,7 +424,7 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
 
   metadataLines
     | not route.hasMetadata = []
-    | route.kind == "page" =
+    | route.kind == "page" || route.kind == "default" =
         [ "export async function generateMetadata(props) {"
         , "  const meta = await metadata();"
         , "  const params = await (props.params ?? {});"

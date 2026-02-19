@@ -5,7 +5,7 @@ import Prelude
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
-import Loader.Main (Segment(..), detectDirective, extractJsonField, extractModuleName, extractPageType, findHandlerMethods, generateMiddleware, generateTsx, hasConfigDecl, hasMetadataDecl, hasStaticParamsDecl, kindToDeclName, kindToFileName, methodToExportName, modulePathSegments, moduleToRoute, segmentsToNextPath)
+import Loader.Main (Segment(..), detectDirective, extractJsonField, extractModuleName, extractPageType, findHandlerMethods, generateMiddleware, generateTsx, hasConfigDecl, hasMetadataDecl, hasStaticParamsDecl, kindToDeclName, kindToFileName, methodToExportName, modulePathSegments, moduleToRoute, segmentsToNextPath, detectKind)
 import Loader.Plugin as Plugin
 import Test.Golden (goldenTest)
 import Test.Spec (Spec, describe, it)
@@ -65,6 +65,7 @@ spec = do
     it "layout" do kindToDeclName "layout" `shouldEqual` "layout"
     it "template" do kindToDeclName "template" `shouldEqual` "template"
     it "notFound" do kindToDeclName "notFound" `shouldEqual` "notFound"
+    it "default" do kindToDeclName "default" `shouldEqual` "default_"
 
   describe "generateTsx" do
     let golden = goldenTest { goldenDir: "loader/test/golden", diffDir: "loader/test/diffs" }
@@ -120,8 +121,17 @@ spec = do
       extractPageType "template" "module Foo where\ntemplate :: Template (\"dashboard\")" `shouldEqual` Just [ Static "dashboard" ]
     it "GlobalError type" do
       extractPageType "globalError" "module Foo where\nglobalError :: GlobalError Root" `shouldEqual` Just []
+    it "Default type" do
+      extractPageType "default_" "module Foo where\ndefault_ :: Default Root" `shouldEqual` Just []
     it "GET type" do
       extractPageType "get" "module Foo where\nget :: GET (\"api\" / \"hello\")" `shouldEqual` Just [ Static "api", Static "hello" ]
+
+  describe "detectKind" do
+    it "Page" do detectKind [ "Page", "Home" ] `shouldEqual` Just "page"
+    it "Layout" do detectKind [ "Layout", "Root" ] `shouldEqual` Just "layout"
+    it "Default" do detectKind [ "Default", "Root" ] `shouldEqual` Just "default"
+    it "Handler" do detectKind [ "Handler", "Api" ] `shouldEqual` Just "handler"
+    it "unknown" do detectKind [ "Foo", "Bar" ] `shouldEqual` Nothing
 
   describe "findHandlerMethods" do
     it "finds GET method" do
@@ -201,6 +211,16 @@ spec = do
       map _.kind result `shouldEqual` Just "handler"
       map _.handlerMethods result `shouldEqual` Just [ "get", "post" ]
       map _.routePath result `shouldEqual` Just "app/api/hello"
+    it "slot page" do
+      let info = { name: "Slot.Modal.Page.Root", source: "module Slot.Modal.Page.Root where\npage :: Page Root\npage = simplePage \\_ -> mempty", file: "src/Slot/Modal/Page/Root.purs", directive: Nothing }
+      let result = moduleToRoute "app" "output" info
+      map _.kind result `shouldEqual` Just "page"
+      map _.routePath result `shouldEqual` Just "app/@modal"
+    it "default page" do
+      let info = { name: "Default.Root", source: "module Default.Root where\ndefault_ :: Default Root\ndefault_ = simplePage \\_ -> mempty", file: "src/Default/Root.purs", directive: Nothing }
+      let result = moduleToRoute "app" "output" info
+      map _.kind result `shouldEqual` Just "default"
+      map _.routePath result `shouldEqual` Just "app"
     it "route group page" do
       let info = { name: "Page.Marketing_.About", source: "module Page.Marketing_.About where\npage :: Page \"about\"\npage = simplePage \\_ -> mempty", file: "src/Page/Marketing_/About.purs", directive: Nothing }
       let result = moduleToRoute "app" "output" info
@@ -313,5 +333,15 @@ spec = do
         { mod: "Handler.Api.Item", kind: "handler", filePath: "app/api/item/route.ts"
         , relImport: "../output/Handler.Api.Item/index.js", routePath: "app/api/item"
         , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [ "delete_" ]
+        }
+    , "slot-page" /\ generateTsx
+        { mod: "Slot.Modal.Page.Root", kind: "page", filePath: "app/@modal/page.tsx"
+        , relImport: "../output/Slot.Modal.Page.Root/index.js", routePath: "app/@modal"
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: []
+        }
+    , "default" /\ generateTsx
+        { mod: "Default.Root", kind: "default", filePath: "app/default.tsx"
+        , relImport: "../output/Default.Root/index.js", routePath: "app"
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: []
         }
     ]
