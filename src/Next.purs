@@ -17,6 +17,8 @@ module Next
   , nextLayout
   , link
   , image
+  , script
+  , ScriptStrategy(..)
   , module Path
   ) where
 
@@ -79,6 +81,7 @@ foreign import _mapRecord :: forall rin rout. (forall x. Nullable x -> Maybe x) 
 foreign import _getField :: String -> RawRecord -> String
 foreign import _linkComponent :: forall props. ReactComponent { | props }
 foreign import _imageComponent :: forall props. ReactComponent { | props }
+foreign import _scriptComponent :: forall props. ReactComponent { | props }
 
 --------------------------------------------------------------------------------
 -- ParsePathFields: parse path params from JS string values
@@ -249,3 +252,35 @@ type ImageOptionalProps =
 
 image :: forall opt rest. Union opt rest ImageOptionalProps => { src :: String, alt :: String | opt } -> JSX
 image props = createElement_ _imageComponent props
+
+--------------------------------------------------------------------------------
+-- Script
+--------------------------------------------------------------------------------
+
+data ScriptStrategy = BeforeInteractive | AfterInteractive | LazyOnload | Worker
+
+scriptStrategyToString :: ScriptStrategy -> String
+scriptStrategyToString = case _ of
+  BeforeInteractive -> "beforeInteractive"
+  AfterInteractive -> "afterInteractive"
+  LazyOnload -> "lazyOnload"
+  Worker -> "worker"
+
+type ScriptOptionalProps =
+  ( id :: String
+  , onLoad :: Effect Unit
+  , onReady :: Effect Unit
+  , onError :: Effect Unit
+  )
+
+script
+  :: forall opt rest
+   . Union opt rest ScriptOptionalProps
+  => Row.Lacks "src" opt
+  => Row.Lacks "strategy" opt
+  => String -> ScriptStrategy -> { | opt } -> JSX
+script src strategy props = do
+  let
+    full = Record.insert (Proxy :: Proxy "src") src
+      $ Record.insert (Proxy :: Proxy "strategy") (scriptStrategyToString strategy) props
+  createElement_ _scriptComponent full
