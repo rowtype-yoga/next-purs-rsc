@@ -13,9 +13,9 @@ layout = simpleLayout \{ children } ->
         [ nav {}
             [ strong {} [ text "PureScript + Next.js RSC" ]
             , text " | "
-            , link Home [ text "Home" ]
+            , link Home {} [ text "Home" ]
             , text " | "
-            , link About [ text "About" ]
+            , link About {} [ text "About" ]
             ]
         , main {} (reactChildrenToArray children)
         ]

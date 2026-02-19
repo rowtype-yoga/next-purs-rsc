@@ -34,6 +34,7 @@ import Prim.Row (class Union)
 import Prim.RowList as RL
 import React.Basic (JSX, ReactComponent)
 import React.Basic.Hooks (ReactChildren)
+import Record as Record
 import Record.Builder as Builder
 import Route (Route, toPath)
 import Type.Proxy (Proxy(..))
@@ -76,7 +77,7 @@ foreign import data RawRecord :: Type
 
 foreign import _mapRecord :: forall rin rout. (forall x. Nullable x -> Maybe x) -> { | rin } -> { | rout }
 foreign import _getField :: String -> RawRecord -> String
-foreign import _linkComponent :: ReactComponent { href :: String, children :: ReactChildren JSX }
+foreign import _linkComponent :: forall props. ReactComponent { | props }
 foreign import _imageComponent :: forall props. ReactComponent { | props }
 
 --------------------------------------------------------------------------------
@@ -217,8 +218,23 @@ nextLayout name ctx om = unsafeCoerce $ Promise.fromAff do
 -- Links
 --------------------------------------------------------------------------------
 
-link :: forall kids. IsJSX kids => Route -> kids -> JSX
-link route children = createElement _linkComponent { href: toPath route } children
+type LinkOptionalProps =
+  ( replace :: Boolean
+  , scroll :: Boolean
+  , prefetch :: Boolean
+  , className :: String
+  , target :: String
+  , rel :: String
+  )
+
+link
+  :: forall kids props rest
+   . IsJSX kids
+  => Union props rest LinkOptionalProps
+  => Row.Lacks "href" props
+  => Route -> { | props } -> kids -> JSX
+link route props children =
+  createElement _linkComponent (Record.insert (Proxy :: Proxy "href") (toPath route) props) children
 
 type ImageOptionalProps =
   ( width :: Int
