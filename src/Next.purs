@@ -16,6 +16,7 @@ module Next
   , nextPage
   , nextLayout
   , link
+  , image
   , module Path
   ) where
 
@@ -29,6 +30,7 @@ import Data.Symbol (class IsSymbol, reflectSymbol)
 import Effect (Effect)
 import Foreign (Foreign)
 import Prim.Row as Row
+import Prim.Row (class Union)
 import Prim.RowList as RL
 import React.Basic (JSX, ReactComponent)
 import React.Basic.Hooks (ReactChildren)
@@ -41,7 +43,7 @@ import Yoga.HTTP.API.Path (Path, Root, Lit, Capture, PathCons, type (/), Param, 
 import Yoga.HTTP.API.Path (class ParseParam, parseParam)
 import Yoga.HTTP.API.Route.Handler (class SegmentPathParams, class SegmentQueryParams)
 import Yoga.Om as Om
-import Yoga.React.DOM.Internal (class IsJSX, createElement)
+import Yoga.React.DOM.Internal (class IsJSX, createElement, createElement_)
 import Yoga.React.Om (OmRender, omComponent)
 
 -- | Opaque page type. The path DSL encodes both URL segments and query params.
@@ -75,6 +77,7 @@ foreign import data RawRecord :: Type
 foreign import _mapRecord :: forall rin rout. (forall x. Nullable x -> Maybe x) -> { | rin } -> { | rout }
 foreign import _getField :: String -> RawRecord -> String
 foreign import _linkComponent :: ReactComponent { href :: String, children :: ReactChildren JSX }
+foreign import _imageComponent :: forall props. ReactComponent { | props }
 
 --------------------------------------------------------------------------------
 -- ParsePathFields: parse path params from JS string values
@@ -216,3 +219,17 @@ nextLayout name ctx om = unsafeCoerce $ Promise.fromAff do
 
 link :: forall kids. IsJSX kids => Route -> kids -> JSX
 link route children = createElement _linkComponent { href: toPath route } children
+
+type ImageOptionalProps =
+  ( width :: Int
+  , height :: Int
+  , fill :: Boolean
+  , priority :: Boolean
+  , sizes :: String
+  , quality :: Int
+  , placeholder :: String
+  , className :: String
+  )
+
+image :: forall opt rest. Union opt rest ImageOptionalProps => { src :: String, alt :: String | opt } -> JSX
+image props = createElement_ _imageComponent props

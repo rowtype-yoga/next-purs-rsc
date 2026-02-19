@@ -8,3 +8,4 @@ export const _mapRecord = f => r => new Proxy({}, {
 export const _getField = key => obj => obj[key];
 
 export { default as _linkComponent } from "next/link";
+export { default as _imageComponent } from "next/image";
