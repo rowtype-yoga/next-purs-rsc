@@ -3,12 +3,10 @@ module Loader.Main where
 import Prelude
 
 import Data.Array as Array
-import Data.Either (Either(..))
 import Data.Foldable (foldMap, foldl, for_)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
-import Data.Newtype (un)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.String as String
 import Data.String.CodeUnits as SCU
 import Data.Tuple.Nested (type (/\), (/\))

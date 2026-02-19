@@ -8,8 +8,8 @@ package:
     - arrays
     - strings
     - maybe
-    - either
     - foldable-traversable
     - tuples
-    - newtype
     - ordered-collections
+  build:
+    strict: true
