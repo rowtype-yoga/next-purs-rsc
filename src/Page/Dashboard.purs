@@ -14,7 +14,7 @@ newtype Name = Name String
 derive instance Newtype Name _
 
 page :: Page ("dashboard" :? { name :: Name })
-page = nextPage { greeting: "Hello from Om!" }
+page = nextPage { greeting: "Hello from Om!" } $ pure
   \{ searchParams: { name } } -> Om.do
     msg <- useOm \c -> pure c.greeting
     let who = name # maybe "stranger" (un Name)

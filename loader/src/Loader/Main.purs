@@ -34,7 +34,7 @@ foreign import resolvePath :: String -> String -> String
 -- Types
 --------------------------------------------------------------------------------
 
-data Segment = Static String | Dynamic String
+data Segment = Static String | Dynamic String | CatchAll String | OptCatchAll String
 
 derive instance Eq Segment
 
@@ -145,12 +145,13 @@ findSignature declName (CST.ModuleBody { decls }) =
 
 extractFromType :: forall e. CST.Type e -> Maybe (Array Segment)
 extractFromType = case _ of
-  -- Page Root, Page "about", Page ("blog" / "slug" : String)
+  -- Page/Loading/ErrorBoundary/NotFound Root, Page "about", etc.
   CST.TypeApp head args -> case head of
-    CST.TypeConstructor (CST.QualifiedName { name: CST.Proper "Page" }) ->
-      case Array.head (Array.fromFoldable args) of
-        Just arg -> Just (walkTypeArg arg)
-        Nothing -> Nothing
+    CST.TypeConstructor (CST.QualifiedName { name: CST.Proper ctor })
+      | ctor == "Page" || ctor == "Loading" || ctor == "ErrorBoundary" || ctor == "NotFound" ->
+          case Array.head (Array.fromFoldable args) of
+            Just arg -> Just (walkTypeArg arg)
+            Nothing -> Nothing
     _ -> Nothing
   -- Bare Layout (no type arg)
   CST.TypeConstructor (CST.QualifiedName { name: CST.Proper "Layout" }) -> Just []
@@ -172,6 +173,8 @@ walkOpChain head ops = go [ typeToSegment head ] ops
     Just { head: (CST.QualifiedName { name: CST.Operator op }) /\ rhs, tail }
       | op == "/" -> go (acc <> [ typeToSegment rhs ]) tail
       | op == ":" -> go (markLastDynamic acc) tail
+      | op == ":.." -> go (markLastCatchAll acc) tail
+      | op == ":..?" -> go (markLastOptCatchAll acc) tail
       | op == ":?" -> acc
       | otherwise -> go acc tail
 
@@ -185,10 +188,22 @@ markLastDynamic segs = case Array.unsnoc segs of
   Just { init, last: Static s } -> init <> [ Dynamic s ]
   _ -> segs
 
+markLastCatchAll :: Array Segment -> Array Segment
+markLastCatchAll segs = case Array.unsnoc segs of
+  Just { init, last: Static s } -> init <> [ CatchAll s ]
+  _ -> segs
+
+markLastOptCatchAll :: Array Segment -> Array Segment
+markLastOptCatchAll segs = case Array.unsnoc segs of
+  Just { init, last: Static s } -> init <> [ OptCatchAll s ]
+  _ -> segs
+
 segmentsToNextPath :: Array Segment -> Array String
 segmentsToNextPath = map case _ of
   Static s -> s
   Dynamic s -> "[" <> s <> "]"
+  CatchAll s -> "[..." <> s <> "]"
+  OptCatchAll s -> "[[..." <> s <> "]]"
 
 --------------------------------------------------------------------------------
 -- Route generation
@@ -199,19 +214,31 @@ computeRoutes appDir outputDir modules =
   Map.toUnfoldable modules # Array.mapMaybe \(_ /\ info) ->
     moduleToRoute appDir outputDir info
 
+kindToFileName :: String -> String
+kindToFileName "notFound" = "not-found"
+kindToFileName k = k
+
+kindToDeclName :: String -> String
+kindToDeclName "error" = "error"
+kindToDeclName k = k
+
 moduleToRoute :: String -> String -> ModuleInfo -> Maybe RouteInfo
 moduleToRoute appDir outputDir info = do
   let parts = String.split (String.Pattern ".") info.name
   kind <- case Array.head parts of
     Just "Page" -> Just "page"
     Just "Layout" -> Just "layout"
+    Just "Loading" -> Just "loading"
+    Just "ErrorBoundary" -> Just "error"
+    Just "NotFound" -> Just "notFound"
     _ -> Nothing
 
-  -- Route segments from Page type annotation (required)
-  segments <- extractPageType kind info.source
+  -- Route segments from type annotation (required)
+  let declName = kindToDeclName kind
+  segments <- extractPageType declName info.source
   let nextPathSegs = segmentsToNextPath segments
   let routePath = foldl joinPath appDir nextPathSegs
-  let filePath = joinPath routePath (kind <> ".tsx")
+  let filePath = joinPath routePath (kindToFileName kind <> ".tsx")
   let outputModule = joinPath outputDir (info.name <> "/index.js")
   let relImport = relativePath routePath outputModule
 
@@ -225,38 +252,57 @@ generateTsx :: RouteInfo -> String
 generateTsx route = String.joinWith "\n" (lines <> [ "" ])
   where
   lines = directiveLine <> contentLines
+  declName = kindToDeclName route.kind
+  importLine = "import { " <> declName <> " as mk } from " <> show route.relImport <> ";"
 
-  directiveLine = case route.directive of
-    Just d -> [ show d <> ";" ]
-    Nothing -> []
+  directiveLine
+    | route.kind == "error" = [ show "use client" <> ";" ]
+    | otherwise = case route.directive of
+        Just d -> [ show d <> ";" ]
+        Nothing -> []
 
-  contentLines = case route.directive of
-    Just "use client" ->
-      [ marker
-      , "// @ts-expect-error — PureScript output"
-      , "import { " <> route.kind <> " as mk } from " <> show route.relImport <> ";"
-      , "export default mk();"
-      ]
-    _ | route.kind == "page" ->
-      [ marker
-      , "// @ts-expect-error — PureScript output"
-      , "import { " <> route.kind <> " as mk } from " <> show route.relImport <> ";"
-      , "export default async function(props) {"
-      , "  const render = await mk();"
-      , "  const params = await (props.params ?? {});"
-      , "  const searchParams = await (props.searchParams ?? {});"
-      , "  return render({ params, searchParams });"
-      , "}"
-      ]
-    _ ->
-      [ marker
-      , "// @ts-expect-error — PureScript output"
-      , "import { " <> route.kind <> " as mk } from " <> show route.relImport <> ";"
-      , "export default async function(props) {"
-      , "  const render = await mk();"
-      , "  return render(props);"
-      , "}"
-      ]
+  isClient = route.directive == Just "use client" || route.kind == "error"
+
+  contentLines
+    -- Client component: hooks-based (await handles both Effect and Effect→Promise)
+    | isClient =
+        [ marker
+        , "// @ts-expect-error — PureScript output"
+        , importLine
+        , "export default await mk();"
+        ]
+    -- Page: async server with params
+    | route.kind == "page" =
+        [ marker
+        , "// @ts-expect-error — PureScript output"
+        , importLine
+        , "export default async function(props) {"
+        , "  const render = await mk();"
+        , "  const params = await (props.params ?? {});"
+        , "  const searchParams = await (props.searchParams ?? {});"
+        , "  return render({ params, searchParams });"
+        , "}"
+        ]
+    -- Loading/NotFound: async server, no props
+    | route.kind == "loading" || route.kind == "notFound" =
+        [ marker
+        , "// @ts-expect-error — PureScript output"
+        , importLine
+        , "export default async function() {"
+        , "  const render = await mk();"
+        , "  return render();"
+        , "}"
+        ]
+    -- Layout and other: async server, pass props through
+    | otherwise =
+        [ marker
+        , "// @ts-expect-error — PureScript output"
+        , importLine
+        , "export default async function(props) {"
+        , "  const render = await mk();"
+        , "  return render(props);"
+        , "}"
+        ]
 
 --------------------------------------------------------------------------------
 -- Helpers
@@ -440,15 +486,15 @@ generateRoutePursFromModules routes modules = String.joinWith "\n" allLines
 
   constructorEntry route segments = do
     let name = constructorName route.mod
-    let dynamicCount = Array.length (Array.filter isDynamic segments)
-    if dynamicCount > 0
-    then name <> foldMap (const " String") (Array.filter isDynamic segments)
+    let paramSegs = Array.filter isParam segments
+    if Array.length paramSegs > 0
+    then name <> foldMap segmentParamType paramSegs
     else name
 
   caseEntry route segments = do
     let name = constructorName route.mod
-    let dynamics = Array.filter isDynamic segments
-    let vars = Array.mapWithIndex (\i _ -> varName i) dynamics
+    let paramSegs = Array.filter isParam segments
+    let vars = Array.mapWithIndex (\i _ -> varName i) paramSegs
     let patVars = if Array.null vars then "" else " " <> String.joinWith " " vars
     let pathExpr = buildPathExpr segments
     "  " <> name <> patVars <> " -> " <> pathExpr
@@ -459,8 +505,14 @@ generateRoutePursFromModules routes modules = String.joinWith "\n" allLines
     if isIndex then "Home"
     else String.joinWith "__" parts
 
-  isDynamic (Dynamic _) = true
-  isDynamic _ = false
+  isParam (Dynamic _) = true
+  isParam (CatchAll _) = true
+  isParam (OptCatchAll _) = true
+  isParam _ = false
+
+  segmentParamType (CatchAll _) = " (Array String)"
+  segmentParamType (OptCatchAll _) = " (Array String)"
+  segmentParamType _ = " String"
 
   buildPathExpr segments = do
     let { expr } = foldl addSeg { expr: "", varIdx: 0 } segments
@@ -471,6 +523,12 @@ generateRoutePursFromModules routes modules = String.joinWith "\n" allLines
   addSeg { expr, varIdx } (Dynamic _) = do
     let v = varName varIdx
     { expr: appendExpr expr (show "/" <> " <> " <> v), varIdx: varIdx + 1 }
+  addSeg { expr, varIdx } (CatchAll _) = do
+    let v = varName varIdx
+    { expr: appendExpr expr ("foldMap (append " <> show "/" <> ") " <> v), varIdx: varIdx + 1 }
+  addSeg { expr, varIdx } (OptCatchAll _) = do
+    let v = varName varIdx
+    { expr: appendExpr expr ("foldMap (append " <> show "/" <> ") " <> v), varIdx: varIdx + 1 }
 
   appendExpr "" b = b
   appendExpr a b = a <> " <> " <> b

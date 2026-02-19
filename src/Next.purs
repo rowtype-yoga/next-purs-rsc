@@ -1,12 +1,18 @@
 module Next
   ( Page
   , Layout
+  , Loading
+  , ErrorBoundary
+  , NotFound
   , class ParsePathFields
   , buildParsedPath
   , class FirstSegment
   , RawRecord
   , simplePage
   , simpleLayout
+  , loading
+  , notFound
+  , errorBoundary
   , nextPage
   , nextLayout
   , link
@@ -20,6 +26,8 @@ import Data.Either (Either(..))
 import Data.Maybe (Maybe)
 import Data.Nullable (Nullable, toMaybe)
 import Data.Symbol (class IsSymbol, reflectSymbol)
+import Effect (Effect)
+import Foreign (Foreign)
 import Prim.Row as Row
 import Prim.RowList as RL
 import React.Basic (JSX)
@@ -48,6 +56,15 @@ newtype Page path = Page Unit
 
 -- | Opaque layout type.
 newtype Layout = Layout Unit
+
+newtype Loading :: forall k. k -> Type
+newtype Loading path = Loading Unit
+
+newtype ErrorBoundary :: forall k. k -> Type
+newtype ErrorBoundary path = ErrorBoundary Unit
+
+newtype NotFound :: forall k. k -> Type
+newtype NotFound path = NotFound Unit
 
 --------------------------------------------------------------------------------
 -- FFI
@@ -102,6 +119,7 @@ instance FirstSegment (Path.Lit sym) sym
 else instance FirstSegment path name => FirstSegment (Path.QueryParams path params) name
 else instance FirstSegment head name => FirstSegment (Path.PathCons head rest) name
 else instance FirstSegment (Path.Param name ty) name
+else instance FirstSegment Path.Root "Root"
 else instance IsSymbol sym => FirstSegment sym sym
 
 --------------------------------------------------------------------------------
@@ -124,6 +142,42 @@ simplePage render = unsafeCoerce $ Promise.fromAff $ pure \rawProps -> do
 simpleLayout :: ({ children :: ReactChildren JSX } -> JSX) -> Layout
 simpleLayout render = unsafeCoerce $ Promise.fromAff $ pure render
 
+loading
+  :: forall path name ctx hooks
+   . FirstSegment path name
+  => IsSymbol name
+  => { | ctx }
+  -> Om.Om { | ctx } () (Unit -> OmRender ctx Unit hooks JSX)
+  -> Loading path
+loading ctx om = unsafeCoerce $ Promise.fromAff do
+  Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+    render <- om
+    omComponent (reflectSymbol (Proxy :: Proxy name)) render
+
+notFound
+  :: forall path name ctx hooks
+   . FirstSegment path name
+  => IsSymbol name
+  => { | ctx }
+  -> Om.Om { | ctx } () (Unit -> OmRender ctx Unit hooks JSX)
+  -> NotFound path
+notFound ctx om = unsafeCoerce $ Promise.fromAff do
+  Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+    render <- om
+    omComponent (reflectSymbol (Proxy :: Proxy name)) render
+
+errorBoundary
+  :: forall path name ctx hooks
+   . FirstSegment path name
+  => IsSymbol name
+  => { | ctx }
+  -> Om.Om { | ctx } () ({ error :: Foreign, reset :: Effect Unit } -> OmRender ctx Unit hooks JSX)
+  -> ErrorBoundary path
+errorBoundary ctx om = unsafeCoerce $ Promise.fromAff do
+  Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+    render <- om
+    omComponent (reflectSymbol (Proxy :: Proxy name)) render
+
 nextPage
   :: forall path name pathParams queryParams pathRL ctx hooks
    . SegmentPathParams path pathParams
@@ -133,10 +187,11 @@ nextPage
   => FirstSegment path name
   => IsSymbol name
   => { | ctx }
-  -> ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> OmRender ctx Unit hooks JSX)
+  -> Om.Om { | ctx } () ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> OmRender ctx Unit hooks JSX)
   -> Page path
-nextPage ctx render = unsafeCoerce $ Promise.fromAff do
+nextPage ctx om = unsafeCoerce $ Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+    render <- om
     omComponent (reflectSymbol (Proxy :: Proxy name)) \rawProps -> do
       let params = parsePathFields (unsafeCoerce rawProps).params
       let searchParams = _mapRecord toMaybe (unsafeCoerce rawProps).searchParams
@@ -146,10 +201,11 @@ nextLayout
   :: forall ctx hooks
    . String
   -> { | ctx }
-  -> ({ children :: JSX } -> OmRender ctx Unit hooks JSX)
+  -> Om.Om { | ctx } () ({ children :: JSX } -> OmRender ctx Unit hooks JSX)
   -> Layout
-nextLayout name ctx render = unsafeCoerce $ Promise.fromAff do
+nextLayout name ctx om = unsafeCoerce $ Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+    render <- om
     omComponent name render
 
 --------------------------------------------------------------------------------
