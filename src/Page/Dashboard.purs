@@ -2,17 +2,22 @@ module Page.Dashboard where
 
 import Prelude hiding (div)
 
-import Data.Maybe (fromMaybe)
+import Data.Maybe (maybe)
+import Data.Newtype (class Newtype, un)
 import Next (Page, type (:?), nextPage)
 import Yoga.React.DOM (div, h1, p)
 import Yoga.React.Om (useOm)
 import Yoga.React.Om as Om
 
-page :: Page ("dashboard" :? { name :: String })
-page = nextPage "Dashboard" { greeting: "Hello from Om!" }
+newtype Name = Name String
+
+derive instance Newtype Name _
+
+page :: Page ("dashboard" :? { name :: Name })
+page = nextPage { greeting: "Hello from Om!" }
   \{ searchParams: { name } } -> Om.do
     msg <- useOm \c -> pure c.greeting
-    let who = fromMaybe "stranger" name
+    let who = name # maybe "stranger" (un Name)
     Om.pure $ div {}
       [ h1 {} "Dashboard"
       , p {} msg

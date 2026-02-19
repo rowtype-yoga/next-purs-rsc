@@ -3,6 +3,7 @@ module Next
   , Layout
   , class ParsePathFields
   , buildParsedPath
+  , class FirstSegment
   , RawRecord
   , simplePage
   , simpleLayout
@@ -89,6 +90,19 @@ parsePathFields
 parsePathFields raw = Builder.buildFromScratch (buildParsedPath (Proxy :: Proxy rl) raw)
 
 --------------------------------------------------------------------------------
+-- FirstSegment: reflect the first literal from a path type
+--------------------------------------------------------------------------------
+
+class FirstSegment :: forall k. k -> Symbol -> Constraint
+class FirstSegment path name | path -> name
+
+instance FirstSegment (Path.Lit sym) sym
+else instance FirstSegment path name => FirstSegment (Path.QueryParams path params) name
+else instance FirstSegment head name => FirstSegment (Path.PathCons head rest) name
+else instance FirstSegment (Path.Param name ty) name
+else instance IsSymbol sym => FirstSegment sym sym
+
+--------------------------------------------------------------------------------
 -- Page constructors
 --------------------------------------------------------------------------------
 
@@ -109,18 +123,19 @@ simpleLayout :: ({ children :: JSX } -> JSX) -> Layout
 simpleLayout render = unsafeCoerce $ Promise.fromAff $ pure render
 
 nextPage
-  :: forall path pathParams queryParams pathRL ctx hooks
+  :: forall path name pathParams queryParams pathRL ctx hooks
    . SegmentPathParams path pathParams
   => SegmentQueryParams path queryParams
   => RL.RowToList pathParams pathRL
   => ParsePathFields pathRL pathParams
-  => String
-  -> { | ctx }
+  => FirstSegment path name
+  => IsSymbol name
+  => { | ctx }
   -> ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> OmRender ctx Unit hooks JSX)
   -> Page path
-nextPage name ctx render = unsafeCoerce $ Promise.fromAff do
+nextPage ctx render = unsafeCoerce $ Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
-    omComponent name \rawProps -> do
+    omComponent (reflectSymbol (Proxy :: Proxy name)) \rawProps -> do
       let params = parsePathFields (unsafeCoerce rawProps).params
       let searchParams = _mapRecord toMaybe (unsafeCoerce rawProps).searchParams
       render { params, searchParams }
