@@ -21,6 +21,10 @@ package:
     - yoga-react-om
   build:
     strict: true
+  test:
+    main: Test.Main
+    dependencies:
+      - assert
 workspace:
   packageSet:
     registry: 73.1.0
@@ -30,6 +34,8 @@ workspace:
     yoga-http-api:
       path: ../../code/purescript-yoga-http-api
     yoga-options: "0.1.0"
+    ref-lifted:
+      path: ../purescript-ref-lifted
     yoga-om:
       path: ../purescript-yoga-om
     yoga-react-om:

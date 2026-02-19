@@ -13,3 +13,7 @@ package:
     - ordered-collections
   build:
     strict: true
+  test:
+    main: Test.Loader
+    dependencies:
+      - assert
