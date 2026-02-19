@@ -16,4 +16,4 @@ package:
   test:
     main: Test.Loader
     dependencies:
-      - assert
+      - vitest

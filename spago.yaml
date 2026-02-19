@@ -24,7 +24,8 @@ package:
   test:
     main: Test.Main
     dependencies:
-      - assert
+      - vitest
+      - strings
 workspace:
   packageSet:
     registry: 73.1.0

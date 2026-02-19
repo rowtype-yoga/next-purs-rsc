@@ -4,150 +4,102 @@ import Prelude
 
 import Data.Maybe (Maybe(..))
 import Data.String as String
-import Effect (Effect)
-import Effect.Console as Console
 import Loader.Main (Segment(..), detectDirective, extractModuleName, generateTsx, kindToDeclName, kindToFileName, segmentsToNextPath)
 import Loader.Plugin as Plugin
-import Test.Assert (assertEqual, assertTrue', assertFalse')
+import Effect.Aff (Aff)
+import ViTest (describe, test, viTest)
+import ViTest.Expect (expectToSatisfy, (===))
 
-main :: Effect Unit
-main = do
-  testDetectDirective
-  testExtractModuleName
-  testSegmentsToNextPath
-  testKindToFileName
-  testKindToDeclName
-  testGenerateTsx
-  testExtractModule
-  Console.log "All loader tests passed!"
+main :: Unit
+main = viTest do
 
---------------------------------------------------------------------------------
--- detectDirective
---------------------------------------------------------------------------------
+  describe "detectDirective" do
+    test "comment @client" do
+      detectDirective "Foo" "module Foo where\n-- @client\nimport Prelude" === Just "use client"
+    test "comment @server" do
+      detectDirective "Foo" "module Foo where\n-- @server\nimport Prelude" === Just "use server"
+    test "convention .Client suffix" do
+      detectDirective "Page.Home.Client" "" === Just "use client"
+    test "convention .Server suffix" do
+      detectDirective "Page.Home.Server" "" === Just "use server"
+    test "convention Actions. prefix" do
+      detectDirective "Actions.Login" "" === Just "use server"
+    test "no directive" do
+      detectDirective "Page.Home" "module Page.Home where\nimport Prelude" === Nothing
 
-testDetectDirective :: Effect Unit
-testDetectDirective = do
-  assertEqual
-    { actual: detectDirective "Foo" "module Foo where\n-- @client\nimport Prelude"
-    , expected: Just "use client"
-    }
-  assertEqual
-    { actual: detectDirective "Foo" "module Foo where\n-- @server\nimport Prelude"
-    , expected: Just "use server"
-    }
-  assertEqual
-    { actual: detectDirective "Page.Home.Client" ""
-    , expected: Just "use client"
-    }
-  assertEqual
-    { actual: detectDirective "Page.Home.Server" ""
-    , expected: Just "use server"
-    }
-  assertEqual
-    { actual: detectDirective "Actions.Login" ""
-    , expected: Just "use server"
-    }
-  assertEqual
-    { actual: detectDirective "Page.Home" "module Page.Home where\nimport Prelude"
-    , expected: Nothing
-    }
+  describe "extractModuleName" do
+    test "simple module" do
+      extractModuleName "module Foo.Bar where\n" === Just "Foo.Bar"
+    test "module with exports" do
+      extractModuleName "module Foo.Bar (baz) where\n" === Just "Foo.Bar"
+    test "no module declaration" do
+      extractModuleName "just some random text" === Nothing
 
---------------------------------------------------------------------------------
--- extractModuleName
---------------------------------------------------------------------------------
+  describe "segmentsToNextPath" do
+    test "static" do
+      segmentsToNextPath [ Static "blog" ] === [ "blog" ]
+    test "dynamic" do
+      segmentsToNextPath [ Dynamic "slug" ] === [ "[slug]" ]
+    test "catch-all" do
+      segmentsToNextPath [ CatchAll "slug" ] === [ "[...slug]" ]
+    test "optional catch-all" do
+      segmentsToNextPath [ OptCatchAll "slug" ] === [ "[[...slug]]" ]
+    test "mixed segments" do
+      segmentsToNextPath [ Static "blog", Dynamic "id" ] === [ "blog", "[id]" ]
 
-testExtractModuleName :: Effect Unit
-testExtractModuleName = do
-  assertEqual
-    { actual: extractModuleName "module Foo.Bar where\n"
-    , expected: Just "Foo.Bar"
-    }
-  assertEqual
-    { actual: extractModuleName "module Foo.Bar (baz) where\n"
-    , expected: Just "Foo.Bar"
-    }
-  assertEqual
-    { actual: extractModuleName "just some random text"
-    , expected: Nothing
-    }
+  describe "kindToFileName" do
+    test "notFound" do kindToFileName "notFound" === "not-found"
+    test "page" do kindToFileName "page" === "page"
+    test "layout" do kindToFileName "layout" === "layout"
+    test "error" do kindToFileName "error" === "error"
+    test "loading" do kindToFileName "loading" === "loading"
 
---------------------------------------------------------------------------------
--- segmentsToNextPath
---------------------------------------------------------------------------------
+  describe "kindToDeclName" do
+    test "error" do kindToDeclName "error" === "error"
+    test "page" do kindToDeclName "page" === "page"
+    test "layout" do kindToDeclName "layout" === "layout"
+    test "notFound" do kindToDeclName "notFound" === "notFound"
 
-testSegmentsToNextPath :: Effect Unit
-testSegmentsToNextPath = do
-  assertEqual
-    { actual: segmentsToNextPath [ Static "blog" ]
-    , expected: [ "blog" ]
-    }
-  assertEqual
-    { actual: segmentsToNextPath [ Dynamic "slug" ]
-    , expected: [ "[slug]" ]
-    }
-  assertEqual
-    { actual: segmentsToNextPath [ CatchAll "slug" ]
-    , expected: [ "[...slug]" ]
-    }
-  assertEqual
-    { actual: segmentsToNextPath [ OptCatchAll "slug" ]
-    , expected: [ "[[...slug]]" ]
-    }
-  assertEqual
-    { actual: segmentsToNextPath [ Static "blog", Dynamic "id" ]
-    , expected: [ "blog", "[id]" ]
-    }
+  describe "generateTsx" do
+    test "client gets use client directive" do
+      clientTsx `shouldContain` (show "use client" <> ";")
+    test "client awaits mk()" do
+      clientTsx `shouldContain` "await mk()"
+    test "server page is async" do
+      serverPageTsx `shouldContain` "async function(props)"
+    test "server page awaits params" do
+      serverPageTsx `shouldContain` "await (props.params"
+    test "server page awaits searchParams" do
+      serverPageTsx `shouldContain` "await (props.searchParams"
+    test "server page has no use client" do
+      serverPageTsx `shouldNotContain` show "use client"
+    test "layout renders props" do
+      layoutTsx `shouldContain` "render(props)"
+    test "layout has no params" do
+      layoutTsx `shouldNotContain` "params"
+    test "error gets use client" do
+      errorTsx `shouldContain` (show "use client" <> ";")
+    test "loading renders without args" do
+      loadingTsx `shouldContain` "render()"
+    test "loading has no props" do
+      loadingTsx `shouldNotContain` "props"
+    test "notFound renders without args" do
+      notFoundTsx `shouldContain` "render()"
+    test "has generator marker" do
+      serverPageTsx `shouldContain` "@generated by purescript-rsc"
+    test "import path is correct" do
+      fooTsx `shouldContain` show "../output/Page.Foo/index.js"
 
---------------------------------------------------------------------------------
--- kindToFileName
---------------------------------------------------------------------------------
+  describe "extractModule" do
+    test "unix path" do
+      Plugin.extractModule "/project/output/Page.Home/index.js" === Just "Page.Home"
+    test "windows path" do
+      Plugin.extractModule "C:\\project\\output\\Page.Home\\index.js" === Just "Page.Home"
+    test "non-matching path" do
+      Plugin.extractModule "/some/random/file.js" === Nothing
+    test "dotted module name" do
+      Plugin.extractModule "/project/output/Page.Blog.Slug/index.js" === Just "Page.Blog.Slug"
 
-testKindToFileName :: Effect Unit
-testKindToFileName = do
-  assertEqual { actual: kindToFileName "notFound", expected: "not-found" }
-  assertEqual { actual: kindToFileName "page", expected: "page" }
-  assertEqual { actual: kindToFileName "layout", expected: "layout" }
-  assertEqual { actual: kindToFileName "error", expected: "error" }
-  assertEqual { actual: kindToFileName "loading", expected: "loading" }
-
---------------------------------------------------------------------------------
--- kindToDeclName
---------------------------------------------------------------------------------
-
-testKindToDeclName :: Effect Unit
-testKindToDeclName = do
-  assertEqual { actual: kindToDeclName "error", expected: "error" }
-  assertEqual { actual: kindToDeclName "page", expected: "page" }
-  assertEqual { actual: kindToDeclName "layout", expected: "layout" }
-  assertEqual { actual: kindToDeclName "notFound", expected: "notFound" }
-
---------------------------------------------------------------------------------
--- generateTsx
---------------------------------------------------------------------------------
-
-testGenerateTsx :: Effect Unit
-testGenerateTsx = do
-  clientTsx `shouldContain` (show "use client" <> ";")
-  clientTsx `shouldContain` "await mk()"
-
-  serverPageTsx `shouldContain` "async function(props)"
-  serverPageTsx `shouldContain` "await (props.params"
-  serverPageTsx `shouldContain` "await (props.searchParams"
-  serverPageTsx `shouldNotContain` show "use client"
-
-  layoutTsx `shouldContain` "render(props)"
-  layoutTsx `shouldNotContain` "params"
-
-  errorTsx `shouldContain` (show "use client" <> ";")
-
-  loadingTsx `shouldContain` "render()"
-  loadingTsx `shouldNotContain` "props"
-
-  notFoundTsx `shouldContain` "render()"
-
-  serverPageTsx `shouldContain` "@generated by purescript-rsc"
-
-  fooTsx `shouldContain` show "../output/Page.Foo/index.js"
   where
   route kind directive =
     { mod: "Page.Home"
@@ -185,39 +137,10 @@ testGenerateTsx = do
     , directive: Nothing
     }
 
---------------------------------------------------------------------------------
--- extractModule (Webpack loader)
---------------------------------------------------------------------------------
-
-testExtractModule :: Effect Unit
-testExtractModule = do
-  assertEqual
-    { actual: Plugin.extractModule "/project/output/Page.Home/index.js"
-    , expected: Just "Page.Home"
-    }
-  assertEqual
-    { actual: Plugin.extractModule "C:\\project\\output\\Page.Home\\index.js"
-    , expected: Just "Page.Home"
-    }
-  assertEqual
-    { actual: Plugin.extractModule "/some/random/file.js"
-    , expected: Nothing
-    }
-  assertEqual
-    { actual: Plugin.extractModule "/project/output/Page.Blog.Slug/index.js"
-    , expected: Just "Page.Blog.Slug"
-    }
-
---------------------------------------------------------------------------------
--- Helpers
---------------------------------------------------------------------------------
-
-shouldContain :: String -> String -> Effect Unit
+shouldContain :: String -> String -> Aff Unit
 shouldContain haystack needle =
-  assertTrue' ("expected to contain " <> show needle)
-    (String.contains (String.Pattern needle) haystack)
+  expectToSatisfy haystack (String.contains (String.Pattern needle))
 
-shouldNotContain :: String -> String -> Effect Unit
+shouldNotContain :: String -> String -> Aff Unit
 shouldNotContain haystack needle =
-  assertFalse' ("expected not to contain " <> show needle)
-    (String.contains (String.Pattern needle) haystack)
+  expectToSatisfy haystack (not <<< String.contains (String.Pattern needle))

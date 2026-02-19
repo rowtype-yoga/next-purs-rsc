@@ -8,7 +8,7 @@
     "dev": "bun dev.js",
     "build": "spago build -p route-loader --output output-loader && bun run bundle-loader && bun -e 'import { main } from \"./output-loader/Loader.Main/index.js\"; main();' && spago build && bunx next build",
     "start": "bunx next start",
-    "test": "spago test -p route-loader --output output-loader && spago test"
+    "test": "spago build -p route-loader --output output-loader && spago build && bunx vitest run"
   },
   "dependencies": {
     "next": "^16.1.6",
@@ -19,7 +19,9 @@
     "@types/node": "^22",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "jsdom": "^28.1.0",
     "typescript": "5.9.3",
-    "unplugin": "^3.0.0"
+    "unplugin": "^3.0.0",
+    "vitest": "^4.0.18"
   }
 }

@@ -2,15 +2,14 @@ module Test.Main where
 
 import Prelude
 
-import Effect (Effect)
-import Effect.Console as Console
 import Route (Route(..), toPath)
-import Test.Assert (assertEqual)
+import ViTest (describe, test, viTest)
+import ViTest.Expect ((===))
 
-main :: Effect Unit
-main = do
-  assertEqual { actual: toPath Home, expected: "/" }
-  assertEqual { actual: toPath About, expected: "/about" }
-  assertEqual { actual: toPath Dashboard, expected: "/dashboard" }
-  assertEqual { actual: toPath (Blog__Slug "hello"), expected: "/blog/hello" }
-  Console.log "All route tests passed!"
+main :: Unit
+main = viTest do
+  describe "toPath" do
+    test "Home" do toPath Home === "/"
+    test "About" do toPath About === "/about"
+    test "Dashboard" do toPath Dashboard === "/dashboard"
+    test "Blog__Slug" do toPath (Blog__Slug "hello") === "/blog/hello"

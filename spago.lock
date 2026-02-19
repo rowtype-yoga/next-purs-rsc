@@ -27,7 +27,8 @@
         },
         "test": {
           "dependencies": [
-            "assert"
+            "strings",
+            "vitest"
           ]
         }
       },
@@ -49,7 +50,7 @@
         },
         "test": {
           "dependencies": [
-            "assert"
+            "vitest"
           ]
         }
       }
@@ -741,16 +742,6 @@
         "unsafe-coerce"
       ]
     },
-    "assert": {
-      "type": "registry",
-      "version": "6.0.0",
-      "integrity": "sha256-hCZ1J8/71nQiRwsSV2j7iicppScOegBFZrLI6sPf9F8=",
-      "dependencies": [
-        "console",
-        "effect",
-        "prelude"
-      ]
-    },
     "avar": {
       "type": "registry",
       "version": "5.0.1",
@@ -1171,6 +1162,37 @@
         "integers",
         "maybe",
         "prelude"
+      ]
+    },
+    "js-promise": {
+      "type": "registry",
+      "version": "1.0.0",
+      "integrity": "sha256-u+6+ofIwT5XhT2fbMu4dShwkyWGfPRt9642Cnzw/Wvk=",
+      "dependencies": [
+        "effect",
+        "exceptions",
+        "foldable-traversable",
+        "functions",
+        "maybe",
+        "newtype",
+        "prelude"
+      ]
+    },
+    "js-promise-aff": {
+      "type": "registry",
+      "version": "1.0.0",
+      "integrity": "sha256-gEKAdNnTWjXS+tTp/AhYl/ezloKfuoQFcBKrdOx2USo=",
+      "dependencies": [
+        "aff",
+        "control",
+        "effect",
+        "either",
+        "exceptions",
+        "foreign",
+        "js-promise",
+        "maybe",
+        "prelude",
+        "transformers"
       ]
     },
     "js-timers": {
@@ -1694,6 +1716,26 @@
         "prelude",
         "type-equality",
         "unsafe-coerce"
+      ]
+    },
+    "vitest": {
+      "type": "registry",
+      "version": "2.0.0",
+      "integrity": "sha256-GkH1eyMaDyDUSC7kRSJrrD6k397m/SKQcKauVRmZzRI=",
+      "dependencies": [
+        "aff",
+        "effect",
+        "either",
+        "exceptions",
+        "js-promise",
+        "js-promise-aff",
+        "maybe",
+        "nullable",
+        "prelude",
+        "transformers",
+        "unsafe-coerce",
+        "web-dom",
+        "web-html"
       ]
     },
     "web-dom": {
