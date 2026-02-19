@@ -5,7 +5,7 @@ import Prelude hiding (div)
 import Next (Page, simplePage)
 import Yoga.React.DOM (div, h1, p)
 
-page :: Page () ()
+page :: Page "about"
 page = simplePage \_ -> div {}
   [ h1 {} "About"
   , p {} "This page is a PureScript server component."
