@@ -7,6 +7,7 @@ import Data.String as String
 import Effect (Effect)
 import Effect.Console as Console
 import Loader.Main (Segment(..), detectDirective, extractModuleName, generateTsx, kindToDeclName, kindToFileName, segmentsToNextPath)
+import Loader.Webpack as Webpack
 import Test.Assert (assertEqual, assertTrue', assertFalse')
 
 main :: Effect Unit
@@ -17,6 +18,7 @@ main = do
   testKindToFileName
   testKindToDeclName
   testGenerateTsx
+  testExtractModule
   Console.log "All loader tests passed!"
 
 --------------------------------------------------------------------------------
@@ -181,6 +183,29 @@ testGenerateTsx = do
     { mod: "Page.Foo", kind: "page", filePath: "app/foo/page.tsx"
     , relImport: "../output/Page.Foo/index.js", routePath: "app/foo"
     , directive: Nothing
+    }
+
+--------------------------------------------------------------------------------
+-- extractModule (Webpack loader)
+--------------------------------------------------------------------------------
+
+testExtractModule :: Effect Unit
+testExtractModule = do
+  assertEqual
+    { actual: Webpack.extractModule "/project/output/Page.Home/index.js"
+    , expected: Just "Page.Home"
+    }
+  assertEqual
+    { actual: Webpack.extractModule "C:\\project\\output\\Page.Home\\index.js"
+    , expected: Just "Page.Home"
+    }
+  assertEqual
+    { actual: Webpack.extractModule "/some/random/file.js"
+    , expected: Nothing
+    }
+  assertEqual
+    { actual: Webpack.extractModule "/project/output/Page.Blog.Slug/index.js"
+    , expected: Just "Page.Blog.Slug"
     }
 
 --------------------------------------------------------------------------------

@@ -28,6 +28,7 @@ async function build() {
 
 async function buildLoader() {
   await run("loader", "spago", ["build", "-p", "route-loader", "--output", "output-loader"]);
+  await run("bundle", "bun", ["run", "bundle-loader"]);
 }
 
 async function generateRoutes() {
