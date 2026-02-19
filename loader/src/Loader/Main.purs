@@ -248,6 +248,15 @@ computeRoutes appDir outputDir modules =
   Map.toUnfoldable modules # Array.mapMaybe \(_ /\ info) ->
     moduleToRoute appDir outputDir info
 
+modulePathSegments :: Array String -> Array String
+modulePathSegments parts = Array.mapMaybe toGroupDir parts
+  where
+  toGroupDir seg
+    | String.null seg = Nothing
+    | SCU.charAt (String.length seg - 1) seg == Just '_' =
+        Just $ "(" <> String.toLower (String.take (String.length seg - 1) seg) <> ")"
+    | otherwise = Nothing
+
 kindToFileName :: String -> String
 kindToFileName "notFound" = "not-found"
 kindToFileName "globalError" = "global-error"
@@ -275,7 +284,8 @@ moduleToRoute appDir outputDir info = do
   let declName = kindToDeclName kind
   segments <- extractPageType declName info.source
   let nextPathSegs = segmentsToNextPath segments
-  let routePath = foldl joinPath appDir nextPathSegs
+  let groupSegs = modulePathSegments (Array.drop 1 parts)
+  let routePath = foldl joinPath (foldl joinPath appDir groupSegs) nextPathSegs
   let filePath = joinPath routePath (kindToFileName kind <> ".tsx")
   let outputModule = joinPath outputDir (info.name <> "/index.js")
   let relImport = relativePath routePath outputModule

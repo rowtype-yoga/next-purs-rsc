@@ -5,7 +5,7 @@ import Prelude
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
-import Loader.Main (Segment(..), detectDirective, extractJsonField, extractModuleName, extractPageType, generateTsx, hasMetadataDecl, hasStaticParamsDecl, kindToDeclName, kindToFileName, moduleToRoute, segmentsToNextPath)
+import Loader.Main (Segment(..), detectDirective, extractJsonField, extractModuleName, extractPageType, generateTsx, hasMetadataDecl, hasStaticParamsDecl, kindToDeclName, kindToFileName, modulePathSegments, moduleToRoute, segmentsToNextPath)
 import Loader.Plugin as Plugin
 import Test.Golden (goldenTest)
 import Test.Spec (Spec, describe, it)
@@ -120,6 +120,16 @@ spec = do
     it "GlobalError type" do
       extractPageType "globalError" "module Foo where\nglobalError :: GlobalError Root" `shouldEqual` Just []
 
+  describe "modulePathSegments" do
+    it "no group segments" do
+      modulePathSegments [ "About" ] `shouldEqual` []
+    it "single group segment" do
+      modulePathSegments [ "Marketing_", "About" ] `shouldEqual` [ "(marketing)" ]
+    it "multiple group segments" do
+      modulePathSegments [ "Marketing_", "Auth_", "Login" ] `shouldEqual` [ "(marketing)", "(auth)" ]
+    it "non-trailing underscore ignored" do
+      modulePathSegments [ "DashBoard" ] `shouldEqual` []
+
   describe "extractJsonField" do
     it "extracts field with space after colon" do
       extractJsonField "modulePath" "{\"modulePath\": \"src/Foo.purs\"}" `shouldEqual` Just "src/Foo.purs"
@@ -166,6 +176,11 @@ spec = do
       let result = moduleToRoute "app" "output" info
       map _.kind result `shouldEqual` Just "globalError"
       map _.hasMetadata result `shouldEqual` Just false
+    it "route group page" do
+      let info = { name: "Page.Marketing_.About", source: "module Page.Marketing_.About where\npage :: Page \"about\"\npage = simplePage \\_ -> mempty", file: "src/Page/Marketing_/About.purs", directive: Nothing }
+      let result = moduleToRoute "app" "output" info
+      map _.routePath result `shouldEqual` Just "app/(marketing)/about"
+      map _.kind result `shouldEqual` Just "page"
     it "returns Nothing for non-route module" do
       let info = { name: "Utils.Helpers", source: "module Utils.Helpers where\nfoo :: String\nfoo = \"bar\"", file: "src/Utils/Helpers.purs", directive: Nothing }
       moduleToRoute "app" "output" info `shouldEqual` Nothing
@@ -244,5 +259,10 @@ spec = do
         { mod: "Page.Blog.Slug", kind: "page", filePath: "app/blog/[slug]/page.tsx"
         , relImport: "../output/Page.Blog.Slug/index.js", routePath: "app/blog/[slug]"
         , directive: Nothing, hasMetadata: false, hasStaticParams: true
+        }
+    , "route-group-page" /\ generateTsx
+        { mod: "Page.Marketing_.About", kind: "page", filePath: "app/(marketing)/about/page.tsx"
+        , relImport: "../output/Page.Marketing_.About/index.js", routePath: "app/(marketing)/about"
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false
         }
     ]
