@@ -28,6 +28,28 @@
         "test": {
           "dependencies": []
         }
+      },
+      "route-loader": {
+        "path": "loader",
+        "core": {
+          "dependencies": [
+            "arrays",
+            "console",
+            "effect",
+            "either",
+            "foldable-traversable",
+            "language-cst-parser",
+            "maybe",
+            "newtype",
+            "ordered-collections",
+            "prelude",
+            "strings",
+            "tuples"
+          ]
+        },
+        "test": {
+          "dependencies": []
+        }
       }
     },
     "package_set": {
@@ -1143,6 +1165,39 @@
       "dependencies": [
         "effect",
         "prelude"
+      ]
+    },
+    "language-cst-parser": {
+      "type": "registry",
+      "version": "0.14.1",
+      "integrity": "sha256-tnue0oM2/EmyNJmLoJDnmUDfinKLJHi2fcSGt7d6ewU=",
+      "dependencies": [
+        "arrays",
+        "const",
+        "control",
+        "either",
+        "enums",
+        "foldable-traversable",
+        "free",
+        "functions",
+        "functors",
+        "identity",
+        "integers",
+        "lazy",
+        "lists",
+        "maybe",
+        "newtype",
+        "numbers",
+        "ordered-collections",
+        "partial",
+        "prelude",
+        "st",
+        "strings",
+        "transformers",
+        "tuples",
+        "typelevel-prelude",
+        "unfoldable",
+        "unsafe-coerce"
       ]
     },
     "lazy": {

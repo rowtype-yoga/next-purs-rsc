@@ -1,0 +1,15 @@
+package:
+  name: route-loader
+  dependencies:
+    - language-cst-parser
+    - prelude
+    - effect
+    - console
+    - arrays
+    - strings
+    - maybe
+    - either
+    - foldable-traversable
+    - tuples
+    - newtype
+    - ordered-collections
