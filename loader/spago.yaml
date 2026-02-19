@@ -19,3 +19,8 @@ package:
       - spec
       - spec-node
       - aff
+      - either
+      - node-fs
+      - node-path
+      - node-process
+      - node-buffer
