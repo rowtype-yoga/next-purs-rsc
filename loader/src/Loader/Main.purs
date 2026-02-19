@@ -155,7 +155,7 @@ extractFromType = case _ of
   -- Page/Loading/ErrorBoundary/NotFound Root, Page "about", etc.
   CST.TypeApp head args -> case head of
     CST.TypeConstructor (CST.QualifiedName { name: CST.Proper ctor })
-      | ctor == "Page" || ctor == "Loading" || ctor == "ErrorBoundary" || ctor == "NotFound" ->
+      | ctor == "Page" || ctor == "Loading" || ctor == "ErrorBoundary" || ctor == "NotFound" || ctor == "Template" || ctor == "GlobalError" ->
           case Array.head (Array.fromFoldable args) of
             Just arg -> Just (walkTypeArg arg)
             Nothing -> Nothing
@@ -236,10 +236,12 @@ computeRoutes appDir outputDir modules =
 
 kindToFileName :: String -> String
 kindToFileName "notFound" = "not-found"
+kindToFileName "globalError" = "global-error"
 kindToFileName k = k
 
 kindToDeclName :: String -> String
 kindToDeclName "error" = "error"
+kindToDeclName "globalError" = "globalError"
 kindToDeclName k = k
 
 moduleToRoute :: String -> String -> ModuleInfo -> Maybe RouteInfo
@@ -248,8 +250,10 @@ moduleToRoute appDir outputDir info = do
   kind <- case Array.head parts of
     Just "Page" -> Just "page"
     Just "Layout" -> Just "layout"
+    Just "Template" -> Just "template"
     Just "Loading" -> Just "loading"
     Just "ErrorBoundary" -> Just "error"
+    Just "GlobalError" -> Just "globalError"
     Just "NotFound" -> Just "notFound"
     _ -> Nothing
 
@@ -262,7 +266,7 @@ moduleToRoute appDir outputDir info = do
   let outputModule = joinPath outputDir (info.name <> "/index.js")
   let relImport = relativePath routePath outputModule
 
-  let canHaveMeta = (kind == "page" || kind == "layout") && info.directive /= Just "use client"
+  let canHaveMeta = (kind == "page" || kind == "layout" || kind == "template") && info.directive /= Just "use client"
   let hasMetadata = canHaveMeta && hasMetadataDecl info.source
 
   Just { mod: info.name, kind, filePath, relImport, routePath, directive: info.directive, hasMetadata }
@@ -285,12 +289,12 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
   importLine = "import { " <> imports <> " } from " <> show route.relImport <> ";"
 
   directiveLine
-    | route.kind == "error" = [ show "use client" <> ";" ]
+    | route.kind == "error" || route.kind == "globalError" = [ show "use client" <> ";" ]
     | otherwise = case route.directive of
         Just d -> [ show d <> ";" ]
         Nothing -> []
 
-  isClient = route.directive == Just "use client" || route.kind == "error"
+  isClient = route.directive == Just "use client" || route.kind == "error" || route.kind == "globalError"
 
   contentLines
     -- Client component: top-level await

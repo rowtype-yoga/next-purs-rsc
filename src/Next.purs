@@ -2,8 +2,10 @@ module Next
   ( Page
   , Metadata
   , Layout
+  , Template
   , Loading
   , ErrorBoundary
+  , GlobalError
   , NotFound
   , class ParsePathFields
   , buildParsedPath
@@ -12,9 +14,11 @@ module Next
   , simplePage
   , simpleMetadata
   , simpleLayout
+  , simpleTemplate
   , loading
   , notFound
   , errorBoundary
+  , globalError
   , nextPage
   , nextLayout
   , link
@@ -72,6 +76,12 @@ newtype ErrorBoundary path = ErrorBoundary Unit
 
 newtype Metadata :: forall k. k -> Type
 newtype Metadata path = Metadata Unit
+
+newtype Template :: forall k. k -> Type
+newtype Template path = Template Unit
+
+newtype GlobalError :: forall k. k -> Type
+newtype GlobalError path = GlobalError Unit
 
 newtype NotFound :: forall k. k -> Type
 newtype NotFound path = NotFound Unit
@@ -169,6 +179,9 @@ simpleMetadata f = unsafeCoerce $ Promise.fromAff $ pure \rawProps -> do
 simpleLayout :: ({ children :: ReactChildren JSX } -> JSX) -> Layout
 simpleLayout render = unsafeCoerce $ Promise.fromAff $ pure render
 
+simpleTemplate :: forall path. ({ children :: ReactChildren JSX } -> JSX) -> Template path
+simpleTemplate render = unsafeCoerce $ Promise.fromAff $ pure render
+
 loading
   :: forall path name ctx hooks
    . FirstSegment path name
@@ -201,6 +214,18 @@ errorBoundary
   -> Om.Om { | ctx } () ({ error :: Foreign, reset :: Effect Unit } -> OmRender ctx Unit hooks JSX)
   -> ErrorBoundary path
 errorBoundary ctx om = unsafeCoerce $ Promise.fromAff do
+  Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+    render <- om
+    omComponent (reflectSymbol (Proxy :: Proxy name)) render
+
+globalError
+  :: forall path name ctx hooks
+   . FirstSegment path name
+  => IsSymbol name
+  => { | ctx }
+  -> Om.Om { | ctx } () ({ error :: Foreign, reset :: Effect Unit } -> OmRender ctx Unit hooks JSX)
+  -> GlobalError path
+globalError ctx om = unsafeCoerce $ Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
     render <- om
     omComponent (reflectSymbol (Proxy :: Proxy name)) render

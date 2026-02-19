@@ -50,15 +50,19 @@ spec = do
 
   describe "kindToFileName" do
     it "notFound" do kindToFileName "notFound" `shouldEqual` "not-found"
+    it "globalError" do kindToFileName "globalError" `shouldEqual` "global-error"
     it "page" do kindToFileName "page" `shouldEqual` "page"
     it "layout" do kindToFileName "layout" `shouldEqual` "layout"
+    it "template" do kindToFileName "template" `shouldEqual` "template"
     it "error" do kindToFileName "error" `shouldEqual` "error"
     it "loading" do kindToFileName "loading" `shouldEqual` "loading"
 
   describe "kindToDeclName" do
     it "error" do kindToDeclName "error" `shouldEqual` "error"
+    it "globalError" do kindToDeclName "globalError" `shouldEqual` "globalError"
     it "page" do kindToDeclName "page" `shouldEqual` "page"
     it "layout" do kindToDeclName "layout" `shouldEqual` "layout"
+    it "template" do kindToDeclName "template" `shouldEqual` "template"
     it "notFound" do kindToDeclName "notFound" `shouldEqual` "notFound"
 
   describe "generateTsx" do
@@ -103,6 +107,10 @@ spec = do
       extractPageType "error" "module Foo where\nerror :: ErrorBoundary Root" `shouldEqual` Just []
     it "NotFound type" do
       extractPageType "notFound" "module Foo where\nnotFound :: NotFound Root" `shouldEqual` Just []
+    it "Template type" do
+      extractPageType "template" "module Foo where\ntemplate :: Template (\"dashboard\")" `shouldEqual` Just [ Static "dashboard" ]
+    it "GlobalError type" do
+      extractPageType "globalError" "module Foo where\nglobalError :: GlobalError Root" `shouldEqual` Just []
 
   describe "extractJsonField" do
     it "extracts field with space after colon" do
@@ -135,6 +143,16 @@ spec = do
     it "loading never has metadata" do
       let info = { name: "Loading.Dashboard", source: "module Loading.Dashboard where\nloading :: Loading (\"dashboard\")\nloading = undefined\nmetadata :: Metadata (\"dashboard\")\nmetadata = undefined", file: "src/Loading/Dashboard.purs", directive: Nothing }
       let result = moduleToRoute "app" "output" info
+      map _.hasMetadata result `shouldEqual` Just false
+    it "template with metadata" do
+      let info = { name: "Template.Dashboard", source: "module Template.Dashboard where\ntemplate :: Template (\"dashboard\")\ntemplate = undefined\nmetadata :: Metadata (\"dashboard\")\nmetadata = undefined", file: "src/Template/Dashboard.purs", directive: Nothing }
+      let result = moduleToRoute "app" "output" info
+      map _.kind result `shouldEqual` Just "template"
+      map _.hasMetadata result `shouldEqual` Just true
+    it "globalError always client never metadata" do
+      let info = { name: "GlobalError.Root", source: "module GlobalError.Root where\nglobalError :: GlobalError Root\nglobalError = undefined\nmetadata :: Metadata Root\nmetadata = undefined", file: "src/GlobalError/Root.purs", directive: Nothing }
+      let result = moduleToRoute "app" "output" info
+      map _.kind result `shouldEqual` Just "globalError"
       map _.hasMetadata result `shouldEqual` Just false
     it "returns Nothing for non-route module" do
       let info = { name: "Utils.Helpers", source: "module Utils.Helpers where\nfoo :: String\nfoo = \"bar\"", file: "src/Utils/Helpers.purs", directive: Nothing }
@@ -198,5 +216,15 @@ spec = do
         { mod: "Layout.Root", kind: "layout", filePath: "app/layout.tsx"
         , relImport: "../output/Layout.Root/index.js", routePath: "app"
         , directive: Nothing, hasMetadata: true
+        }
+    , "template" /\ generateTsx
+        { mod: "Template.Dashboard", kind: "template", filePath: "app/dashboard/template.tsx"
+        , relImport: "../output/Template.Dashboard/index.js", routePath: "app/dashboard"
+        , directive: Nothing, hasMetadata: false
+        }
+    , "global-error" /\ generateTsx
+        { mod: "GlobalError.Root", kind: "globalError", filePath: "app/global-error.tsx"
+        , relImport: "../output/GlobalError.Root/index.js", routePath: "app"
+        , directive: Nothing, hasMetadata: false
         }
     ]
