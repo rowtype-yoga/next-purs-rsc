@@ -204,8 +204,10 @@ hasMetadataDecl src = case parseModule src of
   ParseSucceeded (CST.Module m) -> hasMetaSig m.body
   ParseSucceededWithErrors (CST.Module m) _ -> hasMetaSig m.body
   ParseFailed _ -> false
+
+hasMetaSig :: forall e. CST.ModuleBody e -> Boolean
+hasMetaSig (CST.ModuleBody { decls }) = Array.any matchMeta decls
   where
-  hasMetaSig (CST.ModuleBody { decls }) = Array.any matchMeta decls
   matchMeta (CST.DeclSignature (CST.Labeled { label: CST.Name { name: CST.Ident ident } }))
     | ident == "metadata" = true
   matchMeta _ = false
