@@ -1,5 +1,6 @@
 module Next
   ( Page
+  , Metadata
   , Layout
   , Loading
   , ErrorBoundary
@@ -9,6 +10,7 @@ module Next
   , class FirstSegment
   , RawRecord
   , simplePage
+  , simpleMetadata
   , simpleLayout
   , loading
   , notFound
@@ -67,6 +69,9 @@ newtype Loading path = Loading Unit
 
 newtype ErrorBoundary :: forall k. k -> Type
 newtype ErrorBoundary path = ErrorBoundary Unit
+
+newtype Metadata :: forall k. k -> Type
+newtype Metadata path = Metadata Unit
 
 newtype NotFound :: forall k. k -> Type
 newtype NotFound path = NotFound Unit
@@ -147,6 +152,19 @@ simplePage render = unsafeCoerce $ Promise.fromAff $ pure \rawProps -> do
   let params = parsePathFields (unsafeCoerce rawProps).params
   let searchParams = _mapRecord toMaybe (unsafeCoerce rawProps).searchParams
   render { params, searchParams }
+
+simpleMetadata
+  :: forall path pathParams queryParams pathRL r
+   . SegmentPathParams path pathParams
+  => SegmentQueryParams path queryParams
+  => RL.RowToList pathParams pathRL
+  => ParsePathFields pathRL pathParams
+  => ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> { | r })
+  -> Metadata path
+simpleMetadata f = unsafeCoerce $ Promise.fromAff $ pure \rawProps -> do
+  let params = parsePathFields (unsafeCoerce rawProps).params
+  let searchParams = _mapRecord toMaybe (unsafeCoerce rawProps).searchParams
+  f { params, searchParams }
 
 simpleLayout :: ({ children :: ReactChildren JSX } -> JSX) -> Layout
 simpleLayout render = unsafeCoerce $ Promise.fromAff $ pure render

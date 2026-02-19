@@ -84,6 +84,7 @@ spec = do
     , relImport: "../output/Page.Home/index.js"
     , routePath: "app"
     , directive
+    , hasMetadata: false
     }
   goldenCases =
     [ "client-page" /\ generateTsx (route "page" (Just "use client"))
@@ -91,26 +92,36 @@ spec = do
     , "layout" /\ generateTsx
         { mod: "Layout.Root", kind: "layout", filePath: "app/layout.tsx"
         , relImport: "../output/Layout.Root/index.js", routePath: "app"
-        , directive: Nothing
+        , directive: Nothing, hasMetadata: false
         }
     , "error" /\ generateTsx
         { mod: "ErrorBoundary.Root", kind: "error", filePath: "app/error.tsx"
         , relImport: "../output/ErrorBoundary.Root/index.js", routePath: "app"
-        , directive: Nothing
+        , directive: Nothing, hasMetadata: false
         }
     , "loading" /\ generateTsx
         { mod: "Loading.Root", kind: "loading", filePath: "app/loading.tsx"
         , relImport: "../output/Loading.Root/index.js", routePath: "app"
-        , directive: Nothing
+        , directive: Nothing, hasMetadata: false
         }
     , "not-found" /\ generateTsx
         { mod: "NotFound.Root", kind: "notFound", filePath: "app/not-found.tsx"
         , relImport: "../output/NotFound.Root/index.js", routePath: "app"
-        , directive: Nothing
+        , directive: Nothing, hasMetadata: false
         }
     , "nested-page" /\ generateTsx
         { mod: "Page.Foo", kind: "page", filePath: "app/foo/page.tsx"
         , relImport: "../output/Page.Foo/index.js", routePath: "app/foo"
-        , directive: Nothing
+        , directive: Nothing, hasMetadata: false
+        }
+    , "server-page-metadata" /\ generateTsx
+        { mod: "Page.Blog.Slug", kind: "page", filePath: "app/blog/[slug]/page.tsx"
+        , relImport: "../output/Page.Blog.Slug/index.js", routePath: "app/blog/[slug]"
+        , directive: Nothing, hasMetadata: true
+        }
+    , "layout-metadata" /\ generateTsx
+        { mod: "Layout.Root", kind: "layout", filePath: "app/layout.tsx"
+        , relImport: "../output/Layout.Root/index.js", routePath: "app"
+        , directive: Nothing, hasMetadata: true
         }
     ]

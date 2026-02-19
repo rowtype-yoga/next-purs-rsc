@@ -52,6 +52,7 @@ type RouteInfo =
   , relImport :: String
   , routePath :: String
   , directive :: Maybe String
+  , hasMetadata :: Boolean
   }
 
 --------------------------------------------------------------------------------
@@ -198,6 +199,17 @@ markLastOptCatchAll segs = case Array.unsnoc segs of
   Just { init, last: Static s } -> init <> [ OptCatchAll s ]
   _ -> segs
 
+hasMetadataDecl :: String -> Boolean
+hasMetadataDecl src = case parseModule src of
+  ParseSucceeded (CST.Module m) -> hasMetaSig m.body
+  ParseSucceededWithErrors (CST.Module m) _ -> hasMetaSig m.body
+  ParseFailed _ -> false
+  where
+  hasMetaSig (CST.ModuleBody { decls }) = Array.any matchMeta decls
+  matchMeta (CST.DeclSignature (CST.Labeled { label: CST.Name { name: CST.Ident ident } }))
+    | ident == "metadata" = true
+  matchMeta _ = false
+
 segmentsToNextPath :: Array Segment -> Array String
 segmentsToNextPath = map case _ of
   Static s -> s
@@ -242,7 +254,10 @@ moduleToRoute appDir outputDir info = do
   let outputModule = joinPath outputDir (info.name <> "/index.js")
   let relImport = relativePath routePath outputModule
 
-  Just { mod: info.name, kind, filePath, relImport, routePath, directive: info.directive }
+  let canHaveMeta = (kind == "page" || kind == "layout") && info.directive /= Just "use client"
+  let hasMetadata = canHaveMeta && hasMetadataDecl info.source
+
+  Just { mod: info.name, kind, filePath, relImport, routePath, directive: info.directive, hasMetadata }
 
 --------------------------------------------------------------------------------
 -- .tsx generation
@@ -251,9 +266,15 @@ moduleToRoute appDir outputDir info = do
 generateTsx :: RouteInfo -> String
 generateTsx route = String.joinWith "\n" (lines <> [ "" ])
   where
-  lines = directiveLine <> contentLines
+  lines = directiveLine <> contentLines <> metadataLines
+
   declName = kindToDeclName route.kind
-  importLine = "import { " <> declName <> " } from " <> show route.relImport <> ";"
+
+  imports
+    | route.hasMetadata = declName <> ", metadata"
+    | otherwise = declName
+
+  importLine = "import { " <> imports <> " } from " <> show route.relImport <> ";"
 
   directiveLine
     | route.kind == "error" = [ show "use client" <> ";" ]
@@ -300,6 +321,23 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         , "export default async function(props) {"
         , "  const render = await " <> declName <> "();"
         , "  return render(props);"
+        , "}"
+        ]
+
+  metadataLines
+    | not route.hasMetadata = []
+    | route.kind == "page" =
+        [ "export async function generateMetadata(props) {"
+        , "  const meta = await metadata();"
+        , "  const params = await (props.params ?? {});"
+        , "  const searchParams = await (props.searchParams ?? {});"
+        , "  return meta({ params, searchParams });"
+        , "}"
+        ]
+    | otherwise =
+        [ "export async function generateMetadata(props) {"
+        , "  const meta = await metadata();"
+        , "  return meta(props);"
         , "}"
         ]
 
