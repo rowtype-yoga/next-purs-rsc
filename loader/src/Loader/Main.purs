@@ -253,7 +253,7 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
   where
   lines = directiveLine <> contentLines
   declName = kindToDeclName route.kind
-  importLine = "import { " <> declName <> " as mk } from " <> show route.relImport <> ";"
+  importLine = "import { " <> declName <> " } from " <> show route.relImport <> ";"
 
   directiveLine
     | route.kind == "error" = [ show "use client" <> ";" ]
@@ -264,12 +264,12 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
   isClient = route.directive == Just "use client" || route.kind == "error"
 
   contentLines
-    -- Client component: hooks-based (await handles both Effect and Effect→Promise)
+    -- Client component: top-level await
     | isClient =
         [ marker
         , "// @ts-expect-error — PureScript output"
         , importLine
-        , "export default await mk();"
+        , "export default await " <> declName <> "();"
         ]
     -- Page: async server with params
     | route.kind == "page" =
@@ -277,29 +277,19 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         , "// @ts-expect-error — PureScript output"
         , importLine
         , "export default async function(props) {"
-        , "  const render = await mk();"
+        , "  const render = await " <> declName <> "();"
         , "  const params = await (props.params ?? {});"
         , "  const searchParams = await (props.searchParams ?? {});"
         , "  return render({ params, searchParams });"
         , "}"
         ]
-    -- NotFound: direct call, no props
-    | route.kind == "notFound" =
-        [ marker
-        , "// @ts-expect-error — PureScript output"
-        , "import { " <> declName <> " } from " <> show route.relImport <> ";"
-        , "export default async function() {"
-        , "  return " <> declName <> "()"
-        , "}"
-        ]
-    -- Loading: async server, no props
-    | route.kind == "loading" =
+    -- Loading/NotFound: direct call, no props
+    | route.kind == "loading" || route.kind == "notFound" =
         [ marker
         , "// @ts-expect-error — PureScript output"
         , importLine
         , "export default async function() {"
-        , "  const render = await mk();"
-        , "  return render();"
+        , "  return " <> declName <> "()"
         , "}"
         ]
     -- Layout and other: async server, pass props through
@@ -308,7 +298,7 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         , "// @ts-expect-error — PureScript output"
         , importLine
         , "export default async function(props) {"
-        , "  const render = await mk();"
+        , "  const render = await " <> declName <> "();"
         , "  return render(props);"
         , "}"
         ]

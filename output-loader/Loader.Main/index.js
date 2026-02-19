@@ -320,24 +320,21 @@ var generateTsx = function (route) {
         throw new Error("Failed pattern match at Loader.Main (line 258, column 3 - line 262, column 22): " + [  ]);
     })();
     var declName = kindToDeclName(route.kind);
-    var importLine = "import { " + (declName + (" as mk } from " + (show(route.relImport) + ";")));
+    var importLine = "import { " + (declName + (" } from " + (show(route.relImport) + ";")));
     var contentLines = (function () {
         if (isClient) {
-            return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default await mk();" ];
+            return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default await " + (declName + "();") ];
         };
         if (route.kind === "page") {
-            return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default async function(props) {", "  const render = await mk();", "  const params = await (props.params ?? {});", "  const searchParams = await (props.searchParams ?? {});", "  return render({ params, searchParams });", "}" ];
+            return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default async function(props) {", "  const render = await " + (declName + "();"), "  const params = await (props.params ?? {});", "  const searchParams = await (props.searchParams ?? {});", "  return render({ params, searchParams });", "}" ];
         };
-        if (route.kind === "notFound") {
-            return [ marker, "// @ts-expect-error \u2014 PureScript output", "import { " + (declName + (" } from " + (show(route.relImport) + ";"))), "export default async function() {", "  return " + (declName + "()"), "}" ];
-        };
-        if (route.kind === "loading") {
-            return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default async function() {", "  const render = await mk();", "  return render();", "}" ];
+        if (route.kind === "loading" || route.kind === "notFound") {
+            return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default async function() {", "  return " + (declName + "()"), "}" ];
         };
         if (Data_Boolean.otherwise) {
-            return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default async function(props) {", "  const render = await mk();", "  return render(props);", "}" ];
+            return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default async function(props) {", "  const render = await " + (declName + "();"), "  return render(props);", "}" ];
         };
-        throw new Error("Failed pattern match at Loader.Main (line 266, column 3 - line 314, column 10): " + [  ]);
+        throw new Error("Failed pattern match at Loader.Main (line 266, column 3 - line 304, column 10): " + [  ]);
     })();
     var lines = append1(directiveLine)(contentLines);
     return Data_String_Common.joinWith("\x0a")(append1(lines)([ "" ]));
@@ -446,7 +443,7 @@ var extractJsonField = function (field) {
                         return v1.value0;
                     })());
                 };
-                throw new Error("Failed pattern match at Loader.Main (line 395, column 3 - line 395, column 20): " + [ v.constructor.name, v1.constructor.name ]);
+                throw new Error("Failed pattern match at Loader.Main (line 385, column 3 - line 385, column 20): " + [ v.constructor.name, v1.constructor.name ]);
             };
         };
         var needle = show(field) + ":";
@@ -468,11 +465,11 @@ var extractJsonField = function (field) {
                 if (endIdx instanceof Data_Maybe.Nothing) {
                     return Data_Maybe.Nothing.value;
                 };
-                throw new Error("Failed pattern match at Loader.Main (line 390, column 9 - line 392, column 29): " + [ endIdx.constructor.name ]);
+                throw new Error("Failed pattern match at Loader.Main (line 380, column 9 - line 382, column 29): " + [ endIdx.constructor.name ]);
             };
             return Data_Maybe.Nothing.value;
         };
-        throw new Error("Failed pattern match at Loader.Main (line 380, column 3 - line 393, column 19): " + [ idx.constructor.name ]);
+        throw new Error("Failed pattern match at Loader.Main (line 370, column 3 - line 383, column 19): " + [ idx.constructor.name ]);
     };
 };
 var extractFromType = function (v) {
@@ -612,7 +609,7 @@ var generateRoutePursFromModules = function (routes) {
                         varIdx: v.varIdx + 1 | 0
                     };
                 };
-                throw new Error("Failed pattern match at Loader.Main (line 543, column 3 - line 544, column 56): " + [ v.constructor.name, v1.constructor.name ]);
+                throw new Error("Failed pattern match at Loader.Main (line 533, column 3 - line 534, column 56): " + [ v.constructor.name, v1.constructor.name ]);
             };
         };
         var buildPathExpr = function (segments) {
