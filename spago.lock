@@ -52,11 +52,7 @@
         "test": {
           "dependencies": [
             "aff",
-            "either",
-            "node-buffer",
-            "node-fs",
-            "node-path",
-            "node-process",
+            "golden-test",
             "spec",
             "spec-node"
           ]
@@ -655,6 +651,9 @@
       }
     },
     "extra_packages": {
+      "golden-test": {
+        "path": "../../code/purescript-golden-test"
+      },
       "ref-lifted": {
         "path": "../purescript-ref-lifted"
       },
@@ -1140,6 +1139,23 @@
         "tailrec",
         "tuples",
         "unfoldable"
+      ]
+    },
+    "golden-test": {
+      "type": "local",
+      "path": "../../code/purescript-golden-test",
+      "dependencies": [
+        "aff",
+        "effect",
+        "either",
+        "maybe",
+        "node-buffer",
+        "node-fs",
+        "node-path",
+        "node-process",
+        "prelude",
+        "spec",
+        "strings"
       ]
     },
     "heterogeneous": {

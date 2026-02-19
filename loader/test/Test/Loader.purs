@@ -7,9 +7,9 @@ import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
 import Loader.Main (Segment(..), detectDirective, extractModuleName, generateTsx, kindToDeclName, kindToFileName, segmentsToNextPath)
 import Loader.Plugin as Plugin
-import Test.Golden (GoldenResult(..), checkGolden, writeDiffReport)
+import Test.Golden (goldenTest)
 import Test.Spec (Spec, describe, it)
-import Test.Spec.Assertions (fail, shouldEqual)
+import Test.Spec.Assertions (shouldEqual)
 
 spec :: Spec Unit
 spec = do
@@ -62,16 +62,9 @@ spec = do
     it "notFound" do kindToDeclName "notFound" `shouldEqual` "notFound"
 
   describe "generateTsx" do
+    let golden = goldenTest { goldenDir: "loader/test/golden", diffDir: "loader/test/diffs" }
     for_ goldenCases \(name /\ actual) ->
-      it name do
-        result <- checkGolden { goldenDir: "loader/test/golden", testName: name, actual }
-        case result of
-          GoldenMatch -> pure unit
-          GoldenNew { goldenPath } ->
-            fail $ "No golden file at " <> goldenPath <> ", run with UPDATE_GOLDEN=1 to create it"
-          GoldenMismatch r -> do
-            diffPath <- writeDiffReport { outputDir: "loader/test/diffs", testName: name, expected: r.expected, actual: r.actual }
-            fail $ "Golden mismatch for " <> r.goldenPath <> "\nDiff report: " <> diffPath
+      golden name actual
 
   describe "extractModule" do
     it "unix path" do

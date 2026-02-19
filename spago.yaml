@@ -42,3 +42,5 @@ workspace:
       path: ../purescript-yoga-om
     yoga-react-om:
       path: ../purescript-yoga-react-om
+    golden-test:
+      path: ../../code/purescript-golden-test
