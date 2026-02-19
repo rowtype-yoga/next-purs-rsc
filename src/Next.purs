@@ -319,7 +319,7 @@ nextLayout name ctx om = unsafeCoerce $ Promise.fromAff do
 --------------------------------------------------------------------------------
 
 simpleHandler
-  :: forall path pathParams pathRL
+  :: forall @path pathParams pathRL
    . SegmentPathParams path pathParams
   => RL.RowToList pathParams pathRL
   => ParsePathFields pathRL pathParams
@@ -330,25 +330,25 @@ simpleHandler f = unsafeCoerce \request rawParams -> Promise.fromAff do
   f request params
 
 simpleGet :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Foreign -> { | pathParams } -> Aff Foreign) -> GET path
-simpleGet f = unsafeCoerce (simpleHandler f)
+simpleGet f = unsafeCoerce (simpleHandler @path f)
 
 simplePost :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Foreign -> { | pathParams } -> Aff Foreign) -> POST path
-simplePost f = unsafeCoerce (simpleHandler f)
+simplePost f = unsafeCoerce (simpleHandler @path f)
 
 simplePut :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Foreign -> { | pathParams } -> Aff Foreign) -> PUT path
-simplePut f = unsafeCoerce (simpleHandler f)
+simplePut f = unsafeCoerce (simpleHandler @path f)
 
 simpleDelete :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Foreign -> { | pathParams } -> Aff Foreign) -> DELETE path
-simpleDelete f = unsafeCoerce (simpleHandler f)
+simpleDelete f = unsafeCoerce (simpleHandler @path f)
 
 simplePatch :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Foreign -> { | pathParams } -> Aff Foreign) -> PATCH path
-simplePatch f = unsafeCoerce (simpleHandler f)
+simplePatch f = unsafeCoerce (simpleHandler @path f)
 
 simpleHead :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Foreign -> { | pathParams } -> Aff Foreign) -> HEAD path
-simpleHead f = unsafeCoerce (simpleHandler f)
+simpleHead f = unsafeCoerce (simpleHandler @path f)
 
 simpleOptions :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Foreign -> { | pathParams } -> Aff Foreign) -> OPTIONS path
-simpleOptions f = unsafeCoerce (simpleHandler f)
+simpleOptions f = unsafeCoerce (simpleHandler @path f)
 
 --------------------------------------------------------------------------------
 -- Links
