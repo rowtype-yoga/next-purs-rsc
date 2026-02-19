@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "generate": "bun generate-routes.js && spago build",
+    "generate": "spago build -p route-loader --output output-loader && bun -e 'import { main } from \"./output-loader/Loader.Main/index.js\"; main();' && spago build",
     "dev": "bun dev.js",
-    "build": "bun generate-routes.js && spago build && bunx next build",
+    "build": "spago build -p route-loader --output output-loader && bun -e 'import { main } from \"./output-loader/Loader.Main/index.js\"; main();' && spago build && bunx next build",
     "start": "bunx next start"
   },
   "dependencies": {

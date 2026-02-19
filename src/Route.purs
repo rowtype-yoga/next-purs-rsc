@@ -3,7 +3,7 @@ module Route where
 
 import Prelude
 
-data Route = About | Home | Dashboard | Blog__
+data Route = About | Blog__Slug String | Dashboard | Home
 
 derive instance Eq Route
 derive instance Ord Route
@@ -11,6 +11,6 @@ derive instance Ord Route
 toPath :: Route -> String
 toPath = case _ of
   About -> "/about"
-  Home -> "/"
+  Blog__Slug a -> "/blog" <> "/" <> a
   Dashboard -> "/dashboard"
-  Blog__ -> "/blog/"
+  Home -> "/"

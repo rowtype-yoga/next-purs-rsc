@@ -26,13 +26,18 @@ async function build() {
   await run("spago", "spago", ["build"]);
 }
 
+async function buildLoader() {
+  await run("loader", "spago", ["build", "-p", "route-loader", "--output", "output-loader"]);
+}
+
 async function generateRoutes() {
-  await run("routes", "bun", ["generate-routes.js"]);
+  await run("routes", "bun", ["-e", 'import { main } from "./output-loader/Loader.Main/index.js"; main();']);
 }
 
 async function rebuild() {
   try {
     console.log("[dev] Rebuilding...");
+    await buildLoader();
     await generateRoutes();
     await build();
     console.log("[dev] Rebuild complete.");
@@ -78,18 +83,16 @@ function scheduleRebuild() {
 }
 
 function watchSrc() {
-  if (!fs.existsSync(SRC_DIR)) {
-    console.log("[dev] src/ not found, skipping watcher.");
-    return;
+  const dirs = [SRC_DIR, path.resolve(__dirname, "loader/src")];
+  for (const dir of dirs) {
+    if (!fs.existsSync(dir)) continue;
+    const watcher = fs.watch(dir, { recursive: true }, (_event, filename) => {
+      if (!filename || !filename.endsWith(".purs")) return;
+      console.log(`[dev] Changed: ${filename}`);
+      scheduleRebuild();
+    });
+    watcher.on("error", (err) => console.error("[dev] Watcher error:", err.message));
   }
-
-  const watcher = fs.watch(SRC_DIR, { recursive: true }, (_event, filename) => {
-    if (!filename || !filename.endsWith(".purs")) return;
-    console.log(`[dev] Changed: ${filename}`);
-    scheduleRebuild();
-  });
-
-  watcher.on("error", (err) => console.error("[dev] Watcher error:", err.message));
 }
 
 // --- Signal forwarding ---
@@ -105,6 +108,7 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 
 async function main() {
   console.log("[dev] Initial build...");
+  await buildLoader();
   await generateRoutes();
   await build();
   console.log("[dev] Starting next dev...");
