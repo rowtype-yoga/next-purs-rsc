@@ -5,7 +5,7 @@ import Prelude
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
-import Loader.Main (Segment(..), detectDirective, extractJsonField, extractModuleName, extractPageType, findHandlerMethods, generateMiddleware, generateTsx, hasConfigDecl, hasMetadataDecl, hasStaticParamsDecl, kindToDeclName, kindToFileName, methodToExportName, modulePathSegments, moduleToRoute, segmentsToNextPath, detectKind)
+import Loader.Main (Segment(..), detectDirective, detectKind, extractJsonField, extractModuleName, extractPageType, findHandlerMethods, findRouteConfigDecls, generateMiddleware, generateTsx, hasConfigDecl, hasMetadataDecl, hasStaticParamsDecl, kindToDeclName, kindToFileName, methodToExportName, modulePathSegments, moduleToRoute, segmentsToNextPath)
 import Loader.Plugin as Plugin
 import Test.Golden (goldenTest)
 import Test.Spec (Spec, describe, it)
@@ -232,6 +232,10 @@ spec = do
       let result = moduleToRoute "app" "output" info
       map _.routePath result `shouldEqual` Just "app/(marketing)/about"
       map _.kind result `shouldEqual` Just "page"
+    it "page with route config" do
+      let info = { name: "Page.Blog", source: "module Page.Blog where\npage :: Page \"blog\"\npage = simplePage \\_ -> mempty\ndynamic :: String\ndynamic = \"force-dynamic\"", file: "src/Page/Blog.purs", directive: Nothing }
+      let result = moduleToRoute "app" "output" info
+      map _.routeConfigs result `shouldEqual` Just [ "dynamic" ]
     it "intercepting route same level" do
       let info = { name: "Page.Intercept_.Photo", source: "module Page.Intercept_.Photo where\npage :: Page \"photo\"\npage = simplePage \\_ -> mempty", file: "src/Page/Intercept_/Photo.purs", directive: Nothing }
       let result = moduleToRoute "app" "output" info
@@ -240,6 +244,14 @@ spec = do
     it "returns Nothing for non-route module" do
       let info = { name: "Utils.Helpers", source: "module Utils.Helpers where\nfoo :: String\nfoo = \"bar\"", file: "src/Utils/Helpers.purs", directive: Nothing }
       moduleToRoute "app" "output" info `shouldEqual` Nothing
+
+  describe "findRouteConfigDecls" do
+    it "finds dynamic config" do
+      findRouteConfigDecls "module Foo where\ndynamic :: String\ndynamic = \"force-dynamic\"" `shouldEqual` [ "dynamic" ]
+    it "finds multiple configs" do
+      findRouteConfigDecls "module Foo where\ndynamic :: String\ndynamic = \"force-dynamic\"\nrevalidate :: Int\nrevalidate = 60" `shouldEqual` [ "dynamic", "revalidate" ]
+    it "finds no configs in regular module" do
+      findRouteConfigDecls "module Foo where\npage :: Page Root\npage = undefined" `shouldEqual` []
 
   describe "hasConfigDecl" do
     it "detects config signature" do
@@ -275,6 +287,7 @@ spec = do
     , hasMetadata: false
     , hasStaticParams: false
     , handlerMethods: []
+    , routeConfigs: []
     }
   goldenCases =
     [ "client-page" /\ generateTsx (route "page" (Just "use client"))
@@ -282,77 +295,82 @@ spec = do
     , "layout" /\ generateTsx
         { mod: "Layout.Root", kind: "layout", filePath: "app/layout.tsx"
         , relImport: "../output/Layout.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: []
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
         }
     , "error" /\ generateTsx
         { mod: "ErrorBoundary.Root", kind: "error", filePath: "app/error.tsx"
         , relImport: "../output/ErrorBoundary.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: []
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
         }
     , "loading" /\ generateTsx
         { mod: "Loading.Root", kind: "loading", filePath: "app/loading.tsx"
         , relImport: "../output/Loading.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: []
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
         }
     , "not-found" /\ generateTsx
         { mod: "NotFound.Root", kind: "notFound", filePath: "app/not-found.tsx"
         , relImport: "../output/NotFound.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: []
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
         }
     , "nested-page" /\ generateTsx
         { mod: "Page.Foo", kind: "page", filePath: "app/foo/page.tsx"
         , relImport: "../output/Page.Foo/index.js", routePath: "app/foo"
-        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: []
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
         }
     , "server-directive-page" /\ generateTsx (route "page" (Just "use server"))
     , "server-page-metadata" /\ generateTsx
         { mod: "Page.Blog.Slug", kind: "page", filePath: "app/blog/[slug]/page.tsx"
         , relImport: "../output/Page.Blog.Slug/index.js", routePath: "app/blog/[slug]"
-        , directive: Nothing, hasMetadata: true, hasStaticParams: false, handlerMethods: []
+        , directive: Nothing, hasMetadata: true, hasStaticParams: false, handlerMethods: [], routeConfigs: []
         }
     , "layout-metadata" /\ generateTsx
         { mod: "Layout.Root", kind: "layout", filePath: "app/layout.tsx"
         , relImport: "../output/Layout.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: true, hasStaticParams: false, handlerMethods: []
+        , directive: Nothing, hasMetadata: true, hasStaticParams: false, handlerMethods: [], routeConfigs: []
         }
     , "template" /\ generateTsx
         { mod: "Template.Dashboard", kind: "template", filePath: "app/dashboard/template.tsx"
         , relImport: "../output/Template.Dashboard/index.js", routePath: "app/dashboard"
-        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: []
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
         }
     , "global-error" /\ generateTsx
         { mod: "GlobalError.Root", kind: "globalError", filePath: "app/global-error.tsx"
         , relImport: "../output/GlobalError.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: []
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
         }
     , "static-params-page" /\ generateTsx
         { mod: "Page.Blog.Slug", kind: "page", filePath: "app/blog/[slug]/page.tsx"
         , relImport: "../output/Page.Blog.Slug/index.js", routePath: "app/blog/[slug]"
-        , directive: Nothing, hasMetadata: false, hasStaticParams: true, handlerMethods: []
+        , directive: Nothing, hasMetadata: false, hasStaticParams: true, handlerMethods: [], routeConfigs: []
         }
     , "route-group-page" /\ generateTsx
         { mod: "Page.Marketing_.About", kind: "page", filePath: "app/(marketing)/about/page.tsx"
         , relImport: "../output/Page.Marketing_.About/index.js", routePath: "app/(marketing)/about"
-        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: []
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
         }
     , "handler" /\ generateTsx
         { mod: "Handler.Api.Hello", kind: "handler", filePath: "app/api/hello/route.ts"
         , relImport: "../output/Handler.Api.Hello/index.js", routePath: "app/api/hello"
-        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [ "get", "post" ]
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [ "get", "post" ], routeConfigs: []
         }
     , "handler-delete" /\ generateTsx
         { mod: "Handler.Api.Item", kind: "handler", filePath: "app/api/item/route.ts"
         , relImport: "../output/Handler.Api.Item/index.js", routePath: "app/api/item"
-        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [ "delete_" ]
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [ "delete_" ], routeConfigs: []
         }
     , "slot-page" /\ generateTsx
         { mod: "Slot.Modal.Page.Root", kind: "page", filePath: "app/@modal/page.tsx"
         , relImport: "../output/Slot.Modal.Page.Root/index.js", routePath: "app/@modal"
-        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: []
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
         }
     , "default" /\ generateTsx
         { mod: "Default.Root", kind: "default", filePath: "app/default.tsx"
         , relImport: "../output/Default.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: []
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        }
+    , "page-with-config" /\ generateTsx
+        { mod: "Page.Blog", kind: "page", filePath: "app/blog/page.tsx"
+        , relImport: "../output/Page.Blog/index.js", routePath: "app/blog"
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [ "dynamic", "revalidate" ]
         }
     ]

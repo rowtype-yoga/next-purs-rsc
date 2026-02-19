@@ -61,6 +61,7 @@ type RouteInfo =
   , hasMetadata :: Boolean
   , hasStaticParams :: Boolean
   , handlerMethods :: Array String
+  , routeConfigs :: Array String
   }
 
 --------------------------------------------------------------------------------
@@ -250,6 +251,22 @@ findMethods (CST.ModuleBody { decls }) = Array.mapMaybe matchMethod decls
     | Array.elem ident handlerMethodNames = Just ident
   matchMethod _ = Nothing
 
+routeConfigNames :: Array String
+routeConfigNames = [ "dynamic", "revalidate", "runtime", "preferredRegion", "maxDuration", "fetchCache" ]
+
+findRouteConfigDecls :: String -> Array String
+findRouteConfigDecls src = case parseModule src of
+  ParseSucceeded (CST.Module m) -> findConfigs m.body
+  ParseSucceededWithErrors (CST.Module m) _ -> findConfigs m.body
+  ParseFailed _ -> []
+
+findConfigs :: forall e. CST.ModuleBody e -> Array String
+findConfigs (CST.ModuleBody { decls }) = Array.mapMaybe matchConfig decls
+  where
+  matchConfig (CST.DeclSignature (CST.Labeled { label: CST.Name { name: CST.Ident ident } }))
+    | Array.elem ident routeConfigNames = Just ident
+  matchConfig _ = Nothing
+
 methodToExportName :: String -> String
 methodToExportName "delete_" = "DELETE"
 methodToExportName "head_" = "HEAD"
@@ -349,8 +366,9 @@ moduleToRoute appDir outputDir info = do
   let canHaveMeta = (kind == "page" || kind == "layout" || kind == "template") && info.directive /= Just "use client"
   let hasMetadata = canHaveMeta && hasMetadataDecl info.source
   let hasStaticParams = kind == "page" && hasStaticParamsDecl info.source
+  let routeConfigs = findRouteConfigDecls info.source
 
-  Just { mod: info.name, kind, filePath, relImport, routePath, directive: info.directive, hasMetadata, hasStaticParams, handlerMethods: methods }
+  Just { mod: info.name, kind, filePath, relImport, routePath, directive: info.directive, hasMetadata, hasStaticParams, handlerMethods: methods, routeConfigs }
 
 --------------------------------------------------------------------------------
 -- .tsx generation
@@ -359,15 +377,18 @@ moduleToRoute appDir outputDir info = do
 generateTsx :: RouteInfo -> String
 generateTsx route = String.joinWith "\n" (lines <> [ "" ])
   where
-  lines = directiveLine <> contentLines <> metadataLines <> staticParamsLines
+  lines = directiveLine <> contentLines <> metadataLines <> staticParamsLines <> routeConfigLines
 
   declName = kindToDeclName route.kind
 
+  configImports = if Array.null route.routeConfigs then "" else ", " <> String.joinWith ", " route.routeConfigs
+
   imports
-    | route.kind == "handler" = String.joinWith ", " route.handlerMethods
+    | route.kind == "handler" = String.joinWith ", " route.handlerMethods <> configImports
     | otherwise = declName
         <> (if route.hasMetadata then ", metadata" else "")
         <> (if route.hasStaticParams then ", staticParams" else "")
+        <> configImports
 
   importLine = "import { " <> imports <> " } from " <> show route.relImport <> ";"
 
@@ -457,6 +478,9 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
     , "  return " <> method <> "()(request, params);"
     , "}"
     ]
+
+  routeConfigLines = route.routeConfigs # map \name ->
+    "export { " <> name <> " };"
 
 --------------------------------------------------------------------------------
 -- Helpers
