@@ -4,7 +4,7 @@ import Prelude hiding (div)
 
 import Data.Maybe (maybe)
 import Data.Newtype (class Newtype, un)
-import Next (Page, type (:?), nextPage)
+import Next (Metadata, Page, type (:?), nextPage, simpleMetadata)
 import Yoga.React.DOM (div, h1, p)
 import Yoga.React.Om (useOm)
 import Yoga.React.Om as Om
@@ -23,3 +23,9 @@ page = nextPage { greeting: "Hello from Om!" } $ pure
       , p {} msg
       , p {} $ "Hello, " <> who <> "!"
       ]
+
+metadata :: Metadata ("dashboard" :? { name :: Name })
+metadata = simpleMetadata \_ ->
+  { title: "Dashboard"
+  , description: "Your personal dashboard"
+  }

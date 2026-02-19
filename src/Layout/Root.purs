@@ -1,6 +1,6 @@
 module Layout.Root where
 
-import Next (Layout, link, simpleLayout)
+import Next (Layout, Metadata, Root, link, simpleLayout, simpleMetadata)
 import React.Basic.Hooks (reactChildrenToArray)
 import Route (Route(..))
 import Yoga.React.DOM (body, html, main, nav, strong, text)
@@ -20,3 +20,9 @@ layout = simpleLayout \{ children } ->
         , main {} (reactChildrenToArray children)
         ]
     ]
+
+metadata :: Metadata Root
+metadata = simpleMetadata \_ ->
+  { title: "PureScript + Next.js"
+  , description: "A PureScript app powered by Next.js App Router"
+  }
