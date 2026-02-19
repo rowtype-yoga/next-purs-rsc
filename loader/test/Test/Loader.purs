@@ -5,7 +5,7 @@ import Prelude
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
-import Loader.Main (Segment(..), detectDirective, extractJsonField, extractModuleName, extractPageType, generateTsx, hasMetadataDecl, kindToDeclName, kindToFileName, moduleToRoute, segmentsToNextPath)
+import Loader.Main (Segment(..), detectDirective, extractJsonField, extractModuleName, extractPageType, generateTsx, hasMetadataDecl, hasStaticParamsDecl, kindToDeclName, kindToFileName, moduleToRoute, segmentsToNextPath)
 import Loader.Plugin as Plugin
 import Test.Golden (goldenTest)
 import Test.Spec (Spec, describe, it)
@@ -80,6 +80,14 @@ spec = do
     it "false on parse failure" do
       hasMetadataDecl "not valid purescript {{{}}" `shouldEqual` false
 
+  describe "hasStaticParamsDecl" do
+    it "detects staticParams signature" do
+      hasStaticParamsDecl "module Foo where\nstaticParams :: StaticParams (\"blog\" / \"slug\" : String)\nstaticParams = simpleStaticParams $ pure []" `shouldEqual` true
+    it "false when no staticParams signature" do
+      hasStaticParamsDecl "module Foo where\npage :: Page (\"about\")\npage = simplePage \\_ -> mempty" `shouldEqual` false
+    it "false when staticParams is a value binding without signature" do
+      hasStaticParamsDecl "module Foo where\nstaticParams = pure []" `shouldEqual` false
+
   describe "extractPageType" do
     it "static segment" do
       extractPageType "page" "module Foo where\npage :: Page \"about\"" `shouldEqual` Just [ Static "about" ]
@@ -149,6 +157,10 @@ spec = do
       let result = moduleToRoute "app" "output" info
       map _.kind result `shouldEqual` Just "template"
       map _.hasMetadata result `shouldEqual` Just true
+    it "page with staticParams" do
+      let info = { name: "Page.Blog.Slug", source: "module Page.Blog.Slug where\npage :: Page (\"blog\" / \"slug\" : String)\npage = simplePage \\_ -> mempty\nstaticParams :: StaticParams (\"blog\" / \"slug\" : String)\nstaticParams = simpleStaticParams $ pure []", file: "src/Page/Blog/Slug.purs", directive: Nothing }
+      let result = moduleToRoute "app" "output" info
+      map _.hasStaticParams result `shouldEqual` Just true
     it "globalError always client never metadata" do
       let info = { name: "GlobalError.Root", source: "module GlobalError.Root where\nglobalError :: GlobalError Root\nglobalError = undefined\nmetadata :: Metadata Root\nmetadata = undefined", file: "src/GlobalError/Root.purs", directive: Nothing }
       let result = moduleToRoute "app" "output" info
@@ -177,6 +189,7 @@ spec = do
     , routePath: "app"
     , directive
     , hasMetadata: false
+    , hasStaticParams: false
     }
   goldenCases =
     [ "client-page" /\ generateTsx (route "page" (Just "use client"))
@@ -184,47 +197,52 @@ spec = do
     , "layout" /\ generateTsx
         { mod: "Layout.Root", kind: "layout", filePath: "app/layout.tsx"
         , relImport: "../output/Layout.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false
         }
     , "error" /\ generateTsx
         { mod: "ErrorBoundary.Root", kind: "error", filePath: "app/error.tsx"
         , relImport: "../output/ErrorBoundary.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false
         }
     , "loading" /\ generateTsx
         { mod: "Loading.Root", kind: "loading", filePath: "app/loading.tsx"
         , relImport: "../output/Loading.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false
         }
     , "not-found" /\ generateTsx
         { mod: "NotFound.Root", kind: "notFound", filePath: "app/not-found.tsx"
         , relImport: "../output/NotFound.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false
         }
     , "nested-page" /\ generateTsx
         { mod: "Page.Foo", kind: "page", filePath: "app/foo/page.tsx"
         , relImport: "../output/Page.Foo/index.js", routePath: "app/foo"
-        , directive: Nothing, hasMetadata: false
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false
         }
     , "server-directive-page" /\ generateTsx (route "page" (Just "use server"))
     , "server-page-metadata" /\ generateTsx
         { mod: "Page.Blog.Slug", kind: "page", filePath: "app/blog/[slug]/page.tsx"
         , relImport: "../output/Page.Blog.Slug/index.js", routePath: "app/blog/[slug]"
-        , directive: Nothing, hasMetadata: true
+        , directive: Nothing, hasMetadata: true, hasStaticParams: false
         }
     , "layout-metadata" /\ generateTsx
         { mod: "Layout.Root", kind: "layout", filePath: "app/layout.tsx"
         , relImport: "../output/Layout.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: true
+        , directive: Nothing, hasMetadata: true, hasStaticParams: false
         }
     , "template" /\ generateTsx
         { mod: "Template.Dashboard", kind: "template", filePath: "app/dashboard/template.tsx"
         , relImport: "../output/Template.Dashboard/index.js", routePath: "app/dashboard"
-        , directive: Nothing, hasMetadata: false
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false
         }
     , "global-error" /\ generateTsx
         { mod: "GlobalError.Root", kind: "globalError", filePath: "app/global-error.tsx"
         , relImport: "../output/GlobalError.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false
+        , directive: Nothing, hasMetadata: false, hasStaticParams: false
+        }
+    , "static-params-page" /\ generateTsx
+        { mod: "Page.Blog.Slug", kind: "page", filePath: "app/blog/[slug]/page.tsx"
+        , relImport: "../output/Page.Blog.Slug/index.js", routePath: "app/blog/[slug]"
+        , directive: Nothing, hasMetadata: false, hasStaticParams: true
         }
     ]

@@ -59,6 +59,7 @@ type RouteInfo =
   , routePath :: String
   , directive :: Maybe String
   , hasMetadata :: Boolean
+  , hasStaticParams :: Boolean
   }
 
 --------------------------------------------------------------------------------
@@ -218,6 +219,19 @@ hasMetaSig (CST.ModuleBody { decls }) = Array.any matchMeta decls
     | ident == "metadata" = true
   matchMeta _ = false
 
+hasStaticParamsDecl :: String -> Boolean
+hasStaticParamsDecl src = case parseModule src of
+  ParseSucceeded (CST.Module m) -> hasStaticParamsSig m.body
+  ParseSucceededWithErrors (CST.Module m) _ -> hasStaticParamsSig m.body
+  ParseFailed _ -> false
+
+hasStaticParamsSig :: forall e. CST.ModuleBody e -> Boolean
+hasStaticParamsSig (CST.ModuleBody { decls }) = Array.any matchSP decls
+  where
+  matchSP (CST.DeclSignature (CST.Labeled { label: CST.Name { name: CST.Ident ident } }))
+    | ident == "staticParams" = true
+  matchSP _ = false
+
 segmentsToNextPath :: Array Segment -> Array String
 segmentsToNextPath = map case _ of
   Static s -> s
@@ -268,8 +282,9 @@ moduleToRoute appDir outputDir info = do
 
   let canHaveMeta = (kind == "page" || kind == "layout" || kind == "template") && info.directive /= Just "use client"
   let hasMetadata = canHaveMeta && hasMetadataDecl info.source
+  let hasStaticParams = kind == "page" && hasStaticParamsDecl info.source
 
-  Just { mod: info.name, kind, filePath, relImport, routePath, directive: info.directive, hasMetadata }
+  Just { mod: info.name, kind, filePath, relImport, routePath, directive: info.directive, hasMetadata, hasStaticParams }
 
 --------------------------------------------------------------------------------
 -- .tsx generation
@@ -278,13 +293,13 @@ moduleToRoute appDir outputDir info = do
 generateTsx :: RouteInfo -> String
 generateTsx route = String.joinWith "\n" (lines <> [ "" ])
   where
-  lines = directiveLine <> contentLines <> metadataLines
+  lines = directiveLine <> contentLines <> metadataLines <> staticParamsLines
 
   declName = kindToDeclName route.kind
 
-  imports
-    | route.hasMetadata = declName <> ", metadata"
-    | otherwise = declName
+  imports = declName
+    <> (if route.hasMetadata then ", metadata" else "")
+    <> (if route.hasStaticParams then ", staticParams" else "")
 
   importLine = "import { " <> imports <> " } from " <> show route.relImport <> ";"
 
@@ -350,6 +365,14 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         [ "export async function generateMetadata(props) {"
         , "  const meta = await metadata();"
         , "  return meta(props);"
+        , "}"
+        ]
+
+  staticParamsLines
+    | not route.hasStaticParams = []
+    | otherwise =
+        [ "export async function generateStaticParams() {"
+        , "  return staticParams();"
         , "}"
         ]
 

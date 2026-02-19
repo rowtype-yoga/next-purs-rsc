@@ -1,6 +1,7 @@
 module Next
   ( Page
   , Metadata
+  , StaticParams
   , Layout
   , Template
   , Loading
@@ -13,6 +14,7 @@ module Next
   , RawRecord
   , simplePage
   , simpleMetadata
+  , simpleStaticParams
   , simpleLayout
   , simpleTemplate
   , loading
@@ -76,6 +78,9 @@ newtype ErrorBoundary path = ErrorBoundary Unit
 
 newtype Metadata :: forall k. k -> Type
 newtype Metadata path = Metadata Unit
+
+newtype StaticParams :: forall k. k -> Type
+newtype StaticParams path = StaticParams Unit
 
 newtype Template :: forall k. k -> Type
 newtype Template path = Template Unit
@@ -175,6 +180,15 @@ simpleMetadata f = unsafeCoerce $ Promise.fromAff $ pure \rawProps -> do
   let params = parsePathFields (unsafeCoerce rawProps).params
   let searchParams = _mapRecord toMaybe (unsafeCoerce rawProps).searchParams
   f { params, searchParams }
+
+simpleStaticParams
+  :: forall path pathParams pathRL
+   . SegmentPathParams path pathParams
+  => RL.RowToList pathParams pathRL
+  => ParsePathFields pathRL pathParams
+  => Effect (Array { | pathParams })
+  -> StaticParams path
+simpleStaticParams gen = unsafeCoerce gen
 
 simpleLayout :: ({ children :: ReactChildren JSX } -> JSX) -> Layout
 simpleLayout render = unsafeCoerce $ Promise.fromAff $ pure render
