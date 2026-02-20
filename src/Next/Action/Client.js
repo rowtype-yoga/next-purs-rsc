@@ -1,19 +1,19 @@
 import React from "react";
 import { useFormStatus as useFormStatus_ } from "react-dom";
 
-export const _useActionStateImpl = (action, initialState) => {
+export const useActionStateImpl = (action, initialState) => {
   const [state, dispatch, isPending] = React.useActionState(action, initialState);
   return { state, dispatch, isPending };
 };
 
-export const _useFormStatusImpl = () => {
+export const useFormStatusImpl = () => {
   const { pending } = useFormStatus_();
   return { pending };
 };
 
-export const _callServerAction = (action, input) => action(input);
+export const callServerActionImpl = (action, input) => action(input);
 
-export const _useOptimisticImpl = (state, updateFn) => {
+export const useOptimisticImpl = (state, updateFn) => {
   const [optimistic, addOptimistic] = React.useOptimistic(state, updateFn);
   const [isPending, startTransition] = React.useTransition();
   return {

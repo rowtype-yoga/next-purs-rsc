@@ -19,9 +19,9 @@ export const nextUrlSearchParamsGetImpl = (sp, key) => sp.get(key);
 export const nextUrlSearchParamsHasImpl = (sp, key) => sp.has(key);
 
 // Request body (returns Promise)
-export const requestJsonImpl = r => () => r.json();
-export const requestTextImpl = r => () => r.text();
-export const requestFormDataImpl = r => () => r.formData();
+export const requestJsonImpl = (r) => r.json();
+export const requestTextImpl = (r) => r.text();
+export const requestFormDataImpl = (r) => r.formData();
 
 // RequestCookies accessors
 export const requestCookiesGetImpl = (c, name) => c.get(name) ?? null;

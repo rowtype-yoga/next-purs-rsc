@@ -21,19 +21,15 @@ import Next.Action (ServerAction, FormAction, FormDispatch)
 import React.Basic.Hooks.Internal (Hook, unsafeHook)
 import Yoga.React.Om (OmRender, liftRender)
 
-foreign import _useActionStateImpl :: forall action state. EffectFn2 action state { state :: state, dispatch :: FormDispatch, isPending :: Boolean }
-foreign import _useFormStatusImpl :: Effect { pending :: Boolean }
-foreign import _callServerAction :: forall action input output. EffectFn2 action input (Promise.Promise output)
-foreign import _useOptimisticImpl :: forall state action. EffectFn2 state (state -> action -> state) { state :: state, isPending :: Boolean, dispatch :: action -> Effect Unit }
-
 foreign import data UseActionState :: Row Type -> Type -> Type -> Type
 
+foreign import useActionStateImpl :: forall action state. EffectFn2 action state { state :: state, dispatch :: FormDispatch, isPending :: Boolean }
 useActionState
   :: forall state fields
    . FormAction state fields
   -> state
   -> Hook (UseActionState fields state) { state :: state, dispatch :: FormDispatch, isPending :: Boolean }
-useActionState action initialState = unsafeHook (runEffectFn2 _useActionStateImpl action initialState)
+useActionState action initialState = unsafeHook (runEffectFn2 useActionStateImpl action initialState)
 
 useActionState'
   :: forall ctx hooks state fields
@@ -44,16 +40,18 @@ useActionState' action initialState = liftRender (useActionState action initialS
 
 foreign import data UseFormStatus :: Type -> Type
 
+foreign import useFormStatusImpl :: Effect { pending :: Boolean }
 useFormStatus :: Hook UseFormStatus { pending :: Boolean }
-useFormStatus = unsafeHook _useFormStatusImpl
+useFormStatus = unsafeHook useFormStatusImpl
 
 useFormStatus'
   :: forall ctx hooks
    . OmRender ctx hooks (UseFormStatus hooks) { pending :: Boolean }
 useFormStatus' = liftRender useFormStatus
 
+foreign import callServerActionImpl :: forall action input output. EffectFn2 action input (Promise.Promise output)
 callServerAction :: forall input output. ServerAction input output -> input -> Aff output
-callServerAction action input = Promise.toAffE (runEffectFn2 _callServerAction action input)
+callServerAction action input = runEffectFn2 callServerActionImpl action input # Promise.toAffE
 
 --------------------------------------------------------------------------------
 -- useOptimistic (transition-safe: addOptimistic is pre-wrapped in startTransition)
@@ -61,12 +59,13 @@ callServerAction action input = Promise.toAffE (runEffectFn2 _callServerAction a
 
 foreign import data UseOptimistic :: Type -> Type -> Type -> Type
 
+foreign import useOptimisticImpl :: forall state action. EffectFn2 state (state -> action -> state) { state :: state, isPending :: Boolean, dispatch :: action -> Effect Unit }
 useOptimistic
   :: forall state action
    . state
   -> (state -> action -> state)
   -> Hook (UseOptimistic state action) { state :: state, isPending :: Boolean, dispatch :: action -> Effect Unit }
-useOptimistic state updateFn = unsafeHook (runEffectFn2 _useOptimisticImpl state updateFn)
+useOptimistic state updateFn = unsafeHook (runEffectFn2 useOptimisticImpl state updateFn)
 
 useOptimistic'
   :: forall ctx hooks state action

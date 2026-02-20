@@ -35,8 +35,8 @@ import Control.Promise as Promise
 import Data.Function.Uncurried (Fn2, runFn2)
 import Data.Maybe (Maybe)
 import Data.Nullable (Nullable, toMaybe)
-import Effect (Effect)
 import Effect.Aff (Aff)
+import Effect.Uncurried (EffectFn1, runEffectFn1)
 import Foreign (Foreign)
 import Next (NextRequest)
 import Next.Action (FormData)
@@ -106,17 +106,17 @@ nextUrlSearchParamsHas = runFn2 nextUrlSearchParamsHasImpl
 -- Request body
 --------------------------------------------------------------------------------
 
-foreign import requestJsonImpl :: NextRequest -> Effect (Promise Foreign)
+foreign import requestJsonImpl :: EffectFn1 NextRequest (Promise Foreign)
 requestJson :: NextRequest -> Aff Foreign
-requestJson req = Promise.toAffE (requestJsonImpl req)
+requestJson req = runEffectFn1 requestJsonImpl req # Promise.toAffE
 
-foreign import requestTextImpl :: NextRequest -> Effect (Promise String)
+foreign import requestTextImpl :: EffectFn1 NextRequest (Promise String)
 requestText :: NextRequest -> Aff String
-requestText req = Promise.toAffE (requestTextImpl req)
+requestText req = runEffectFn1 requestTextImpl req # Promise.toAffE
 
-foreign import requestFormDataImpl :: NextRequest -> Effect (Promise FormData)
+foreign import requestFormDataImpl :: EffectFn1 NextRequest (Promise FormData)
 requestFormData :: NextRequest -> Aff FormData
-requestFormData req = Promise.toAffE (requestFormDataImpl req)
+requestFormData req = runEffectFn1 requestFormDataImpl req # Promise.toAffE
 
 --------------------------------------------------------------------------------
 -- RequestCookies (read-only cookie jar from request)

@@ -9,6 +9,7 @@ module Next.Headers
   , CookieName(..)
   , CookieValue(..)
   , Cookie
+  , CookieSetOptions
   , cookies
   , cookiesGet
   , cookiesGetAll
@@ -27,7 +28,8 @@ import Data.Newtype (class Newtype)
 import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)
 import Effect.Aff (Aff)
-import Effect.Uncurried (EffectFn2, EffectFn3, runEffectFn2, runEffectFn3)
+import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn3, runEffectFn1, runEffectFn2, runEffectFn3)
+import Prim.Row as Row
 
 --------------------------------------------------------------------------------
 -- Types
@@ -90,9 +92,9 @@ foreign import cookiesGetImpl :: EffectFn2 Cookies CookieName (Nullable Cookie)
 cookiesGet :: Cookies -> CookieName -> Effect (Maybe Cookie)
 cookiesGet c name = toMaybe <$> runEffectFn2 cookiesGetImpl c name
 
-foreign import cookiesGetAllImpl :: EffectFn2 Cookies Unit (Array Cookie)
+foreign import cookiesGetAllImpl :: EffectFn1 Cookies (Array Cookie)
 cookiesGetAll :: Cookies -> Effect (Array Cookie)
-cookiesGetAll c = runEffectFn2 cookiesGetAllImpl c unit
+cookiesGetAll = runEffectFn1 cookiesGetAllImpl
 
 foreign import cookiesHasImpl :: EffectFn2 Cookies CookieName Boolean
 cookiesHas :: Cookies -> CookieName -> Effect Boolean
@@ -102,8 +104,26 @@ foreign import cookiesSetImpl :: EffectFn3 Cookies CookieName CookieValue Unit
 cookiesSet :: Cookies -> CookieName -> CookieValue -> Effect Unit
 cookiesSet = runEffectFn3 cookiesSetImpl
 
-foreign import cookiesSetObjImpl :: forall r. EffectFn2 Cookies { name :: CookieName, value :: CookieValue | r } Unit
-cookiesSetObj :: forall r. Cookies -> { name :: CookieName, value :: CookieValue | r } -> Effect Unit
+type CookieSetOptions =
+  ( name :: CookieName
+  , value :: CookieValue
+  , domain :: String
+  , httpOnly :: Boolean
+  , maxAge :: Int
+  , path :: String
+  , partitioned :: Boolean
+  , priority :: String
+  , sameSite :: String
+  , secure :: Boolean
+  )
+
+foreign import cookiesSetObjImpl :: forall a. EffectFn2 Cookies { | a } Unit
+cookiesSetObj
+  :: forall opts opts_ rest1 rest2
+   . Row.Cons "name" CookieName rest1 opts
+  => Row.Cons "value" CookieValue rest2 opts
+  => Row.Union opts opts_ CookieSetOptions
+  => Cookies -> { | opts } -> Effect Unit
 cookiesSetObj = runEffectFn2 cookiesSetObjImpl
 
 foreign import cookiesDeleteImpl :: EffectFn2 Cookies CookieName Unit
