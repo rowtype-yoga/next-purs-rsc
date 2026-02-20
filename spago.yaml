@@ -27,6 +27,7 @@ package:
       - spec
       - spec-node
       - aff
+      - vitest
 workspace:
   packageSet:
     registry: 73.1.0

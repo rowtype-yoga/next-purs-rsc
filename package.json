@@ -19,7 +19,9 @@
     "@types/node": "^22",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "jsdom": "^28.1.0",
     "typescript": "5.9.3",
-    "unplugin": "^3.0.0"
+    "unplugin": "^3.0.0",
+    "vitest": "^4.0.18"
   }
 }
