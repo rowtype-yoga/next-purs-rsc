@@ -30,7 +30,7 @@ page = unsafeCoerce $ component "OptimisticPage" \(_ :: {}) -> React.do
         addOptimistic msg
         launchAff_ do
           confirmed <- callServerAction sendMessage msg
-          liftEffect $ setMessages \prev -> snoc prev confirmed
+          setMessages (\prev -> snoc prev confirmed) # liftEffect
 
   let handleLocal = do
         let msg = "Local #" <> show counter

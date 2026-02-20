@@ -22,12 +22,12 @@ get = simpleGet \req _ -> do
   let method = requestMethod req
   let url = requestUrl req
   h <- headers
-  userAgent <- liftEffect $ headersGet h (HeaderName "user-agent")
-  hasAccept <- liftEffect $ headersHas h (HeaderName "accept")
+  userAgent <- headersGet h (HeaderName "user-agent") # liftEffect
+  hasAccept <- headersHas h (HeaderName "accept") # liftEffect
   c <- cookies
-  sessionCookie <- liftEffect $ cookiesGet c (CookieName "session")
-  allCookies <- liftEffect $ cookiesGetAll c
-  hasSession <- liftEffect $ cookiesHas c (CookieName "session")
+  sessionCookie <- cookiesGet c (CookieName "session") # liftEffect
+  allCookies <- cookiesGetAll c # liftEffect
+  hasSession <- cookiesHas c (CookieName "session") # liftEffect
   json
     { message: "hello"
     , method
@@ -41,23 +41,23 @@ get = simpleGet \req _ -> do
 
 post :: POST ("api" / "hello")
 post = simplePost \_ _ -> do
-  liftEffect $ redirect Home
+  redirect Home # liftEffect
   json {}
 
 put :: PUT ("api" / "hello")
 put = simplePut \_ _ -> do
-  liftEffect $ revalidatePath "/dashboard" Page
-  liftEffect $ revalidateTag "data"
+  revalidatePath "/dashboard" Page # liftEffect
+  revalidateTag "data" # liftEffect
   json { revalidated: true }
 
 delete_ :: DELETE ("api" / "hello")
 delete_ = simpleDelete \_ _ -> do
-  liftEffect triggerNotFound
+  triggerNotFound # liftEffect
   json { deleted: true }
 
 patch :: PATCH ("api" / "hello")
 patch = simplePatch \_ _ -> do
-  liftEffect $ permanentRedirect About
+  permanentRedirect About # liftEffect
   json {}
 
 head_ :: HEAD ("api" / "hello")

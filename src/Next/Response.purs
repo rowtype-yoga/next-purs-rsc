@@ -13,55 +13,44 @@ module Next.Response
   , withCookie
   ) where
 
-import Prelude
-
 import Data.Function.Uncurried (Fn2, Fn3, runFn2, runFn3)
-import Data.Newtype (un)
 import Next (NextResponse)
-import Next.Headers (HeaderName(..), HeaderValue(..), CookieName(..), CookieValue(..))
+import Next.Headers (HeaderName, HeaderValue, CookieName, CookieValue)
 import Route (Route, toPath)
-
---------------------------------------------------------------------------------
--- FFI
---------------------------------------------------------------------------------
-
-foreign import _jsonResponse :: forall r. { | r } -> NextResponse
-foreign import _jsonResponseS :: forall r. Fn2 { | r } Int NextResponse
-foreign import _textResponse :: String -> NextResponse
-foreign import _textResponseS :: Fn2 String Int NextResponse
-foreign import _redirectResponse :: String -> NextResponse
-foreign import _redirectResponseS :: Fn2 String Int NextResponse
-foreign import _rewriteResponse :: String -> NextResponse
-foreign import _nextResponse :: NextResponse
-foreign import _withHeader :: Fn3 NextResponse String String NextResponse
-foreign import _withStatus :: Fn2 NextResponse Int NextResponse
-foreign import _withCookie :: Fn3 NextResponse String String NextResponse
 
 --------------------------------------------------------------------------------
 -- Constructors
 --------------------------------------------------------------------------------
 
+foreign import _jsonResponse :: forall r. { | r } -> NextResponse
 jsonResponse :: forall r. { | r } -> NextResponse
 jsonResponse = _jsonResponse
 
+foreign import _jsonResponseS :: forall r. Fn2 { | r } Int NextResponse
 jsonResponseS :: forall r. { | r } -> Int -> NextResponse
-jsonResponseS body status = runFn2 _jsonResponseS body status
+jsonResponseS = runFn2 _jsonResponseS
 
+foreign import _textResponse :: String -> NextResponse
 textResponse :: String -> NextResponse
 textResponse = _textResponse
 
+foreign import _textResponseS :: Fn2 String Int NextResponse
 textResponseS :: String -> Int -> NextResponse
-textResponseS body status = runFn2 _textResponseS body status
+textResponseS = runFn2 _textResponseS
 
+foreign import _redirectResponse :: String -> NextResponse
 redirectResponse :: Route -> NextResponse
 redirectResponse route = _redirectResponse (toPath route)
 
+foreign import _redirectResponseS :: Fn2 String Int NextResponse
 redirectResponseS :: Route -> Int -> NextResponse
 redirectResponseS route status = runFn2 _redirectResponseS (toPath route) status
 
+foreign import _rewriteResponse :: String -> NextResponse
 rewriteResponse :: Route -> NextResponse
 rewriteResponse route = _rewriteResponse (toPath route)
 
+foreign import _nextResponse :: NextResponse
 nextResponse :: NextResponse
 nextResponse = _nextResponse
 
@@ -69,11 +58,14 @@ nextResponse = _nextResponse
 -- Modifiers
 --------------------------------------------------------------------------------
 
+foreign import _withHeader :: Fn3 NextResponse HeaderName HeaderValue NextResponse
 withHeader :: NextResponse -> HeaderName -> HeaderValue -> NextResponse
-withHeader res name value = runFn3 _withHeader res (un HeaderName name) (un HeaderValue value)
+withHeader = runFn3 _withHeader
 
+foreign import _withStatus :: Fn2 NextResponse Int NextResponse
 withStatus :: NextResponse -> Int -> NextResponse
-withStatus res status = runFn2 _withStatus res status
+withStatus = runFn2 _withStatus
 
+foreign import _withCookie :: Fn3 NextResponse CookieName CookieValue NextResponse
 withCookie :: NextResponse -> CookieName -> CookieValue -> NextResponse
-withCookie res name value = runFn3 _withCookie res (un CookieName name) (un CookieValue value)
+withCookie = runFn3 _withCookie

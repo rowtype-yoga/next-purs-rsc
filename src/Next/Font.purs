@@ -11,10 +11,6 @@ import Prelude
 import Data.Maybe (Maybe)
 import Data.Nullable (Nullable, toMaybe)
 
---------------------------------------------------------------------------------
--- Types
---------------------------------------------------------------------------------
-
 foreign import data FontConfig :: Type
 
 type FontStyle =
@@ -29,21 +25,11 @@ type FontStyleImpl =
   , fontStyle :: Nullable String
   }
 
---------------------------------------------------------------------------------
--- FFI
---------------------------------------------------------------------------------
-
 foreign import _fontClassName :: FontConfig -> String
-foreign import _fontStyle :: FontConfig -> FontStyleImpl
-foreign import _fontVariable :: FontConfig -> Nullable String
-
---------------------------------------------------------------------------------
--- Accessors
---------------------------------------------------------------------------------
-
 fontClassName :: FontConfig -> String
 fontClassName = _fontClassName
 
+foreign import _fontStyle :: FontConfig -> FontStyleImpl
 fontStyle :: FontConfig -> FontStyle
 fontStyle fc = do
   let s = _fontStyle fc
@@ -52,5 +38,6 @@ fontStyle fc = do
   , fontStyle: toMaybe s.fontStyle
   }
 
+foreign import _fontVariable :: FontConfig -> Nullable String
 fontVariable :: FontConfig -> Maybe String
 fontVariable = toMaybe <<< _fontVariable

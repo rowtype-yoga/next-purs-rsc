@@ -23,12 +23,11 @@ import Prelude
 import Control.Promise (Promise)
 import Control.Promise as Promise
 import Data.Maybe (Maybe)
-import Data.Newtype (class Newtype, un)
+import Data.Newtype (class Newtype)
 import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Uncurried (EffectFn2, EffectFn3, runEffectFn2, runEffectFn3)
-import Unsafe.Coerce (unsafeCoerce)
 
 --------------------------------------------------------------------------------
 -- Types
@@ -60,65 +59,53 @@ derive newtype instance Show CookieValue
 
 type Cookie = { name :: CookieName, value :: CookieValue }
 
---------------------------------------------------------------------------------
--- FFI
---------------------------------------------------------------------------------
-
 foreign import data Headers :: Type
 foreign import data Cookies :: Type
-
-type CookieImpl = { name :: String, value :: String }
-
-foreign import _headersImpl :: Effect (Promise Headers)
-foreign import _cookiesImpl :: Effect (Promise Cookies)
-
-foreign import _headersGet :: EffectFn2 Headers String (Nullable String)
-foreign import _headersHas :: EffectFn2 Headers String Boolean
-
-foreign import _cookiesGet :: EffectFn2 Cookies String (Nullable CookieImpl)
-foreign import _cookiesGetAll :: EffectFn2 Cookies Unit (Array CookieImpl)
-foreign import _cookiesHas :: EffectFn2 Cookies String Boolean
-foreign import _cookiesSet :: EffectFn3 Cookies String String Unit
-foreign import _cookiesSetObj :: forall r. EffectFn2 Cookies { | r } Unit
-foreign import _cookiesDelete :: EffectFn2 Cookies String Unit
 
 --------------------------------------------------------------------------------
 -- Headers
 --------------------------------------------------------------------------------
 
+foreign import _headersImpl :: Effect (Promise Headers)
 headers :: Aff Headers
 headers = Promise.toAffE _headersImpl
 
+foreign import _headersGet :: EffectFn2 Headers HeaderName (Nullable HeaderValue)
 headersGet :: Headers -> HeaderName -> Effect (Maybe HeaderValue)
-headersGet h name = map HeaderValue <$> (toMaybe <$> runEffectFn2 _headersGet h (un HeaderName name))
+headersGet h name = toMaybe <$> runEffectFn2 _headersGet h name
 
+foreign import _headersHas :: EffectFn2 Headers HeaderName Boolean
 headersHas :: Headers -> HeaderName -> Effect Boolean
-headersHas h name = runEffectFn2 _headersHas h (un HeaderName name)
+headersHas = runEffectFn2 _headersHas
 
 --------------------------------------------------------------------------------
 -- Cookies
 --------------------------------------------------------------------------------
 
+foreign import _cookiesImpl :: Effect (Promise Cookies)
 cookies :: Aff Cookies
 cookies = Promise.toAffE _cookiesImpl
 
+foreign import _cookiesGet :: EffectFn2 Cookies CookieName (Nullable Cookie)
 cookiesGet :: Cookies -> CookieName -> Effect (Maybe Cookie)
-cookiesGet c name = map toCookie <$> (toMaybe <$> runEffectFn2 _cookiesGet c (un CookieName name))
+cookiesGet c name = toMaybe <$> runEffectFn2 _cookiesGet c name
 
+foreign import _cookiesGetAll :: EffectFn2 Cookies Unit (Array Cookie)
 cookiesGetAll :: Cookies -> Effect (Array Cookie)
-cookiesGetAll c = map toCookie <$> runEffectFn2 _cookiesGetAll c unit
+cookiesGetAll c = runEffectFn2 _cookiesGetAll c unit
 
+foreign import _cookiesHas :: EffectFn2 Cookies CookieName Boolean
 cookiesHas :: Cookies -> CookieName -> Effect Boolean
-cookiesHas c name = runEffectFn2 _cookiesHas c (un CookieName name)
+cookiesHas = runEffectFn2 _cookiesHas
 
+foreign import _cookiesSet :: EffectFn3 Cookies CookieName CookieValue Unit
 cookiesSet :: Cookies -> CookieName -> CookieValue -> Effect Unit
-cookiesSet c name value = runEffectFn3 _cookiesSet c (un CookieName name) (un CookieValue value)
+cookiesSet = runEffectFn3 _cookiesSet
 
+foreign import _cookiesSetObj :: forall r. EffectFn2 Cookies { name :: CookieName, value :: CookieValue | r } Unit
 cookiesSetObj :: forall r. Cookies -> { name :: CookieName, value :: CookieValue | r } -> Effect Unit
-cookiesSetObj c obj = runEffectFn2 _cookiesSetObj c (unsafeCoerce obj)
+cookiesSetObj = runEffectFn2 _cookiesSetObj
 
+foreign import _cookiesDelete :: EffectFn2 Cookies CookieName Unit
 cookiesDelete :: Cookies -> CookieName -> Effect Unit
-cookiesDelete c name = runEffectFn2 _cookiesDelete c (un CookieName name)
-
-toCookie :: CookieImpl -> Cookie
-toCookie r = { name: CookieName r.name, value: CookieValue r.value }
+cookiesDelete = runEffectFn2 _cookiesDelete
