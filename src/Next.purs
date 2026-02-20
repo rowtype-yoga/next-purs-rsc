@@ -42,10 +42,10 @@ module Next
   , simplePatch
   , simpleHead
   , simpleOptions
+  , NextRequest
+  , NextResponse
   , module Path
   , module Action
-  , module Request
-  , module Response
   ) where
 
 import Prelude
@@ -76,8 +76,6 @@ import Yoga.Om as Om
 import Yoga.React.DOM.Internal (class IsJSX, createElement, createElement_)
 import Yoga.React.Om (OmRender, omComponent)
 import Next.Action (ServerAction, FormAction, serverAction, formAction) as Action
-import Next.Request (NextRequest) as Request
-import Next.Response (NextResponse, jsonResponse, jsonResponseS, textResponse, textResponseS, redirectResponse, redirectResponseS, rewriteResponse, nextResponse, withHeader, withStatus, withCookie) as Response
 
 -- | Opaque page type. The path DSL encodes both URL segments and query params.
 -- |
@@ -136,6 +134,14 @@ newtype HEAD path = HEAD Unit
 
 newtype OPTIONS :: forall k. k -> Type
 newtype OPTIONS path = OPTIONS Unit
+
+-- | Opaque typed request received by route handlers.
+-- | Import `Next.Request` for accessors (server-only).
+foreign import data NextRequest :: Type
+
+-- | Opaque typed response returned by route handlers.
+-- | Import `Next.Response` for constructors (server-only).
+foreign import data NextResponse :: Type
 
 --------------------------------------------------------------------------------
 -- FFI
@@ -331,31 +337,31 @@ simpleHandler
    . SegmentPathParams path pathParams
   => RL.RowToList pathParams pathRL
   => ParsePathFields pathRL pathParams
-  => (Request.NextRequest -> { | pathParams } -> Aff Response.NextResponse)
+  => (NextRequest -> { | pathParams } -> Aff NextResponse)
   -> Foreign
 simpleHandler f = _mkHandler \request rawParams -> Promise.fromAff do
   let params = parsePathFields (unsafeCoerce rawParams)
   f (unsafeCoerce request) params
 
-simpleGet :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Request.NextRequest -> { | pathParams } -> Aff Response.NextResponse) -> GET path
+simpleGet :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> GET path
 simpleGet f = unsafeCoerce (simpleHandler @path f)
 
-simplePost :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Request.NextRequest -> { | pathParams } -> Aff Response.NextResponse) -> POST path
+simplePost :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> POST path
 simplePost f = unsafeCoerce (simpleHandler @path f)
 
-simplePut :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Request.NextRequest -> { | pathParams } -> Aff Response.NextResponse) -> PUT path
+simplePut :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> PUT path
 simplePut f = unsafeCoerce (simpleHandler @path f)
 
-simpleDelete :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Request.NextRequest -> { | pathParams } -> Aff Response.NextResponse) -> DELETE path
+simpleDelete :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> DELETE path
 simpleDelete f = unsafeCoerce (simpleHandler @path f)
 
-simplePatch :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Request.NextRequest -> { | pathParams } -> Aff Response.NextResponse) -> PATCH path
+simplePatch :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> PATCH path
 simplePatch f = unsafeCoerce (simpleHandler @path f)
 
-simpleHead :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Request.NextRequest -> { | pathParams } -> Aff Response.NextResponse) -> HEAD path
+simpleHead :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> HEAD path
 simpleHead f = unsafeCoerce (simpleHandler @path f)
 
-simpleOptions :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (Request.NextRequest -> { | pathParams } -> Aff Response.NextResponse) -> OPTIONS path
+simpleOptions :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> OPTIONS path
 simpleOptions f = unsafeCoerce (simpleHandler @path f)
 
 --------------------------------------------------------------------------------

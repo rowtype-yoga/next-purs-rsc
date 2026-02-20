@@ -1,5 +1,5 @@
 module Next.Response
-  ( NextResponse
+  ( module Next
   , jsonResponse
   , jsonResponseS
   , textResponse
@@ -17,14 +17,9 @@ import Prelude
 
 import Data.Function.Uncurried (Fn2, Fn3, runFn2, runFn3)
 import Data.Newtype (un)
+import Next (NextResponse)
 import Next.Headers (HeaderName(..), HeaderValue(..), CookieName(..), CookieValue(..))
 import Route (Route, toPath)
-
---------------------------------------------------------------------------------
--- Types
---------------------------------------------------------------------------------
-
-foreign import data NextResponse :: Type
 
 --------------------------------------------------------------------------------
 -- FFI

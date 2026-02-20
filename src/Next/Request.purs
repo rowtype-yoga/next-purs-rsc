@@ -1,5 +1,5 @@
 module Next.Request
-  ( NextRequest
+  ( module Next
   , requestMethod
   , requestUrl
   , requestNextUrl
@@ -9,7 +9,10 @@ module Next.Request
   , requestGeo
   , NextUrl
   , nextUrlPathname
+  , NextUrlSearchParams
   , nextUrlSearchParams
+  , nextUrlSearchParamsGet
+  , nextUrlSearchParamsHas
   , nextUrlOrigin
   , nextUrlHost
   , nextUrlPort
@@ -36,17 +39,17 @@ import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Foreign (Foreign)
+import Next (NextRequest)
 import Next.Action (FormData)
 import Next.Headers (Headers, CookieName(..), CookieValue(..), Cookie)
-import Next.Navigation (SearchParams)
 
 --------------------------------------------------------------------------------
 -- Types
 --------------------------------------------------------------------------------
 
-foreign import data NextRequest :: Type
 foreign import data NextUrl :: Type
 foreign import data RequestCookies :: Type
+foreign import data NextUrlSearchParams :: Type
 
 type Geo =
   { city :: Maybe String
@@ -75,7 +78,7 @@ foreign import _requestIp :: NextRequest -> Nullable String
 foreign import _requestGeo :: NextRequest -> Nullable GeoImpl
 
 foreign import _nextUrlPathname :: NextUrl -> String
-foreign import _nextUrlSearchParams :: NextUrl -> SearchParams
+foreign import _nextUrlSearchParams :: NextUrl -> NextUrlSearchParams
 foreign import _nextUrlOrigin :: NextUrl -> String
 foreign import _nextUrlHost :: NextUrl -> String
 foreign import _nextUrlPort :: NextUrl -> String
@@ -85,6 +88,9 @@ foreign import _nextUrlHash :: NextUrl -> String
 foreign import _requestJson :: NextRequest -> Effect (Promise Foreign)
 foreign import _requestText :: NextRequest -> Effect (Promise String)
 foreign import _requestFormData :: NextRequest -> Effect (Promise FormData)
+
+foreign import _nextUrlSearchParamsGet :: Fn2 NextUrlSearchParams String (Nullable String)
+foreign import _nextUrlSearchParamsHas :: Fn2 NextUrlSearchParams String Boolean
 
 foreign import _requestCookiesGet :: Fn2 RequestCookies String (Nullable RequestCookieImpl)
 foreign import _requestCookiesGetAll :: RequestCookies -> Array RequestCookieImpl
@@ -128,8 +134,14 @@ requestGeo req = map toGeo (toMaybe (_requestGeo req))
 nextUrlPathname :: NextUrl -> String
 nextUrlPathname = _nextUrlPathname
 
-nextUrlSearchParams :: NextUrl -> SearchParams
+nextUrlSearchParams :: NextUrl -> NextUrlSearchParams
 nextUrlSearchParams = _nextUrlSearchParams
+
+nextUrlSearchParamsGet :: NextUrlSearchParams -> String -> Maybe String
+nextUrlSearchParamsGet sp key = toMaybe (runFn2 _nextUrlSearchParamsGet sp key)
+
+nextUrlSearchParamsHas :: NextUrlSearchParams -> String -> Boolean
+nextUrlSearchParamsHas = runFn2 _nextUrlSearchParamsHas
 
 nextUrlOrigin :: NextUrl -> String
 nextUrlOrigin = _nextUrlOrigin

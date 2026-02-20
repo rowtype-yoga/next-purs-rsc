@@ -15,6 +15,8 @@ export const _nextUrlHost = u => u.host;
 export const _nextUrlPort = u => u.port;
 export const _nextUrlProtocol = u => u.protocol;
 export const _nextUrlHash = u => u.hash;
+export const _nextUrlSearchParamsGet = (sp, key) => sp.get(key);
+export const _nextUrlSearchParamsHas = (sp, key) => sp.has(key);
 
 // Request body (returns Promise)
 export const _requestJson = r => () => r.json();

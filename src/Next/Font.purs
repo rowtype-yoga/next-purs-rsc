@@ -6,6 +6,8 @@ module Next.Font
   , FontStyle
   ) where
 
+import Prelude
+
 import Data.Maybe (Maybe)
 import Data.Nullable (Nullable, toMaybe)
 
