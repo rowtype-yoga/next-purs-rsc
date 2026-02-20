@@ -300,6 +300,21 @@ modulePathSegments parts = Array.mapMaybe toSpecialDir parts
         Just $ "(" <> String.toLower (String.take (String.length seg - 1) seg) <> ")"
     | otherwise = Nothing
 
+-- | Like modulePathSegments but also maps regular parts to lowercase dirs.
+-- | Used for Layout which has no type-level path param.
+layoutPathSegments :: Array String -> Array String
+layoutPathSegments parts = Array.mapMaybe toDir parts
+  where
+  toDir seg
+    | String.null seg = Nothing
+    | seg == "Root" = Nothing
+    | seg == "Intercept_" = Just "(.)"
+    | seg == "InterceptUp_" = Just "(..)"
+    | seg == "InterceptRoot_" = Just "(...)"
+    | SCU.charAt (String.length seg - 1) seg == Just '_' =
+        Just $ "(" <> String.toLower (String.take (String.length seg - 1) seg) <> ")"
+    | otherwise = Just (String.toLower seg)
+
 kindToFileName :: String -> String
 kindToFileName "notFound" = "not-found"
 kindToFileName "globalError" = "global-error"
@@ -356,7 +371,7 @@ moduleToRoute appDir outputDir info = do
       Nothing -> Nothing
     else extractPageType declName info.source
   let nextPathSegs = segmentsToNextPath segments
-  let groupSegs = modulePathSegments modParts
+  let groupSegs = (if kind == "layout" then layoutPathSegments else modulePathSegments) modParts
   let routePath = foldl joinPath (foldl joinPath (foldl joinPath appDir slotPrefix) groupSegs) nextPathSegs
   let ext = if kind == "handler" then ".ts" else ".tsx"
   let filePath = joinPath routePath (kindToFileName kind <> ext)
@@ -407,6 +422,19 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         , "// @ts-expect-error — PureScript output"
         , importLine
         ] <> handlerExports
+    -- Client page/default: unwrap params/searchParams with React.use()
+    | isClient && (route.kind == "page" || route.kind == "default") =
+        [ marker
+        , "// @ts-expect-error — PureScript output"
+        , importLine
+        , "import { use } from \"react\";"
+        , "const _Component = await " <> declName <> "();"
+        , "export default function(props) {"
+        , "  const params = {...use(props.params)};"
+        , "  const searchParams = {...use(props.searchParams)};"
+        , "  return _Component({ params, searchParams });"
+        , "}"
+        ]
     -- Client component: top-level await
     | isClient =
         [ marker
@@ -426,13 +454,14 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         , "  return render({ params, searchParams });"
         , "}"
         ]
-    -- Loading/NotFound: direct call, no props
+    -- Loading/NotFound: await thunk, call component (no props)
     | route.kind == "loading" || route.kind == "notFound" =
         [ marker
         , "// @ts-expect-error — PureScript output"
         , importLine
         , "export default async function() {"
-        , "  return " <> declName <> "()"
+        , "  const render = await " <> declName <> "();"
+        , "  return render();"
         , "}"
         ]
     -- Layout and other: async server, pass props through

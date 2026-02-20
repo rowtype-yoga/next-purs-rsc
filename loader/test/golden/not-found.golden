@@ -2,5 +2,6 @@
 // @ts-expect-error — PureScript output
 import { notFound } from "../output/NotFound.Root/index.js";
 export default async function() {
-  return notFound()
+  const render = await notFound();
+  return render();
 }

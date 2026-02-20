@@ -343,6 +343,33 @@ var walkTypeArg = function ($copy_v) {
     };
     return $tco_result;
 };
+var layoutPathSegments = function (parts) {
+    var toDir = function (seg) {
+        if (Data_String_Common["null"](seg)) {
+            return Data_Maybe.Nothing.value;
+        };
+        if (seg === "Root") {
+            return Data_Maybe.Nothing.value;
+        };
+        if (seg === "Intercept_") {
+            return new Data_Maybe.Just("(.)");
+        };
+        if (seg === "InterceptUp_") {
+            return new Data_Maybe.Just("(..)");
+        };
+        if (seg === "InterceptRoot_") {
+            return new Data_Maybe.Just("(...)");
+        };
+        if (eq1(Data_String_CodeUnits.charAt(Data_String_CodePoints.length(seg) - 1 | 0)(seg))(new Data_Maybe.Just("_"))) {
+            return new Data_Maybe.Just("(" + (Data_String_Common.toLower(Data_String_CodePoints.take(Data_String_CodePoints.length(seg) - 1 | 0)(seg)) + ")"));
+        };
+        if (Data_Boolean.otherwise) {
+            return new Data_Maybe.Just(Data_String_Common.toLower(seg));
+        };
+        throw new Error("Failed pattern match at Loader.Main (line 308, column 3 - line 316, column 44): " + [ seg.constructor.name ]);
+    };
+    return Data_Array.mapMaybe(toDir)(parts);
+};
 var kindToFileName = function (v) {
     if (v === "notFound") {
         return "not-found";
@@ -431,7 +458,7 @@ var hasConfigDecl = function (src) {
     if (v instanceof PureScript_CST.ParseFailed) {
         return false;
     };
-    throw new Error("Failed pattern match at Loader.Main (line 649, column 21 - line 652, column 25): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Loader.Main (line 678, column 21 - line 681, column 25): " + [ v.constructor.name ]);
 };
 var handlerMethodNames = [ "get", "post", "put", "delete_", "patch", "head_", "options" ];
 var generateTsx = function (route) {
@@ -442,7 +469,7 @@ var generateTsx = function (route) {
         if (Data_Boolean.otherwise) {
             return [ "export async function generateStaticParams() {", "  return staticParams();", "}" ];
         };
-        throw new Error("Failed pattern match at Loader.Main (line 466, column 3 - line 472, column 10): " + [  ]);
+        throw new Error("Failed pattern match at Loader.Main (line 495, column 3 - line 501, column 10): " + [  ]);
     })();
     var routeConfigLines = map1(function (name) {
         return "export { " + (name + " };");
@@ -452,12 +479,12 @@ var generateTsx = function (route) {
             return [  ];
         };
         if (route.kind === "page" || route.kind === "default") {
-            return [ "export async function generateMetadata(props) {", "  const meta = await metadata();", "  const params = await (props.params ?? {});", "  const searchParams = await (props.searchParams ?? {});", "  return meta({ params, searchParams });", "}" ];
+            return [ "export async function generateMetadata(props) {", "  const meta = await metadata();", "  const params = {...await (props.params ?? {})};", "  const searchParams = {...await (props.searchParams ?? {})};", "  return meta({ params, searchParams });", "}" ];
         };
         if (Data_Boolean.otherwise) {
             return [ "export async function generateMetadata(props) {", "  const meta = await metadata();", "  return meta(props);", "}" ];
         };
-        throw new Error("Failed pattern match at Loader.Main (line 449, column 3 - line 464, column 10): " + [  ]);
+        throw new Error("Failed pattern match at Loader.Main (line 478, column 3 - line 493, column 10): " + [  ]);
     })();
     var isClient = eq2(route.directive)(new Data_Maybe.Just("use client")) || (route.kind === "error" || route.kind === "globalError");
     var handlerExports = Data_Array.concatMap(function (method) {
@@ -475,14 +502,14 @@ var generateTsx = function (route) {
             if (route.directive instanceof Data_Maybe.Nothing) {
                 return [  ];
             };
-            throw new Error("Failed pattern match at Loader.Main (line 397, column 19 - line 399, column 22): " + [ route.directive.constructor.name ]);
+            throw new Error("Failed pattern match at Loader.Main (line 412, column 19 - line 414, column 22): " + [ route.directive.constructor.name ]);
         };
-        throw new Error("Failed pattern match at Loader.Main (line 395, column 3 - line 399, column 22): " + [  ]);
+        throw new Error("Failed pattern match at Loader.Main (line 410, column 3 - line 414, column 22): " + [  ]);
     })();
     var declName = kindToDeclName(route.kind);
     var configImports = (function () {
-        var $210 = Data_Array["null"](route.routeConfigs);
-        if ($210) {
+        var $211 = Data_Array["null"](route.routeConfigs);
+        if ($211) {
             return "";
         };
         return ", " + Data_String_Common.joinWith(", ")(route.routeConfigs);
@@ -504,12 +531,15 @@ var generateTsx = function (route) {
                 return "";
             })() + configImports));
         };
-        throw new Error("Failed pattern match at Loader.Main (line 386, column 3 - line 391, column 25): " + [  ]);
+        throw new Error("Failed pattern match at Loader.Main (line 401, column 3 - line 406, column 25): " + [  ]);
     })();
     var importLine = "import { " + (imports + (" } from " + (show(route.relImport) + ";")));
     var contentLines = (function () {
         if (route.kind === "handler") {
             return append1([ marker, "// @ts-expect-error \u2014 PureScript output", importLine ])(handlerExports);
+        };
+        if (isClient && (route.kind === "page" || route.kind === "default")) {
+            return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "import { use } from \"react\";", "const _Component = await " + (declName + "();"), "export default function(props) {", "  const params = {...use(props.params)};", "  const searchParams = {...use(props.searchParams)};", "  return _Component({ params, searchParams });", "}" ];
         };
         if (isClient) {
             return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default await " + (declName + "();") ];
@@ -518,12 +548,12 @@ var generateTsx = function (route) {
             return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default async function(props) {", "  const render = await " + (declName + "();"), "  const params = {...await (props.params ?? {})};", "  const searchParams = {...await (props.searchParams ?? {})};", "  return render({ params, searchParams });", "}" ];
         };
         if (route.kind === "loading" || route.kind === "notFound") {
-            return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default async function() {", "  return " + (declName + "()"), "}" ];
+            return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default async function() {", "  const render = await " + (declName + "();"), "  return render();", "}" ];
         };
         if (Data_Boolean.otherwise) {
             return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default async function(props) {", "  const render = await " + (declName + "();"), "  return render(props);", "}" ];
         };
-        throw new Error("Failed pattern match at Loader.Main (line 403, column 3 - line 447, column 10): " + [  ]);
+        throw new Error("Failed pattern match at Loader.Main (line 418, column 3 - line 476, column 10): " + [  ]);
     })();
     var lines = append1(directiveLine)(append1(contentLines)(append1(metadataLines)(append1(staticParamsLines)(routeConfigLines))));
     return Data_String_Common.joinWith("\x0a")(append1(lines)([ "" ]));
@@ -609,8 +639,8 @@ var findPursFiles = function (dir) {
     };
     return function __do() {
         var exists = $foreign.existsSync(dir)();
-        var $221 = !exists;
-        if ($221) {
+        var $222 = !exists;
+        if ($222) {
             return [  ];
         };
         var entries = $foreign.readdirSync(dir)();
@@ -669,8 +699,8 @@ var extractModuleName = function (src) {
         var name = Data_String_CodeUnits.takeWhile(function (c) {
             return c !== " " && c !== "(";
         })(afterModule);
-        var $244 = Data_String_CodePoints.length(name) > 0;
-        if ($244) {
+        var $245 = Data_String_CodePoints.length(name) > 0;
+        if ($245) {
             return new Data_Maybe.Just(name);
         };
         return Data_Maybe.Nothing.value;
@@ -688,14 +718,14 @@ var extractJsonField = function (field) {
                 };
                 if (v instanceof Data_Maybe.Just && v1 instanceof Data_Maybe.Just) {
                     return new Data_Maybe.Just((function () {
-                        var $247 = v.value0 > v1.value0;
-                        if ($247) {
+                        var $248 = v.value0 > v1.value0;
+                        if ($248) {
                             return v.value0;
                         };
                         return v1.value0;
                     })());
                 };
-                throw new Error("Failed pattern match at Loader.Main (line 564, column 3 - line 564, column 20): " + [ v.constructor.name, v1.constructor.name ]);
+                throw new Error("Failed pattern match at Loader.Main (line 593, column 3 - line 593, column 20): " + [ v.constructor.name, v1.constructor.name ]);
             };
         };
         var needle = show(field) + ":";
@@ -707,8 +737,8 @@ var extractJsonField = function (field) {
         if (idx instanceof Data_Maybe.Just) {
             var rest = Data_String_CodePoints.drop((idx.value0 + Data_String_CodePoints.length(needle) | 0) + 1 | 0)(json);
             var trimmed = Data_String_Common.trim(rest);
-            var $251 = eq1(Data_String_CodeUnits.charAt(0)(trimmed))(new Data_Maybe.Just("\""));
-            if ($251) {
+            var $252 = eq1(Data_String_CodeUnits.charAt(0)(trimmed))(new Data_Maybe.Just("\""));
+            if ($252) {
                 var inner = Data_String_CodePoints.drop(1)(trimmed);
                 var endIdx = Data_String_CodePoints.indexOf("\"")(inner);
                 if (endIdx instanceof Data_Maybe.Just) {
@@ -717,11 +747,11 @@ var extractJsonField = function (field) {
                 if (endIdx instanceof Data_Maybe.Nothing) {
                     return Data_Maybe.Nothing.value;
                 };
-                throw new Error("Failed pattern match at Loader.Main (line 559, column 9 - line 561, column 29): " + [ endIdx.constructor.name ]);
+                throw new Error("Failed pattern match at Loader.Main (line 588, column 9 - line 590, column 29): " + [ endIdx.constructor.name ]);
             };
             return Data_Maybe.Nothing.value;
         };
-        throw new Error("Failed pattern match at Loader.Main (line 549, column 3 - line 562, column 19): " + [ idx.constructor.name ]);
+        throw new Error("Failed pattern match at Loader.Main (line 578, column 3 - line 591, column 19): " + [ idx.constructor.name ]);
     };
 };
 var extractFromType = function (v) {
@@ -814,8 +844,8 @@ var generateRoutePursFromModules = function (routes) {
             return function (segments) {
                 var name = constructorName(route.mod);
                 var paramSegs = Data_Array.filter(isParam)(segments);
-                var $286 = Data_Array.length(paramSegs) > 0;
-                if ($286) {
+                var $287 = Data_Array.length(paramSegs) > 0;
+                if ($287) {
                     return name + foldMap(segmentParamType)(paramSegs);
                 };
                 return name;
@@ -861,7 +891,7 @@ var generateRoutePursFromModules = function (routes) {
                         varIdx: v.varIdx + 1 | 0
                     };
                 };
-                throw new Error("Failed pattern match at Loader.Main (line 749, column 3 - line 750, column 56): " + [ v.constructor.name, v1.constructor.name ]);
+                throw new Error("Failed pattern match at Loader.Main (line 778, column 3 - line 779, column 56): " + [ v.constructor.name, v1.constructor.name ]);
             };
         };
         var buildPathExpr = function (segments) {
@@ -869,8 +899,8 @@ var generateRoutePursFromModules = function (routes) {
                 expr: "",
                 varIdx: 0
             })(segments);
-            var $307 = Data_String_Common["null"](v.expr);
-            if ($307) {
+            var $308 = Data_String_Common["null"](v.expr);
+            if ($308) {
                 return show("/");
             };
             return v.expr;
@@ -885,8 +915,8 @@ var generateRoutePursFromModules = function (routes) {
                     };
                 })(paramSegs);
                 var patVars = (function () {
-                    var $309 = Data_Array["null"](vars);
-                    if ($309) {
+                    var $310 = Data_Array["null"](vars);
+                    if ($310) {
                         return "";
                     };
                     return " " + Data_String_Common.joinWith(" ")(vars);
@@ -947,7 +977,7 @@ var moduleToRoute = function (appDir) {
                     if (v2 instanceof Data_Maybe.Nothing) {
                         return new Data_Tuple.Tuple([  ], parts);
                     };
-                    throw new Error("Failed pattern match at Loader.Main (line 334, column 24 - line 336, column 33): " + [ v2.constructor.name ]);
+                    throw new Error("Failed pattern match at Loader.Main (line 349, column 24 - line 351, column 33): " + [ v2.constructor.name ]);
                 };
                 return new Data_Tuple.Tuple([  ], parts);
             })();
@@ -964,7 +994,7 @@ var moduleToRoute = function (appDir) {
                         return Data_Maybe.Nothing.value;
                     };
                 };
-                throw new Error("Failed pattern match at Loader.Main (line 340, column 11 - line 344, column 29): " + [ v1.constructor.name ]);
+                throw new Error("Failed pattern match at Loader.Main (line 355, column 11 - line 359, column 29): " + [ v1.constructor.name ]);
             })())(function (kind) {
                 var hasExplicitKind = notEq1(detectKind(v.value1))(Data_Maybe.Nothing.value);
                 var modParts = (function () {
@@ -974,8 +1004,8 @@ var moduleToRoute = function (appDir) {
                     return v.value1;
                 })();
                 var methods = (function () {
-                    var $331 = kind === "handler";
-                    if ($331) {
+                    var $332 = kind === "handler";
+                    if ($332) {
                         return findHandlerMethods(info.source);
                     };
                     return [  ];
@@ -983,24 +1013,30 @@ var moduleToRoute = function (appDir) {
                 var declName = kindToDeclName(kind);
                 var firstMethodDecl = Data_Array.head(methods);
                 return bind1((function () {
-                    var $332 = kind === "handler";
-                    if ($332) {
+                    var $333 = kind === "handler";
+                    if ($333) {
                         if (firstMethodDecl instanceof Data_Maybe.Just) {
                             return extractPageType(firstMethodDecl.value0)(info.source);
                         };
                         if (firstMethodDecl instanceof Data_Maybe.Nothing) {
                             return Data_Maybe.Nothing.value;
                         };
-                        throw new Error("Failed pattern match at Loader.Main (line 354, column 10 - line 356, column 25): " + [ firstMethodDecl.constructor.name ]);
+                        throw new Error("Failed pattern match at Loader.Main (line 369, column 10 - line 371, column 25): " + [ firstMethodDecl.constructor.name ]);
                     };
                     return extractPageType(declName)(info.source);
                 })())(function (segments) {
                     var nextPathSegs = segmentsToNextPath(segments);
-                    var groupSegs = modulePathSegments(modParts);
+                    var groupSegs = (function () {
+                        var $336 = kind === "layout";
+                        if ($336) {
+                            return layoutPathSegments;
+                        };
+                        return modulePathSegments;
+                    })()(modParts);
                     var routePath = foldl($foreign.joinPath)(foldl($foreign.joinPath)(foldl($foreign.joinPath)(appDir)(v.value0))(groupSegs))(nextPathSegs);
                     var ext = (function () {
-                        var $335 = kind === "handler";
-                        if ($335) {
+                        var $337 = kind === "handler";
+                        if ($337) {
                             return ".ts";
                         };
                         return ".tsx";
@@ -1032,17 +1068,17 @@ var moduleToRoute = function (appDir) {
 var detectDirective = function (modName) {
     return function (src) {
         if (Data_Array.any((function () {
-            var $350 = eq("-- @client");
-            return function ($351) {
-                return $350(Data_String_Common.trim($351));
+            var $352 = eq("-- @client");
+            return function ($353) {
+                return $352(Data_String_Common.trim($353));
             };
         })())(Data_String_Common.split("\x0a")(src))) {
             return new Data_Maybe.Just("use client");
         };
         if (Data_Array.any((function () {
-            var $352 = eq("-- @server");
-            return function ($353) {
-                return $352(Data_String_Common.trim($353));
+            var $354 = eq("-- @server");
+            return function ($355) {
+                return $354(Data_String_Common.trim($355));
             };
         })())(Data_String_Common.split("\x0a")(src))) {
             return new Data_Maybe.Just("use server");
@@ -1172,7 +1208,7 @@ var main = /* #__PURE__ */ (function () {
         if (v instanceof Data_Maybe.Nothing) {
             return Data_Unit.unit;
         };
-        throw new Error("Failed pattern match at Loader.Main (line 625, column 3 - line 632, column 25): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at Loader.Main (line 654, column 3 - line 661, column 25): " + [ v.constructor.name ]);
     };
 })();
 export {
@@ -1221,6 +1257,7 @@ export {
     segmentsToNextPath,
     computeRoutes,
     modulePathSegments,
+    layoutPathSegments,
     kindToFileName,
     kindToDeclName,
     detectKind,

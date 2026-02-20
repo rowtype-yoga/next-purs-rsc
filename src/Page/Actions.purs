@@ -28,7 +28,7 @@ page = unsafeCoerce do
       , p {} $ "Counter: " <> show count
       , form { action: unsafeCoerce dispatch }
           [ label {} "Step: "
-          , input { type: "number", name: "step", value: "1" }
+          , input { type: "number", name: "step", value: "1", onChange: handler_ (pure unit) }
           , submitBtn {}
           ]
       , h2 {} "Direct Server Action"

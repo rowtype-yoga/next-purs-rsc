@@ -9,7 +9,7 @@ export default async function(props) {
 }
 export async function generateMetadata(props) {
   const meta = await metadata();
-  const params = await (props.params ?? {});
-  const searchParams = await (props.searchParams ?? {});
+  const params = {...await (props.params ?? {})};
+  const searchParams = {...await (props.searchParams ?? {})};
   return meta({ params, searchParams });
 }

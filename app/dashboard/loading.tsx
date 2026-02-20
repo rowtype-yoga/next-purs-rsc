@@ -2,5 +2,6 @@
 // @ts-expect-error — PureScript output
 import { loading } from "../../output/Loading.Dashboard/index.js";
 export default async function() {
-  return loading()
+  const render = await loading();
+  return render();
 }
