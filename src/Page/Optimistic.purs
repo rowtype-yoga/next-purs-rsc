@@ -12,7 +12,7 @@ import Effect.Timer (setTimeout)
 import Next (Page)
 import Next.Action.Client (useOptimistic, callServerAction)
 import React.Basic.Events (handler_)
-import React.Basic.Hooks (component, useState)
+import React.Basic.Hooks (component, useState, useTransition)
 import React.Basic.Hooks as React
 import Unsafe.Coerce (unsafeCoerce)
 import Yoga.React.DOM (button, div, h1, h2, li, p, ul)
@@ -22,17 +22,18 @@ page = unsafeCoerce $ component "OptimisticPage" \(_ :: {}) -> React.do
   messages /\ setMessages <- useState [ "Welcome!" ]
   optimistic /\ addOptimistic <- useOptimistic messages \state msg ->
     snoc state (msg <> " (sending...)")
+  _isPending /\ startTransition <- useTransition
 
   let counter = length optimistic
 
-  let handleAdd = do
+  let handleAdd = startTransition do
         let msg = "Message #" <> show counter
         addOptimistic msg
         launchAff_ do
           confirmed <- callServerAction sendMessage msg
           liftEffect $ setMessages \prev -> snoc prev confirmed
 
-  let handleLocal = do
+  let handleLocal = startTransition do
         let msg = "Local #" <> show counter
         addOptimistic msg
         void $ setTimeout 1500 do
