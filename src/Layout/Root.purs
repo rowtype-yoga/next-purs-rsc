@@ -1,6 +1,11 @@
 module Layout.Root where
 
+import Prelude ((<>), append)
+
+import Data.Maybe (maybe)
+import Fonts (sans)
 import Next (Layout, Metadata, Root, link, simpleLayout, simpleMetadata)
+import Next.Font (fontClassName, fontVariable)
 import React.Basic.Hooks (reactChildrenToArray)
 import Route (Route(..))
 import Yoga.React.DOM (body, html, main, nav, strong, text)
@@ -8,8 +13,8 @@ import Yoga.React.DOM.Internal (css)
 
 layout :: Layout
 layout = simpleLayout \{ children } ->
-  html { lang: "en" }
-    [ body { style: css { fontFamily: "sans-serif", background: "#001", color: "#d0d0e7" } }
+  html { lang: "en", className: fontClassName sans <> maybe "" (append " ") (fontVariable sans) }
+    [ body { style: css { background: "#001", color: "#d0d0e7" } }
         [ nav {}
             [ strong {} [ text "PureScript + Next.js RSC" ]
             , text " | "
@@ -28,6 +33,8 @@ layout = simpleLayout \{ children } ->
             , link Media {} [ text "Media" ]
             , text " | "
             , link (Blog__Slug "hello") {} [ text "Blog" ]
+            , text " | "
+            , link Optimistic {} [ text "Optimistic" ]
             ]
         , main {} (reactChildrenToArray children)
         ]

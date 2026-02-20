@@ -6,19 +6,20 @@ import Data.Maybe (maybe)
 import Data.Newtype (un)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Foreign (Foreign)
-import Next (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, type (/), simpleGet, simplePost, simplePut, simpleDelete, simplePatch, simpleHead, simpleOptions)
+import Next (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, type (/), simpleGet, simplePost, simplePut, simpleDelete, simplePatch, simpleHead, simpleOptions, NextRequest, NextResponse, jsonResponse)
 import Next.Cache (RevalidationType(..), revalidatePath, revalidateTag)
 import Next.Headers (HeaderName(..), HeaderValue(..), CookieName(..), cookies, cookiesGet, cookiesGetAll, cookiesHas, headers, headersGet, headersHas)
 import Next.Navigation.Server (redirect, permanentRedirect, triggerNotFound)
+import Next.Request (requestMethod, requestUrl)
 import Route (Route(..))
-foreign import _jsonResponse :: forall r. { | r } -> Foreign
 
-json :: forall r. { | r } -> Aff Foreign
-json = pure <<< _jsonResponse
+json :: forall r. { | r } -> Aff NextResponse
+json = pure <<< jsonResponse
 
 get :: GET ("api" / "hello")
-get = simpleGet \_ _ -> do
+get = simpleGet \req _ -> do
+  let method = requestMethod req
+  let url = requestUrl req
   h <- headers
   userAgent <- liftEffect $ headersGet h (HeaderName "user-agent")
   hasAccept <- liftEffect $ headersHas h (HeaderName "accept")
@@ -28,6 +29,8 @@ get = simpleGet \_ _ -> do
   hasSession <- liftEffect $ cookiesHas c (CookieName "session")
   json
     { message: "hello"
+    , method
+    , url
     , userAgent: maybe "" (un HeaderValue) userAgent
     , hasAccept
     , sessionCookie

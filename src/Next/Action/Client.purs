@@ -6,15 +6,20 @@ module Next.Action.Client
   , useFormStatus
   , useFormStatus'
   , callServerAction
+  , UseOptimistic
+  , useOptimistic
+  , useOptimistic'
   ) where
 
 import Prelude
 
 import Control.Promise as Promise
+import Data.Tuple.Nested (type (/\))
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Uncurried (EffectFn2, runEffectFn2)
 import Next.Action (ServerAction, FormAction, FormDispatch)
+import React.Basic.Hooks (useOptimistic, UseOptimistic) as Hooks
 import React.Basic.Hooks.Internal (Hook, unsafeHook)
 import Yoga.React.Om (OmRender, liftRender)
 
@@ -50,3 +55,23 @@ useFormStatus' = liftRender useFormStatus
 
 callServerAction :: forall input output. ServerAction input output -> input -> Aff output
 callServerAction action input = Promise.toAffE (runEffectFn2 _callServerAction action input)
+
+--------------------------------------------------------------------------------
+-- useOptimistic
+--------------------------------------------------------------------------------
+
+type UseOptimistic state action = Hooks.UseOptimistic state action
+
+useOptimistic
+  :: forall state action
+   . state
+  -> (state -> action -> state)
+  -> Hook (UseOptimistic state action) (state /\ (action -> Effect Unit))
+useOptimistic = Hooks.useOptimistic
+
+useOptimistic'
+  :: forall ctx hooks state action
+   . state
+  -> (state -> action -> state)
+  -> OmRender ctx hooks (UseOptimistic state action hooks) (state /\ (action -> Effect Unit))
+useOptimistic' state updateFn = liftRender (useOptimistic state updateFn)

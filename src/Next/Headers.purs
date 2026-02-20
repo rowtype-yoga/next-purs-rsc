@@ -13,6 +13,9 @@ module Next.Headers
   , cookiesGet
   , cookiesGetAll
   , cookiesHas
+  , cookiesSet
+  , cookiesSetObj
+  , cookiesDelete
   ) where
 
 import Prelude
@@ -24,7 +27,8 @@ import Data.Newtype (class Newtype, un)
 import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)
 import Effect.Aff (Aff)
-import Effect.Uncurried (EffectFn2, runEffectFn2)
+import Effect.Uncurried (EffectFn2, EffectFn3, runEffectFn2, runEffectFn3)
+import Unsafe.Coerce (unsafeCoerce)
 
 --------------------------------------------------------------------------------
 -- Types
@@ -74,6 +78,9 @@ foreign import _headersHas :: EffectFn2 Headers String Boolean
 foreign import _cookiesGet :: EffectFn2 Cookies String (Nullable CookieImpl)
 foreign import _cookiesGetAll :: EffectFn2 Cookies Unit (Array CookieImpl)
 foreign import _cookiesHas :: EffectFn2 Cookies String Boolean
+foreign import _cookiesSet :: EffectFn3 Cookies String String Unit
+foreign import _cookiesSetObj :: forall r. EffectFn2 Cookies { | r } Unit
+foreign import _cookiesDelete :: EffectFn2 Cookies String Unit
 
 --------------------------------------------------------------------------------
 -- Headers
@@ -103,6 +110,15 @@ cookiesGetAll c = map toCookie <$> runEffectFn2 _cookiesGetAll c unit
 
 cookiesHas :: Cookies -> CookieName -> Effect Boolean
 cookiesHas c name = runEffectFn2 _cookiesHas c (un CookieName name)
+
+cookiesSet :: Cookies -> CookieName -> CookieValue -> Effect Unit
+cookiesSet c name value = runEffectFn3 _cookiesSet c (un CookieName name) (un CookieValue value)
+
+cookiesSetObj :: forall r. Cookies -> { name :: CookieName, value :: CookieValue | r } -> Effect Unit
+cookiesSetObj c obj = runEffectFn2 _cookiesSetObj c (unsafeCoerce obj)
+
+cookiesDelete :: Cookies -> CookieName -> Effect Unit
+cookiesDelete c name = runEffectFn2 _cookiesDelete c (un CookieName name)
 
 toCookie :: CookieImpl -> Cookie
 toCookie r = { name: CookieName r.name, value: CookieValue r.value }
