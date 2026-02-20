@@ -19,9 +19,6 @@ module Next.Navigation
   , useSelectedLayoutSegment
   , UseSelectedLayoutSegments
   , useSelectedLayoutSegments
-  , redirect
-  , permanentRedirect
-  , triggerNotFound
   ) where
 
 import Prelude
@@ -62,9 +59,6 @@ foreign import _searchParamsToString :: EffectFn1 SearchParams String
 
 foreign import _paramsGet :: EffectFn2 Params String (Nullable String)
 
-foreign import _redirectImpl :: EffectFn1 String Unit
-foreign import _permanentRedirectImpl :: EffectFn1 String Unit
-foreign import _notFoundImpl :: EffectFn1 Unit Unit
 
 --------------------------------------------------------------------------------
 -- useRouter
@@ -149,15 +143,3 @@ foreign import data UseSelectedLayoutSegments :: Type -> Type
 useSelectedLayoutSegments :: Hook UseSelectedLayoutSegments (Array String)
 useSelectedLayoutSegments = unsafeHook _useSelectedLayoutSegmentsImpl
 
---------------------------------------------------------------------------------
--- Server functions
---------------------------------------------------------------------------------
-
-redirect :: Route -> Effect Unit
-redirect route = runEffectFn1 _redirectImpl (toPath route)
-
-permanentRedirect :: Route -> Effect Unit
-permanentRedirect route = runEffectFn1 _permanentRedirectImpl (toPath route)
-
-triggerNotFound :: Effect Unit
-triggerNotFound = runEffectFn1 _notFoundImpl unit

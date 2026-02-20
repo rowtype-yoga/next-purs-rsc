@@ -5,7 +5,7 @@ import Prelude hiding (div)
 
 import Actions.Counter (stepAction)
 import Next (Page, nextPage)
-import Next.Action (useActionState', useFormStatus')
+import Next.Action.Client (useActionState', useFormStatus')
 import Unsafe.Coerce (unsafeCoerce)
 import Yoga.React.DOM (button, div, form, h1, h2, input, p)
 import Yoga.React.Om (omComponent)

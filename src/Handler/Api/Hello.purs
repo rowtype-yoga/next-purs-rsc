@@ -10,12 +10,12 @@ import Foreign (Foreign)
 import Next (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, type (/), simpleGet, simplePost, simplePut, simpleDelete, simplePatch, simpleHead, simpleOptions)
 import Next.Cache (RevalidationType(..), revalidatePath, revalidateTag)
 import Next.Headers (HeaderName(..), HeaderValue(..), CookieName(..), cookies, cookiesGet, cookiesGetAll, cookiesHas, headers, headersGet, headersHas)
-import Next.Navigation (redirect, permanentRedirect, triggerNotFound)
+import Next.Navigation.Server (redirect, permanentRedirect, triggerNotFound)
 import Route (Route(..))
-import Unsafe.Coerce (unsafeCoerce)
+foreign import _jsonResponse :: forall r. { | r } -> Foreign
 
 json :: forall r. { | r } -> Aff Foreign
-json = pure <<< unsafeCoerce
+json = pure <<< _jsonResponse
 
 get :: GET ("api" / "hello")
 get = simpleGet \_ _ -> do

@@ -141,6 +141,7 @@ foreign import data RawRecord :: Type
 
 foreign import _mapRecord :: forall rin rout. (forall x. Nullable x -> Maybe x) -> { | rin } -> { | rout }
 foreign import _getField :: String -> RawRecord -> String
+foreign import _mkHandler :: forall a b. a -> b
 foreign import _linkComponent :: forall props. ReactComponent { | props }
 foreign import _imageComponent :: forall props. ReactComponent { | props }
 foreign import _scriptComponent :: forall props. ReactComponent { | props }
@@ -327,7 +328,7 @@ simpleHandler
   => ParsePathFields pathRL pathParams
   => (Foreign -> { | pathParams } -> Aff Foreign)
   -> Foreign
-simpleHandler f = unsafeCoerce \request rawParams -> Promise.fromAff do
+simpleHandler f = _mkHandler \request rawParams -> Promise.fromAff do
   let params = parsePathFields (unsafeCoerce rawParams)
   f request params
 

@@ -1,3 +1,4 @@
+-- @client
 module Page.Dashboard where
 
 import Prelude hiding (div)

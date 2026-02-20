@@ -9,7 +9,7 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Next (Page)
-import Next.Action (callServerAction, useActionState, useFormStatus)
+import Next.Action.Client (callServerAction, useActionState, useFormStatus)
 import React.Basic.Events (handler_)
 import React.Basic.Hooks (component, useState)
 import React.Basic.Hooks as React
