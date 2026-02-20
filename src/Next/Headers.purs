@@ -66,46 +66,46 @@ foreign import data Cookies :: Type
 -- Headers
 --------------------------------------------------------------------------------
 
-foreign import _headersImpl :: Effect (Promise Headers)
+foreign import headersImpl :: Effect (Promise Headers)
 headers :: Aff Headers
-headers = Promise.toAffE _headersImpl
+headers = Promise.toAffE headersImpl
 
-foreign import _headersGet :: EffectFn2 Headers HeaderName (Nullable HeaderValue)
+foreign import headersGetImpl :: EffectFn2 Headers HeaderName (Nullable HeaderValue)
 headersGet :: Headers -> HeaderName -> Effect (Maybe HeaderValue)
-headersGet h name = toMaybe <$> runEffectFn2 _headersGet h name
+headersGet h name = toMaybe <$> runEffectFn2 headersGetImpl h name
 
-foreign import _headersHas :: EffectFn2 Headers HeaderName Boolean
+foreign import headersHasImpl :: EffectFn2 Headers HeaderName Boolean
 headersHas :: Headers -> HeaderName -> Effect Boolean
-headersHas = runEffectFn2 _headersHas
+headersHas = runEffectFn2 headersHasImpl
 
 --------------------------------------------------------------------------------
 -- Cookies
 --------------------------------------------------------------------------------
 
-foreign import _cookiesImpl :: Effect (Promise Cookies)
+foreign import cookiesImpl :: Effect (Promise Cookies)
 cookies :: Aff Cookies
-cookies = Promise.toAffE _cookiesImpl
+cookies = Promise.toAffE cookiesImpl
 
-foreign import _cookiesGet :: EffectFn2 Cookies CookieName (Nullable Cookie)
+foreign import cookiesGetImpl :: EffectFn2 Cookies CookieName (Nullable Cookie)
 cookiesGet :: Cookies -> CookieName -> Effect (Maybe Cookie)
-cookiesGet c name = toMaybe <$> runEffectFn2 _cookiesGet c name
+cookiesGet c name = toMaybe <$> runEffectFn2 cookiesGetImpl c name
 
-foreign import _cookiesGetAll :: EffectFn2 Cookies Unit (Array Cookie)
+foreign import cookiesGetAllImpl :: EffectFn2 Cookies Unit (Array Cookie)
 cookiesGetAll :: Cookies -> Effect (Array Cookie)
-cookiesGetAll c = runEffectFn2 _cookiesGetAll c unit
+cookiesGetAll c = runEffectFn2 cookiesGetAllImpl c unit
 
-foreign import _cookiesHas :: EffectFn2 Cookies CookieName Boolean
+foreign import cookiesHasImpl :: EffectFn2 Cookies CookieName Boolean
 cookiesHas :: Cookies -> CookieName -> Effect Boolean
-cookiesHas = runEffectFn2 _cookiesHas
+cookiesHas = runEffectFn2 cookiesHasImpl
 
-foreign import _cookiesSet :: EffectFn3 Cookies CookieName CookieValue Unit
+foreign import cookiesSetImpl :: EffectFn3 Cookies CookieName CookieValue Unit
 cookiesSet :: Cookies -> CookieName -> CookieValue -> Effect Unit
-cookiesSet = runEffectFn3 _cookiesSet
+cookiesSet = runEffectFn3 cookiesSetImpl
 
-foreign import _cookiesSetObj :: forall r. EffectFn2 Cookies { name :: CookieName, value :: CookieValue | r } Unit
+foreign import cookiesSetObjImpl :: forall r. EffectFn2 Cookies { name :: CookieName, value :: CookieValue | r } Unit
 cookiesSetObj :: forall r. Cookies -> { name :: CookieName, value :: CookieValue | r } -> Effect Unit
-cookiesSetObj = runEffectFn2 _cookiesSetObj
+cookiesSetObj = runEffectFn2 cookiesSetObjImpl
 
-foreign import _cookiesDelete :: EffectFn2 Cookies CookieName Unit
+foreign import cookiesDeleteImpl :: EffectFn2 Cookies CookieName Unit
 cookiesDelete :: Cookies -> CookieName -> Effect Unit
-cookiesDelete = runEffectFn2 _cookiesDelete
+cookiesDelete = runEffectFn2 cookiesDeleteImpl

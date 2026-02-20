@@ -25,19 +25,17 @@ type FontStyleImpl =
   , fontStyle :: Nullable String
   }
 
-foreign import _fontClassName :: FontConfig -> String
-fontClassName :: FontConfig -> String
-fontClassName = _fontClassName
+foreign import fontClassName :: FontConfig -> String
 
-foreign import _fontStyle :: FontConfig -> FontStyleImpl
+foreign import fontStyleImpl :: FontConfig -> FontStyleImpl
 fontStyle :: FontConfig -> FontStyle
 fontStyle fc = do
-  let s = _fontStyle fc
+  let s = fontStyleImpl fc
   { fontFamily: s.fontFamily
   , fontWeight: toMaybe s.fontWeight
   , fontStyle: toMaybe s.fontStyle
   }
 
-foreign import _fontVariable :: FontConfig -> Nullable String
+foreign import fontVariableImpl :: FontConfig -> Nullable String
 fontVariable :: FontConfig -> Maybe String
-fontVariable = toMaybe <<< _fontVariable
+fontVariable = toMaybe <<< fontVariableImpl

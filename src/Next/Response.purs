@@ -14,6 +14,7 @@ module Next.Response
   ) where
 
 import Data.Function.Uncurried (Fn2, Fn3, runFn2, runFn3)
+import Effect (Effect)
 import Next (NextResponse)
 import Next.Headers (HeaderName, HeaderValue, CookieName, CookieValue)
 import Route (Route, toPath)
@@ -22,50 +23,44 @@ import Route (Route, toPath)
 -- Constructors
 --------------------------------------------------------------------------------
 
-foreign import _jsonResponse :: forall r. { | r } -> NextResponse
-jsonResponse :: forall r. { | r } -> NextResponse
-jsonResponse = _jsonResponse
+foreign import jsonResponse :: forall r. { | r } -> NextResponse
 
-foreign import _jsonResponseS :: forall r. Fn2 { | r } Int NextResponse
+foreign import jsonResponseSImpl :: forall r. Fn2 { | r } Int NextResponse
 jsonResponseS :: forall r. { | r } -> Int -> NextResponse
-jsonResponseS = runFn2 _jsonResponseS
+jsonResponseS = runFn2 jsonResponseSImpl
 
-foreign import _textResponse :: String -> NextResponse
-textResponse :: String -> NextResponse
-textResponse = _textResponse
+foreign import textResponse :: String -> NextResponse
 
-foreign import _textResponseS :: Fn2 String Int NextResponse
+foreign import textResponseSImpl :: Fn2 String Int NextResponse
 textResponseS :: String -> Int -> NextResponse
-textResponseS = runFn2 _textResponseS
+textResponseS = runFn2 textResponseSImpl
 
-foreign import _redirectResponse :: String -> NextResponse
+foreign import redirectResponseImpl :: String -> NextResponse
 redirectResponse :: Route -> NextResponse
-redirectResponse route = _redirectResponse (toPath route)
+redirectResponse route = redirectResponseImpl (toPath route)
 
-foreign import _redirectResponseS :: Fn2 String Int NextResponse
+foreign import redirectResponseSImpl :: Fn2 String Int NextResponse
 redirectResponseS :: Route -> Int -> NextResponse
-redirectResponseS route status = runFn2 _redirectResponseS (toPath route) status
+redirectResponseS route status = runFn2 redirectResponseSImpl (toPath route) status
 
-foreign import _rewriteResponse :: String -> NextResponse
+foreign import rewriteResponseImpl :: String -> NextResponse
 rewriteResponse :: Route -> NextResponse
-rewriteResponse route = _rewriteResponse (toPath route)
+rewriteResponse route = rewriteResponseImpl (toPath route)
 
-foreign import _nextResponse :: NextResponse
-nextResponse :: NextResponse
-nextResponse = _nextResponse
+foreign import nextResponse :: Effect NextResponse
 
 --------------------------------------------------------------------------------
 -- Modifiers
 --------------------------------------------------------------------------------
 
-foreign import _withHeader :: Fn3 NextResponse HeaderName HeaderValue NextResponse
+foreign import withHeaderImpl :: Fn3 NextResponse HeaderName HeaderValue NextResponse
 withHeader :: NextResponse -> HeaderName -> HeaderValue -> NextResponse
-withHeader = runFn3 _withHeader
+withHeader = runFn3 withHeaderImpl
 
-foreign import _withStatus :: Fn2 NextResponse Int NextResponse
+foreign import withStatusImpl :: Fn2 NextResponse Int NextResponse
 withStatus :: NextResponse -> Int -> NextResponse
-withStatus = runFn2 _withStatus
+withStatus = runFn2 withStatusImpl
 
-foreign import _withCookie :: Fn3 NextResponse CookieName CookieValue NextResponse
+foreign import withCookieImpl :: Fn3 NextResponse CookieName CookieValue NextResponse
 withCookie :: NextResponse -> CookieName -> CookieValue -> NextResponse
-withCookie = runFn3 _withCookie
+withCookie = runFn3 withCookieImpl

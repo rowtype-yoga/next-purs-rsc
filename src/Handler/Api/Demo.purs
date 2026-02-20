@@ -29,9 +29,11 @@ get = simpleGet \req _ -> do
   c <- cookies
   cookiesSet c (CookieName "demo") (CookieValue "set-by-purescript") # liftEffect
   cookiesDelete c (CookieName "stale") # liftEffect
-  pure $ jsonResponse body
-    # \r -> withHeader r (HeaderName "X-Powered-By") (HeaderValue "PureScript")
-    # \r -> withCookie r (CookieName "demo-resp") (CookieValue "on-response")
+  pure
+    $ withCookie
+        (withHeader (jsonResponse body) (HeaderName "X-Powered-By") (HeaderValue "PureScript"))
+        (CookieName "demo-resp")
+        (CookieValue "on-response")
 
 post :: POST ("api" / "demo")
 post = simplePost \req _ -> do
