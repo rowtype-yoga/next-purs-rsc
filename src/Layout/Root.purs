@@ -16,6 +16,18 @@ layout = simpleLayout \{ children } ->
             , link Home {} [ text "Home" ]
             , text " | "
             , link About {} [ text "About" ]
+            , text " | "
+            , link Dashboard {} [ text "Dashboard" ]
+            , text " | "
+            , link Actions {} [ text "Actions" ]
+            , text " | "
+            , link Form {} [ text "Form" ]
+            , text " | "
+            , link Navigation {} [ text "Navigation" ]
+            , text " | "
+            , link Media {} [ text "Media" ]
+            , text " | "
+            , link (Blog__Slug "hello") {} [ text "Blog" ]
             ]
         , main {} (reactChildrenToArray children)
         ]
