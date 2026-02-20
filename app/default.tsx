@@ -3,7 +3,7 @@
 import { default_ } from "../output/Default.Root/index.js";
 export default async function(props) {
   const render = await default_();
-  const params = await (props.params ?? {});
-  const searchParams = await (props.searchParams ?? {});
+  const params = {...await (props.params ?? {})};
+  const searchParams = {...await (props.searchParams ?? {})};
   return render({ params, searchParams });
 }

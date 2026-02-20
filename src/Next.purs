@@ -142,6 +142,7 @@ foreign import data RawRecord :: Type
 foreign import _mapRecord :: forall rin rout. (forall x. Nullable x -> Maybe x) -> { | rin } -> { | rout }
 foreign import _getField :: String -> RawRecord -> String
 foreign import _mkHandler :: forall a b. a -> b
+foreign import _toPlainObject :: forall r. { | r } -> { | r }
 foreign import _linkComponent :: forall props. ReactComponent { | props }
 foreign import _imageComponent :: forall props. ReactComponent { | props }
 foreign import _scriptComponent :: forall props. ReactComponent { | props }

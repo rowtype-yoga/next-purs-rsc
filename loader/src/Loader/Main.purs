@@ -421,8 +421,8 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         , importLine
         , "export default async function(props) {"
         , "  const render = await " <> declName <> "();"
-        , "  const params = await (props.params ?? {});"
-        , "  const searchParams = await (props.searchParams ?? {});"
+        , "  const params = {...await (props.params ?? {})};"
+        , "  const searchParams = {...await (props.searchParams ?? {})};"
         , "  return render({ params, searchParams });"
         , "}"
         ]
@@ -451,8 +451,8 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
     | route.kind == "page" || route.kind == "default" =
         [ "export async function generateMetadata(props) {"
         , "  const meta = await metadata();"
-        , "  const params = await (props.params ?? {});"
-        , "  const searchParams = await (props.searchParams ?? {});"
+        , "  const params = {...await (props.params ?? {})};"
+        , "  const searchParams = {...await (props.searchParams ?? {})};"
         , "  return meta({ params, searchParams });"
         , "}"
         ]

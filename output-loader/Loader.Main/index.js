@@ -515,7 +515,7 @@ var generateTsx = function (route) {
             return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default await " + (declName + "();") ];
         };
         if (route.kind === "page" || route.kind === "default") {
-            return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default async function(props) {", "  const render = await " + (declName + "();"), "  const params = await (props.params ?? {});", "  const searchParams = await (props.searchParams ?? {});", "  return render({ params, searchParams });", "}" ];
+            return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default async function(props) {", "  const render = await " + (declName + "();"), "  const params = {...await (props.params ?? {})};", "  const searchParams = {...await (props.searchParams ?? {})};", "  return render({ params, searchParams });", "}" ];
         };
         if (route.kind === "loading" || route.kind === "notFound") {
             return [ marker, "// @ts-expect-error \u2014 PureScript output", importLine, "export default async function() {", "  return " + (declName + "()"), "}" ];

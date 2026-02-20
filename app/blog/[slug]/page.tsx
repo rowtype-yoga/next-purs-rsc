@@ -3,8 +3,8 @@
 import { page, metadata, staticParams } from "../../../output/Page.Blog.Slug/index.js";
 export default async function(props) {
   const render = await page();
-  const params = await (props.params ?? {});
-  const searchParams = await (props.searchParams ?? {});
+  const params = {...await (props.params ?? {})};
+  const searchParams = {...await (props.searchParams ?? {})};
   return render({ params, searchParams });
 }
 export async function generateMetadata(props) {
