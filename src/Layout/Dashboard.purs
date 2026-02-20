@@ -3,7 +3,7 @@ module Layout.Dashboard where
 import Prelude hiding (div)
 
 import Next (Layout, nextLayout)
-import Yoga.React.DOM (div, h2, nav, p)
+import Yoga.React.DOM (div, nav, p)
 import Yoga.React.Om (useOm)
 import Yoga.React.Om as Om
 

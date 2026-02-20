@@ -3,9 +3,8 @@ module Page.Navigation where
 
 import Prelude hiding (div)
 
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (maybe)
 import Data.Tuple.Nested ((/\))
-import Effect (Effect)
 import Next (Page)
 import Next.Navigation (useRouter, usePathname, useSearchParams, useParams, useSelectedLayoutSegment, useSelectedLayoutSegments, searchParamsGet, searchParamsGetAll, searchParamsHas, searchParamsToString, paramsGet)
 import React.Basic.Events (handler_)
