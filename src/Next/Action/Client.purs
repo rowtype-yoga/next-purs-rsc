@@ -14,18 +14,17 @@ module Next.Action.Client
 import Prelude
 
 import Control.Promise as Promise
-import Data.Tuple.Nested (type (/\))
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Uncurried (EffectFn2, runEffectFn2)
 import Next.Action (ServerAction, FormAction, FormDispatch)
-import React.Basic.Hooks (useOptimistic, UseOptimistic) as Hooks
 import React.Basic.Hooks.Internal (Hook, unsafeHook)
 import Yoga.React.Om (OmRender, liftRender)
 
 foreign import _useActionStateImpl :: forall action state. EffectFn2 action state { state :: state, dispatch :: FormDispatch, isPending :: Boolean }
 foreign import _useFormStatusImpl :: Effect { pending :: Boolean }
 foreign import _callServerAction :: forall action input output. EffectFn2 action input (Promise.Promise output)
+foreign import _useOptimisticImpl :: forall state action. EffectFn2 state (state -> action -> state) { state :: state, isPending :: Boolean, dispatch :: action -> Effect Unit }
 
 foreign import data UseActionState :: Row Type -> Type -> Type -> Type
 
@@ -57,21 +56,21 @@ callServerAction :: forall input output. ServerAction input output -> input -> A
 callServerAction action input = Promise.toAffE (runEffectFn2 _callServerAction action input)
 
 --------------------------------------------------------------------------------
--- useOptimistic
+-- useOptimistic (transition-safe: addOptimistic is pre-wrapped in startTransition)
 --------------------------------------------------------------------------------
 
-type UseOptimistic state action = Hooks.UseOptimistic state action
+foreign import data UseOptimistic :: Type -> Type -> Type -> Type
 
 useOptimistic
   :: forall state action
    . state
   -> (state -> action -> state)
-  -> Hook (UseOptimistic state action) (state /\ (action -> Effect Unit))
-useOptimistic = Hooks.useOptimistic
+  -> Hook (UseOptimistic state action) { state :: state, isPending :: Boolean, dispatch :: action -> Effect Unit }
+useOptimistic state updateFn = unsafeHook (runEffectFn2 _useOptimisticImpl state updateFn)
 
 useOptimistic'
   :: forall ctx hooks state action
    . state
   -> (state -> action -> state)
-  -> OmRender ctx hooks (UseOptimistic state action hooks) (state /\ (action -> Effect Unit))
+  -> OmRender ctx hooks (UseOptimistic state action hooks) { state :: state, isPending :: Boolean, dispatch :: action -> Effect Unit }
 useOptimistic' state updateFn = liftRender (useOptimistic state updateFn)
