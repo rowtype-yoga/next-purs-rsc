@@ -12,13 +12,3 @@ export const useFormStatusImpl = () => {
 };
 
 export const callServerActionImpl = (action, input) => action(input);
-
-export const useOptimisticImpl = (state, updateFn) => {
-  const [optimistic, addOptimistic] = React.useOptimistic(state, updateFn);
-  const [isPending, startTransition] = React.useTransition();
-  return {
-    state: optimistic,
-    isPending,
-    dispatch: (action) => () => startTransition(() => addOptimistic(action)),
-  };
-};

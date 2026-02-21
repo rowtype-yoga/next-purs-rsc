@@ -19,7 +19,7 @@ import Yoga.React.Om as Om
 page :: Page "optimistic"
 page = nextPage {} $ pure \_ -> Om.do
   messages /\ setMessages <- Om.useState [ "Welcome!" ]
-  { state: optimistic, dispatch: addOptimistic } <- useOptimistic' messages \state msg ->
+  optimistic /\ addOptimistic <- useOptimistic' messages \state msg ->
     snoc state (msg <> " (sending...)")
 
   let counter = length optimistic
