@@ -7,7 +7,8 @@ import Actions.Counter (stepAction)
 import Next (Page, nextPage)
 import Next.Action.Client (useActionState', useFormStatus')
 import Unsafe.Coerce (unsafeCoerce)
-import Yoga.React.DOM (button, div, form, h1, h2, input, p)
+import Yoga.React.DOM (button, div, form, h1, h2, p)
+import Yoga.React.DOM.Internal (createBuiltinElement_)
 import Yoga.React.Om (omComponent)
 import Yoga.React.Om as Om
 
@@ -24,7 +25,7 @@ page = nextPage {} do
       , h2 {} "useActionState' + useFormStatus'"
       , p {} $ "Counter: " <> show count
       , form { action: unsafeCoerce dispatch }
-          [ input { type: "number", name: "step", placeholder: "1" }
+          [ createBuiltinElement_ "input" { type: "number", name: "step", defaultValue: "1" }
           , submitBtn {}
           ]
       ]
