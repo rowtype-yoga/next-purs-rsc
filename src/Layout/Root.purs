@@ -4,7 +4,8 @@ import Prelude (($), (<>), append, pure)
 
 import Data.Maybe (maybe)
 import Fonts (sans)
-import Next (Layout, Metadata, Root, link, nextLayout, simpleMetadata)
+import Next (Layout, Metadata, Root, link, nextLayout)
+import Next (metadata) as Next
 import Next.Font (fontClassName, fontVariable)
 import Route (Route(..))
 import Yoga.React.DOM (body, html, main, nav, strong, text)
@@ -44,7 +45,7 @@ layout = nextLayout {} $ pure \{ children } -> Om.do
       ]
 
 metadata :: Metadata Root
-metadata = simpleMetadata \_ ->
+metadata = Next.metadata \_ ->
   { title: "PureScript + Next.js"
   , description: "A PureScript app powered by Next.js App Router"
   }

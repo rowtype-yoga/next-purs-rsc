@@ -1,4 +1,4 @@
-export const _mapRecord = f => r => new Proxy({}, {
+export const mapRecordImpl = f => r => new Proxy({}, {
   get(_, prop) {
     if (typeof prop === "symbol") return undefined;
     const v = r[prop];
@@ -6,7 +6,7 @@ export const _mapRecord = f => r => new Proxy({}, {
   }
 });
 
-export const _getField = key => obj => obj[key];
+export const getFieldImpl = key => obj => obj[key];
 
 export const unwrapPagePropsImpl = async (props) => ({
   params: {...await (props.params ?? {})},
@@ -15,6 +15,6 @@ export const unwrapPagePropsImpl = async (props) => ({
 
 export const unwrapHandlerParamsImpl = async (context) => ({...await (context.params ?? {})});
 
-export { default as _linkComponent } from "next/link";
-export { default as _imageComponent } from "next/image";
-export { default as _scriptComponent } from "next/script";
+export { default as linkComponentImpl } from "next/link";
+export { default as imageComponentImpl } from "next/image";
+export { default as scriptComponentImpl } from "next/script";

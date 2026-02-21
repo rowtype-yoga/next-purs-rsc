@@ -6,19 +6,20 @@ import Data.Maybe (maybe)
 import Data.Newtype (un)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Next (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, type (/), simpleGet, simplePost, simplePut, simpleDelete, simplePatch, simpleHead, simpleOptions, NextResponse)
-import Next.Response (jsonResponse)
+import Next (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, type (/), NextResponse)
+import Next (get, post, put, delete, patch, head, options) as Next
+import Next.Response (json)
 import Next.Cache (RevalidationType(..), revalidatePath, revalidateTag)
 import Next.Headers (HeaderName(..), HeaderValue(..), CookieName(..), cookies, cookiesGet, cookiesGetAll, cookiesHas, headers, headersGet, headersHas)
 import Next.Navigation.Server (redirect, permanentRedirect, triggerNotFound)
 import Next.Request (requestMethod, requestUrl)
 import Route (Route(..))
 
-json :: forall r. { | r } -> Aff NextResponse
-json = pure <<< jsonResponse
+jsonOk :: forall r. { | r } -> Aff NextResponse
+jsonOk body = pure $ json body {}
 
 get :: GET ("api" / "hello")
-get = simpleGet \req _ -> do
+get = Next.get \req _ -> do
   let method = requestMethod req
   let url = requestUrl req
   h <- headers
@@ -28,7 +29,7 @@ get = simpleGet \req _ -> do
   sessionCookie <- cookiesGet c (CookieName "session") # liftEffect
   allCookies <- cookiesGetAll c # liftEffect
   hasSession <- cookiesHas c (CookieName "session") # liftEffect
-  json
+  jsonOk
     { message: "hello"
     , method
     , url
@@ -40,30 +41,30 @@ get = simpleGet \req _ -> do
     }
 
 post :: POST ("api" / "hello")
-post = simplePost \_ _ -> do
+post = Next.post \_ _ -> do
   redirect Home # liftEffect
-  json {}
+  jsonOk {}
 
 put :: PUT ("api" / "hello")
-put = simplePut \_ _ -> do
+put = Next.put \_ _ -> do
   revalidatePath "/dashboard" Page # liftEffect
   revalidateTag "data" # liftEffect
-  json { revalidated: true }
+  jsonOk { revalidated: true }
 
 delete_ :: DELETE ("api" / "hello")
-delete_ = simpleDelete \_ _ -> do
+delete_ = Next.delete \_ _ -> do
   triggerNotFound # liftEffect
-  json { deleted: true }
+  jsonOk { deleted: true }
 
 patch :: PATCH ("api" / "hello")
-patch = simplePatch \_ _ -> do
+patch = Next.patch \_ _ -> do
   permanentRedirect About # liftEffect
-  json {}
+  jsonOk {}
 
 head_ :: HEAD ("api" / "hello")
-head_ = simpleHead \_ _ ->
-  json {}
+head_ = Next.head \_ _ ->
+  jsonOk {}
 
 options :: OPTIONS ("api" / "hello")
-options = simpleOptions \_ _ ->
-  json { methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"] }
+options = Next.options \_ _ ->
+  jsonOk { methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"] }

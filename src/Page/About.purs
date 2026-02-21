@@ -2,7 +2,8 @@ module Page.About where
 
 import Prelude hiding (div)
 
-import Next (Metadata, Page, nextPage, simpleMetadata)
+import Next (Metadata, Page, nextPage)
+import Next (metadata) as Next
 import Yoga.React.DOM (div, h1, p)
 import Yoga.React.Om as Om
 
@@ -15,7 +16,7 @@ page = nextPage {} $ pure \_ -> Om.do
     ]
 
 metadata :: Metadata "about"
-metadata = simpleMetadata \_ ->
+metadata = Next.metadata \_ ->
   { title: "About"
   , description: "Learn about PureScript server components"
   }

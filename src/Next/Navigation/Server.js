@@ -1,5 +1,5 @@
 import { redirect, permanentRedirect, notFound } from "next/navigation";
 
-export const _redirectImpl = redirect;
-export const _permanentRedirectImpl = permanentRedirect;
-export const _notFoundImpl = notFound;
+export const redirectImpl = redirect;
+export const permanentRedirectImpl = permanentRedirect;
+export const notFoundImpl = notFound;

@@ -2,7 +2,8 @@ module Page.Media where
 
 import Prelude hiding (div)
 
-import Next (Metadata, Page, image, script, ScriptStrategy(..), nextPage, simpleMetadata)
+import Next (Metadata, Page, image, script, ScriptStrategy(..), nextPage)
+import Next (metadata) as Next
 import Yoga.React.DOM (div, h1, h2, p)
 import Yoga.React.Om as Om
 
@@ -21,7 +22,7 @@ page = nextPage {} $ pure \_ -> Om.do
     ]
 
 metadata :: Metadata "media"
-metadata = simpleMetadata \_ ->
+metadata = Next.metadata \_ ->
   { title: "Media"
   , description: "Image and script component examples"
   }

@@ -18,9 +18,9 @@ import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
 -- FFI
 --------------------------------------------------------------------------------
 
-foreign import _revalidatePathImpl :: EffectFn2 String String Unit
-foreign import _revalidateTagImpl :: EffectFn1 String Unit
-foreign import _cacheImpl :: forall a b. Fn1 (a -> Effect (Promise b)) (a -> Promise b)
+foreign import revalidatePathImpl :: EffectFn2 String String Unit
+foreign import revalidateTagImpl :: EffectFn1 String Unit
+foreign import cacheImpl :: forall a b. Fn1 (a -> Effect (Promise b)) (a -> Promise b)
 
 --------------------------------------------------------------------------------
 -- revalidatePath
@@ -29,7 +29,7 @@ foreign import _cacheImpl :: forall a b. Fn1 (a -> Effect (Promise b)) (a -> Pro
 data RevalidationType = Page | Layout
 
 revalidatePath :: String -> RevalidationType -> Effect Unit
-revalidatePath path typ = runEffectFn2 _revalidatePathImpl path (toStr typ)
+revalidatePath path typ = runEffectFn2 revalidatePathImpl path (toStr typ)
   where
   toStr Page = "page"
   toStr Layout = "layout"
@@ -39,7 +39,7 @@ revalidatePath path typ = runEffectFn2 _revalidatePathImpl path (toStr typ)
 --------------------------------------------------------------------------------
 
 revalidateTag :: String -> Effect Unit
-revalidateTag = runEffectFn1 _revalidateTagImpl
+revalidateTag = runEffectFn1 revalidateTagImpl
 
 --------------------------------------------------------------------------------
 -- React cache()
@@ -47,5 +47,5 @@ revalidateTag = runEffectFn1 _revalidateTagImpl
 
 cacheAff :: forall a b. (a -> Aff b) -> a -> Aff b
 cacheAff f = do
-  let cached = runFn1 _cacheImpl \a -> Promise.fromAff (f a)
+  let cached = runFn1 cacheImpl \a -> Promise.fromAff (f a)
   \a -> Promise.toAff (cached a)

@@ -15,11 +15,11 @@ module Next
   , class FirstSegment
   , RawRecord
   , nextPage
-  , simpleMetadata
-  , simpleViewport
-  , simpleStaticParams
+  , metadata
+  , viewport
+  , staticParams
   , nextLayout
-  , simpleTemplate
+  , template
   , loading
   , notFound
   , errorBoundary
@@ -35,13 +35,13 @@ module Next
   , PATCH
   , HEAD
   , OPTIONS
-  , simpleGet
-  , simplePost
-  , simplePut
-  , simpleDelete
-  , simplePatch
-  , simpleHead
-  , simpleOptions
+  , get
+  , post
+  , put
+  , delete
+  , patch
+  , head
+  , options
   , NextRequest
   , NextResponse
   , module Path
@@ -154,13 +154,13 @@ foreign import data NextResponse :: Type
 
 foreign import data RawRecord :: Type
 
-foreign import _mapRecord :: forall rin rout. (forall x. Nullable x -> Maybe x) -> { | rin } -> { | rout }
-foreign import _getField :: String -> RawRecord -> String
+foreign import mapRecordImpl :: forall rin rout. (forall x. Nullable x -> Maybe x) -> { | rin } -> { | rout }
+foreign import getFieldImpl :: String -> RawRecord -> String
 foreign import unwrapPagePropsImpl :: forall r. { | r } -> Promise { params :: RawRecord, searchParams :: { | r } }
 foreign import unwrapHandlerParamsImpl :: forall r. { | r } -> Promise RawRecord
-foreign import _linkComponent :: forall props. ReactComponent { | props }
-foreign import _imageComponent :: forall props. ReactComponent { | props }
-foreign import _scriptComponent :: forall props. ReactComponent { | props }
+foreign import linkComponentImpl :: forall props. ReactComponent { | props }
+foreign import imageComponentImpl :: forall props. ReactComponent { | props }
+foreign import scriptComponentImpl :: forall props. ReactComponent { | props }
 
 --------------------------------------------------------------------------------
 -- ParsePathFields: parse path params from JS string values
@@ -183,7 +183,7 @@ instance
   buildParsedPath _ raw =
     Builder.insert (Proxy :: Proxy name) parsedValue <<< buildParsedPath (Proxy :: Proxy tail) raw
     where
-    parsedValue = case parseParam (_getField fieldName raw) of
+    parsedValue = case parseParam (getFieldImpl fieldName raw) of
       Right v -> v
       Left err -> unsafeCrashWith ("Failed to parse path param \"" <> fieldName <> "\": " <> err)
     fieldName = reflectSymbol (Proxy :: Proxy name)
@@ -231,11 +231,11 @@ nextPage ctx om = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
     render <- om
     component <- omComponent (reflectSymbol (Proxy :: Proxy name)) \_ -> do
       let params = parsePathFields unwrapped.params
-      let searchParams = _mapRecord toMaybe unwrapped.searchParams
+      let searchParams = mapRecordImpl toMaybe unwrapped.searchParams
       render { params, searchParams }
     createElement_ (unsafeCoerce component) {} # pure
 
-simpleMetadata
+metadata
   :: forall path pathParams queryParams pathRL r
    . SegmentPathParams path pathParams
   => SegmentQueryParams path queryParams
@@ -243,13 +243,13 @@ simpleMetadata
   => ParsePathFields pathRL pathParams
   => ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> { | r })
   -> Metadata path
-simpleMetadata f = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
+metadata f = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
   unwrapped <- Promise.toAff (unwrapPagePropsImpl rawProps)
   let params = parsePathFields unwrapped.params
-  let searchParams = _mapRecord toMaybe unwrapped.searchParams
+  let searchParams = mapRecordImpl toMaybe unwrapped.searchParams
   pure $ f { params, searchParams }
 
-simpleViewport
+viewport
   :: forall path pathParams queryParams pathRL r
    . SegmentPathParams path pathParams
   => SegmentQueryParams path queryParams
@@ -257,20 +257,20 @@ simpleViewport
   => ParsePathFields pathRL pathParams
   => ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> { | r })
   -> Viewport path
-simpleViewport f = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
+viewport f = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
   unwrapped <- Promise.toAff (unwrapPagePropsImpl rawProps)
   let params = parsePathFields unwrapped.params
-  let searchParams = _mapRecord toMaybe unwrapped.searchParams
+  let searchParams = mapRecordImpl toMaybe unwrapped.searchParams
   pure $ f { params, searchParams }
 
-simpleStaticParams
+staticParams
   :: forall path pathParams pathRL
    . SegmentPathParams path pathParams
   => RL.RowToList pathParams pathRL
   => ParsePathFields pathRL pathParams
   => Effect (Array { | pathParams })
   -> StaticParams path
-simpleStaticParams gen = unsafeCoerce gen
+staticParams gen = unsafeCoerce gen
 
 nextLayout
   :: forall ctx hooks
@@ -283,8 +283,8 @@ nextLayout ctx om = unsafeCoerce $ mkEffectFn1 \props -> Promise.fromAff do
     component <- omComponent "Layout" render
     createElement_ (unsafeCoerce component) (unsafeCoerce props) # pure
 
-simpleTemplate :: forall path. ({ children :: ReactChildren JSX } -> JSX) -> Template path
-simpleTemplate render = unsafeCoerce $ mkEffectFn1 \props ->
+template :: forall path. ({ children :: ReactChildren JSX } -> JSX) -> Template path
+template render = unsafeCoerce $ mkEffectFn1 \props ->
   Promise.fromAff $ pure (render (unsafeCoerce props))
 
 loading
@@ -341,38 +341,38 @@ globalError ctx om = unsafeCoerce $ Promise.fromAff do
 -- Route handlers
 --------------------------------------------------------------------------------
 
-simpleHandler
+handler
   :: forall @path pathParams pathRL
    . SegmentPathParams path pathParams
   => RL.RowToList pathParams pathRL
   => ParsePathFields pathRL pathParams
   => (NextRequest -> { | pathParams } -> Aff NextResponse)
   -> Foreign
-simpleHandler f = unsafeCoerce $ mkEffectFn2 \request context -> Promise.fromAff do
+handler f = unsafeCoerce $ mkEffectFn2 \request context -> Promise.fromAff do
   rawParams <- Promise.toAff (unwrapHandlerParamsImpl (unsafeCoerce context))
   let params = parsePathFields rawParams
   f (unsafeCoerce request) params
 
-simpleGet :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> GET path
-simpleGet f = unsafeCoerce (simpleHandler @path f)
+get :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> GET path
+get f = unsafeCoerce (handler @path f)
 
-simplePost :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> POST path
-simplePost f = unsafeCoerce (simpleHandler @path f)
+post :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> POST path
+post f = unsafeCoerce (handler @path f)
 
-simplePut :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> PUT path
-simplePut f = unsafeCoerce (simpleHandler @path f)
+put :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> PUT path
+put f = unsafeCoerce (handler @path f)
 
-simpleDelete :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> DELETE path
-simpleDelete f = unsafeCoerce (simpleHandler @path f)
+delete :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> DELETE path
+delete f = unsafeCoerce (handler @path f)
 
-simplePatch :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> PATCH path
-simplePatch f = unsafeCoerce (simpleHandler @path f)
+patch :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> PATCH path
+patch f = unsafeCoerce (handler @path f)
 
-simpleHead :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> HEAD path
-simpleHead f = unsafeCoerce (simpleHandler @path f)
+head :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> HEAD path
+head f = unsafeCoerce (handler @path f)
 
-simpleOptions :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> OPTIONS path
-simpleOptions f = unsafeCoerce (simpleHandler @path f)
+options :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> OPTIONS path
+options f = unsafeCoerce (handler @path f)
 
 --------------------------------------------------------------------------------
 -- Links
@@ -397,7 +397,7 @@ link
   -> kids
   -> JSX
 link route props children =
-  createElement _linkComponent (Record.insert (Proxy :: Proxy "href") (toPath route) props) children
+  createElement linkComponentImpl (Record.insert (Proxy :: Proxy "href") (toPath route) props) children
 
 type ImageOptionalProps =
   ( width :: Int
@@ -411,7 +411,7 @@ type ImageOptionalProps =
   )
 
 image :: forall opt rest. Union opt rest ImageOptionalProps => { src :: String, alt :: String | opt } -> JSX
-image props = createElement_ _imageComponent props
+image props = createElement_ imageComponentImpl props
 
 --------------------------------------------------------------------------------
 -- Script
@@ -446,4 +446,4 @@ script src strategy props = do
   let
     full = Record.insert (Proxy :: Proxy "src") src
       $ Record.insert (Proxy :: Proxy "strategy") (scriptStrategyToString strategy) props
-  createElement_ _scriptComponent full
+  createElement_ scriptComponentImpl full

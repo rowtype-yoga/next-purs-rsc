@@ -10,15 +10,14 @@ import Effect (Effect)
 import Effect.Uncurried (EffectFn1, runEffectFn1)
 import Route (Route, toPath)
 
-foreign import _redirectImpl :: EffectFn1 String Unit
-foreign import _permanentRedirectImpl :: EffectFn1 String Unit
-foreign import _notFoundImpl :: EffectFn1 Unit Unit
-
+foreign import redirectImpl :: EffectFn1 String Unit
 redirect :: Route -> Effect Unit
-redirect route = runEffectFn1 _redirectImpl (toPath route)
+redirect route = runEffectFn1 redirectImpl (toPath route)
 
+foreign import permanentRedirectImpl :: EffectFn1 String Unit
 permanentRedirect :: Route -> Effect Unit
-permanentRedirect route = runEffectFn1 _permanentRedirectImpl (toPath route)
+permanentRedirect route = runEffectFn1 permanentRedirectImpl (toPath route)
 
+foreign import notFoundImpl :: EffectFn1 Unit Unit
 triggerNotFound :: Effect Unit
-triggerNotFound = runEffectFn1 _notFoundImpl unit
+triggerNotFound = runEffectFn1 notFoundImpl unit

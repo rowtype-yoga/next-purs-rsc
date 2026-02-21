@@ -2,7 +2,8 @@ module Page.Blog.Slug where
 
 import Prelude hiding (div)
 
-import Next (Metadata, Page, StaticParams, type (/), type (:), nextPage, simpleMetadata, simpleStaticParams)
+import Next (Metadata, Page, StaticParams, type (/), type (:), nextPage)
+import Next (metadata, staticParams) as Next
 import Yoga.React.DOM (div, h1, p)
 import Yoga.React.Om as Om
 
@@ -14,13 +15,13 @@ page = nextPage {} $ pure \{ params: { slug } } -> Om.do
     ]
 
 metadata :: Metadata ("blog" / "slug" : String)
-metadata = simpleMetadata \{ params: { slug } } ->
+metadata = Next.metadata \{ params: { slug } } ->
   { title: "Blog: " <> slug
   , description: "Read our blog post about " <> slug
   }
 
 staticParams :: StaticParams ("blog" / "slug" : String)
-staticParams = simpleStaticParams $ pure
+staticParams = Next.staticParams $ pure
   [ { slug: "hello" }
   , { slug: "world" }
   , { slug: "purescript" }

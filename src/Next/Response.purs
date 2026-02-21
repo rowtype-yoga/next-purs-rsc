@@ -1,13 +1,11 @@
 module Next.Response
   ( module Next
-  , jsonResponse
-  , jsonResponseS
-  , textResponse
-  , textResponseS
-  , redirectResponse
-  , redirectResponseS
-  , rewriteResponse
-  , nextResponse
+  , ResponseOptions
+  , json
+  , text
+  , redirect
+  , rewrite
+  , next
   , withHeader
   , withStatus
   , withCookie
@@ -17,37 +15,68 @@ import Data.Function.Uncurried (Fn2, Fn3, runFn2, runFn3)
 import Effect (Effect)
 import Next (NextResponse)
 import Next.Headers (HeaderName, HeaderValue, CookieName, CookieValue)
+import Prim.Row as Row
 import Route (Route, toPath)
+
+--------------------------------------------------------------------------------
+-- Options
+--------------------------------------------------------------------------------
+
+-- | Optional fields for response constructors.
+-- |
+-- | - `status`: HTTP status code (e.g. `201`, `404`).
+type ResponseOptions =
+  ( status :: Int
+  )
 
 --------------------------------------------------------------------------------
 -- Constructors
 --------------------------------------------------------------------------------
 
-foreign import jsonResponse :: forall r. { | r } -> NextResponse
+foreign import jsonImpl :: forall r opts. Fn2 { | r } { | opts } NextResponse
 
-foreign import jsonResponseSImpl :: forall r. Fn2 { | r } Int NextResponse
-jsonResponseS :: forall r. { | r } -> Int -> NextResponse
-jsonResponseS = runFn2 jsonResponseSImpl
+-- | Create a JSON response.
+-- |
+-- | ```purescript
+-- | json { message: "ok" } {}
+-- | json { error: "not found" } { status: 404 }
+-- | ```
+json :: forall r opts opts_. Row.Union opts opts_ ResponseOptions => { | r } -> { | opts } -> NextResponse
+json = runFn2 jsonImpl
 
-foreign import textResponse :: String -> NextResponse
+foreign import textImpl :: forall opts. Fn2 String { | opts } NextResponse
 
-foreign import textResponseSImpl :: Fn2 String Int NextResponse
-textResponseS :: String -> Int -> NextResponse
-textResponseS = runFn2 textResponseSImpl
+-- | Create a plain-text response.
+-- |
+-- | ```purescript
+-- | text "Hello" {}
+-- | text "Created" { status: 201 }
+-- | ```
+text :: forall opts opts_. Row.Union opts opts_ ResponseOptions => String -> { | opts } -> NextResponse
+text = runFn2 textImpl
 
-foreign import redirectResponseImpl :: String -> NextResponse
-redirectResponse :: Route -> NextResponse
-redirectResponse route = redirectResponseImpl (toPath route)
+foreign import redirectImpl :: forall opts. Fn2 String { | opts } NextResponse
 
-foreign import redirectResponseSImpl :: Fn2 String Int NextResponse
-redirectResponseS :: Route -> Int -> NextResponse
-redirectResponseS route status = runFn2 redirectResponseSImpl (toPath route) status
+-- | Create a redirect response (defaults to 307).
+-- |
+-- | ```purescript
+-- | redirect Home {}
+-- | redirect Login { status: 308 }
+-- | ```
+redirect :: forall opts opts_. Row.Union opts opts_ ResponseOptions => Route -> { | opts } -> NextResponse
+redirect route opts = runFn2 redirectImpl (toPath route) opts
 
-foreign import rewriteResponseImpl :: String -> NextResponse
-rewriteResponse :: Route -> NextResponse
-rewriteResponse route = rewriteResponseImpl (toPath route)
+foreign import rewriteImpl :: String -> NextResponse
 
-foreign import nextResponse :: Effect NextResponse
+-- | Rewrite the request to a different URL without redirecting.
+rewrite :: Route -> NextResponse
+rewrite route = rewriteImpl (toPath route)
+
+foreign import nextImpl :: Effect NextResponse
+
+-- | Continue to the next middleware.
+next :: Effect NextResponse
+next = nextImpl
 
 --------------------------------------------------------------------------------
 -- Modifiers

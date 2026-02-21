@@ -45,7 +45,7 @@ foreign import data FormDispatch :: Type
 -- FFI
 --------------------------------------------------------------------------------
 
-foreign import _getFormField :: Fn2 String FormData (Nullable String)
+foreign import getFormFieldImpl :: Fn2 String FormData (Nullable String)
 
 --------------------------------------------------------------------------------
 -- ParseFormFields
@@ -69,7 +69,7 @@ instance
     Builder.insert (Proxy :: Proxy name) parsedValue <<< buildParsedForm (Proxy :: Proxy tail) fd
     where
     fieldName = reflectSymbol (Proxy :: Proxy name)
-    parsedValue = case toMaybe (runFn2 _getFormField fieldName fd) of
+    parsedValue = case toMaybe (runFn2 getFormFieldImpl fieldName fd) of
       Nothing -> unsafeCrashWith ("Missing form field \"" <> fieldName <> "\"")
       Just s -> case parseParam s of
         Right v -> v
@@ -98,4 +98,3 @@ formAction
   -> FormAction state fields
 formAction f = unsafeCoerce $ mkEffectFn2 \prevState fd ->
   Promise.fromAff (f prevState (parseFormFields fd))
-

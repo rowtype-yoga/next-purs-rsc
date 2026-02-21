@@ -38,27 +38,26 @@ foreign import data RouterImpl :: Type
 foreign import data SearchParams :: Type
 foreign import data Params :: Type
 
-foreign import _useRouterImpl :: Effect RouterImpl
-foreign import _usePathnameImpl :: Effect String
-foreign import _useSearchParamsImpl :: Effect SearchParams
-foreign import _useParamsImpl :: Effect Params
-foreign import _useSelectedLayoutSegmentImpl :: Effect (Nullable String)
-foreign import _useSelectedLayoutSegmentsImpl :: Effect (Array String)
+foreign import useRouterImpl :: Effect RouterImpl
+foreign import usePathnameImpl :: Effect String
+foreign import useSearchParamsImpl :: Effect SearchParams
+foreign import useParamsImpl :: Effect Params
+foreign import useSelectedLayoutSegmentImpl :: Effect (Nullable String)
+foreign import useSelectedLayoutSegmentsImpl :: Effect (Array String)
 
-foreign import _routerPushImpl :: EffectFn2 RouterImpl String Unit
-foreign import _routerReplaceImpl :: EffectFn2 RouterImpl String Unit
-foreign import _routerRefreshImpl :: EffectFn1 RouterImpl Unit
-foreign import _routerPrefetchImpl :: EffectFn2 RouterImpl String Unit
-foreign import _routerBackImpl :: EffectFn1 RouterImpl Unit
-foreign import _routerForwardImpl :: EffectFn1 RouterImpl Unit
+foreign import routerPushImpl :: EffectFn2 RouterImpl String Unit
+foreign import routerReplaceImpl :: EffectFn2 RouterImpl String Unit
+foreign import routerRefreshImpl :: EffectFn1 RouterImpl Unit
+foreign import routerPrefetchImpl :: EffectFn2 RouterImpl String Unit
+foreign import routerBackImpl :: EffectFn1 RouterImpl Unit
+foreign import routerForwardImpl :: EffectFn1 RouterImpl Unit
 
-foreign import _searchParamsGetImpl :: EffectFn2 SearchParams String (Nullable String)
-foreign import _searchParamsGetAllImpl :: EffectFn2 SearchParams String (Array String)
-foreign import _searchParamsHasImpl :: EffectFn2 SearchParams String Boolean
-foreign import _searchParamsToStringImpl :: EffectFn1 SearchParams String
+foreign import searchParamsGetImpl :: EffectFn2 SearchParams String (Nullable String)
+foreign import searchParamsGetAllImpl :: EffectFn2 SearchParams String (Array String)
+foreign import searchParamsHasImpl :: EffectFn2 SearchParams String Boolean
+foreign import searchParamsToStringImpl :: EffectFn1 SearchParams String
 
-foreign import _paramsGetImpl :: EffectFn2 Params String (Nullable String)
-
+foreign import paramsGetImpl :: EffectFn2 Params String (Nullable String)
 
 --------------------------------------------------------------------------------
 -- useRouter
@@ -77,14 +76,14 @@ type Router =
 
 useRouter :: Hook UseRouter Router
 useRouter = unsafeHook do
-  impl <- _useRouterImpl
+  impl <- useRouterImpl
   pure
-    { push: \route -> runEffectFn2 _routerPushImpl impl (toPath route)
-    , replace: \route -> runEffectFn2 _routerReplaceImpl impl (toPath route)
-    , refresh: runEffectFn1 _routerRefreshImpl impl
-    , prefetch: \route -> runEffectFn2 _routerPrefetchImpl impl (toPath route)
-    , back: runEffectFn1 _routerBackImpl impl
-    , forward: runEffectFn1 _routerForwardImpl impl
+    { push: \route -> runEffectFn2 routerPushImpl impl (toPath route)
+    , replace: \route -> runEffectFn2 routerReplaceImpl impl (toPath route)
+    , refresh: runEffectFn1 routerRefreshImpl impl
+    , prefetch: \route -> runEffectFn2 routerPrefetchImpl impl (toPath route)
+    , back: runEffectFn1 routerBackImpl impl
+    , forward: runEffectFn1 routerForwardImpl impl
     }
 
 --------------------------------------------------------------------------------
@@ -94,7 +93,7 @@ useRouter = unsafeHook do
 foreign import data UsePathname :: Type -> Type
 
 usePathname :: Hook UsePathname String
-usePathname = unsafeHook _usePathnameImpl
+usePathname = unsafeHook usePathnameImpl
 
 --------------------------------------------------------------------------------
 -- useSearchParams
@@ -103,19 +102,19 @@ usePathname = unsafeHook _usePathnameImpl
 foreign import data UseSearchParams :: Type -> Type
 
 useSearchParams :: Hook UseSearchParams SearchParams
-useSearchParams = unsafeHook _useSearchParamsImpl
+useSearchParams = unsafeHook useSearchParamsImpl
 
 searchParamsGet :: SearchParams -> String -> Effect (Maybe String)
-searchParamsGet sp key = toMaybe <$> runEffectFn2 _searchParamsGetImpl sp key
+searchParamsGet sp key = toMaybe <$> runEffectFn2 searchParamsGetImpl sp key
 
 searchParamsGetAll :: SearchParams -> String -> Effect (Array String)
-searchParamsGetAll sp key = runEffectFn2 _searchParamsGetAllImpl sp key
+searchParamsGetAll sp key = runEffectFn2 searchParamsGetAllImpl sp key
 
 searchParamsHas :: SearchParams -> String -> Effect Boolean
-searchParamsHas sp key = runEffectFn2 _searchParamsHasImpl sp key
+searchParamsHas sp key = runEffectFn2 searchParamsHasImpl sp key
 
 searchParamsToString :: SearchParams -> Effect String
-searchParamsToString sp = runEffectFn1 _searchParamsToStringImpl sp
+searchParamsToString sp = runEffectFn1 searchParamsToStringImpl sp
 
 --------------------------------------------------------------------------------
 -- useParams
@@ -124,10 +123,10 @@ searchParamsToString sp = runEffectFn1 _searchParamsToStringImpl sp
 foreign import data UseParams :: Type -> Type
 
 useParams :: Hook UseParams Params
-useParams = unsafeHook _useParamsImpl
+useParams = unsafeHook useParamsImpl
 
 paramsGet :: Params -> String -> Effect (Maybe String)
-paramsGet p key = toMaybe <$> runEffectFn2 _paramsGetImpl p key
+paramsGet p key = toMaybe <$> runEffectFn2 paramsGetImpl p key
 
 --------------------------------------------------------------------------------
 -- useSelectedLayoutSegment(s)
@@ -136,10 +135,9 @@ paramsGet p key = toMaybe <$> runEffectFn2 _paramsGetImpl p key
 foreign import data UseSelectedLayoutSegment :: Type -> Type
 
 useSelectedLayoutSegment :: Hook UseSelectedLayoutSegment (Maybe String)
-useSelectedLayoutSegment = unsafeHook (toMaybe <$> _useSelectedLayoutSegmentImpl)
+useSelectedLayoutSegment = unsafeHook (toMaybe <$> useSelectedLayoutSegmentImpl)
 
 foreign import data UseSelectedLayoutSegments :: Type -> Type
 
 useSelectedLayoutSegments :: Hook UseSelectedLayoutSegments (Array String)
-useSelectedLayoutSegments = unsafeHook _useSelectedLayoutSegmentsImpl
-
+useSelectedLayoutSegments = unsafeHook useSelectedLayoutSegmentsImpl
