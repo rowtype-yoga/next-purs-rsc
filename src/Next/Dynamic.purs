@@ -13,7 +13,7 @@ import Unsafe.Coerce (unsafeCoerce)
 import Yoga.Om as Om
 import Yoga.React.Om (OmRender, omComponent)
 
--- | Options for `next/dynamic`.
+-- | Options for [`next/dynamic`](https://nextjs.org/docs/app/building-your-application/optimizing/lazy-loading#nextdynamic).
 -- |
 -- | - `ssr`: When `false`, the component is only rendered on the client.
 -- | - `loading`: A fallback component shown while the dynamic import resolves.
@@ -24,7 +24,7 @@ type DynamicOptions =
 
 foreign import dynamicImpl :: forall props opts. Fn2 (Effect (Promise { default :: ReactComponent props })) { | opts } (ReactComponent props)
 
--- | Lazily load a React component via `next/dynamic`.
+-- | Lazily load a React component via [`next/dynamic`](https://nextjs.org/docs/app/building-your-application/optimizing/lazy-loading#nextdynamic).
 -- |
 -- | The `Aff` is evaluated once when the component is first rendered.
 -- |
@@ -39,7 +39,7 @@ dynamic
   -> ReactComponent props
 dynamic loader opts = runFn2 dynamicImpl (Promise.fromAff (map (\c -> { default: c }) loader)) opts
 
--- | Like `dynamic`, but takes an Om computation that produces a render function.
+-- | Like [`dynamic`](https://nextjs.org/docs/app/building-your-application/optimizing/lazy-loading#nextdynamic), but takes an Om computation that produces a render function.
 -- |
 -- | The Om context is used to initialise the component via `omComponent`,
 -- | giving it access to context reads and hooks.
