@@ -13,12 +13,11 @@ module Next.Response
   ) where
 
 import Data.Function.Uncurried (Fn2, Fn3, runFn2, runFn3)
-import Data.Newtype (un)
 import Effect (Effect)
 import Next (NextResponse)
 import Next.Headers (HeaderName, HeaderValue, CookieName, CookieValue)
 import Prim.Row as Row
-import Route (Route, toPath)
+import Next.Route (class IsRoute, toPath)
 import Yoga.HTTP.API.Route.StatusCode (StatusCode(..), class StatusCodeMap, statusCodeFor) as StatusCode
 
 --------------------------------------------------------------------------------
@@ -66,13 +65,13 @@ foreign import redirectImpl :: forall opts. Fn2 String { | opts } NextResponse
 -- | redirect Home {}
 -- | redirect Login { status: 308 }
 -- | ```
-redirect :: forall opts opts_. Row.Union opts opts_ ResponseOptions => Route -> { | opts } -> NextResponse
+redirect :: forall route opts opts_. IsRoute route => Row.Union opts opts_ ResponseOptions => route -> { | opts } -> NextResponse
 redirect route opts = runFn2 redirectImpl (toPath route) opts
 
 foreign import rewriteImpl :: String -> NextResponse
 
 -- | Rewrite the request to a different URL without redirecting.
-rewrite :: Route -> NextResponse
+rewrite :: forall route. IsRoute route => route -> NextResponse
 rewrite route = rewriteImpl (toPath route)
 
 foreign import nextImpl :: Effect NextResponse

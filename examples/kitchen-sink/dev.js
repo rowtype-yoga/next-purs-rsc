@@ -3,13 +3,16 @@ const { spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-const SRC_DIR = path.resolve(__dirname, "src");
+const EXAMPLE_DIR = __dirname;
+const ROOT_DIR = path.resolve(__dirname, "../..");
+const SRC_DIR = path.resolve(EXAMPLE_DIR, "src");
+const OUTPUT_DIR = path.resolve(EXAMPLE_DIR, "output");
 
 // --- Helpers ---
 
-function run(label, cmd, args) {
+function run(label, cmd, args, opts = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"], cwd: opts.cwd || ROOT_DIR, env: { ...process.env, ...opts.env } });
     child.stdout.on("data", (d) =>
       d.toString().split("\n").filter(Boolean).forEach((l) => console.log(`[${label}] ${l}`))
     );
@@ -23,7 +26,7 @@ function run(label, cmd, args) {
 }
 
 async function build() {
-  await run("spago", "spago", ["build"]);
+  await run("spago", "spago", ["build", "--output", OUTPUT_DIR]);
 }
 
 async function buildLoader() {
@@ -32,7 +35,9 @@ async function buildLoader() {
 }
 
 async function generateRoutes() {
-  await run("routes", "bun", ["-e", 'import { main } from "./output-loader/Loader.Main/index.js"; main();']);
+  await run("routes", "bun", ["-e", 'import { main } from "./output-loader/Loader.Main/index.js"; main();'], {
+    env: { PURESCRIPT_RSC_ROOT: EXAMPLE_DIR },
+  });
 }
 
 async function rebuild() {
@@ -53,7 +58,7 @@ async function rebuild() {
 let nextChild = null;
 
 function startNextDev() {
-  nextChild = spawn("bunx", ["next", "dev"], { stdio: "inherit" });
+  nextChild = spawn("bunx", ["next", "dev"], { stdio: "inherit", cwd: EXAMPLE_DIR });
   nextChild.on("close", (code) => {
     console.log(`[dev] next dev exited (code ${code})`);
     process.exit(code ?? 0);
@@ -84,7 +89,7 @@ function scheduleRebuild() {
 }
 
 function watchSrc() {
-  const dirs = [SRC_DIR, path.resolve(__dirname, "loader/src")];
+  const dirs = [SRC_DIR, path.resolve(ROOT_DIR, "loader/src")];
   for (const dir of dirs) {
     if (!fs.existsSync(dir)) continue;
     const watcher = fs.watch(dir, { recursive: true }, (_event, filename) => {

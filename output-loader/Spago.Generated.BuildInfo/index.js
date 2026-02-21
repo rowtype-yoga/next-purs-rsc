@@ -2,6 +2,7 @@
 var spagoVersion = "1.0.3";
 var pursVersion = "0.15.15";
 var packages = {
+    "kitchen-sink": "0.0.0",
     "next-purs-rsc": "0.0.0",
     "route-loader": "0.0.0"
 };

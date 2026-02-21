@@ -5,7 +5,7 @@ import Prelude hiding (div)
 
 import Data.Maybe (maybe)
 import Data.Tuple.Nested ((/\))
-import Next (Page, nextPage)
+import Next (Page, nextPage, toPath)
 import Next.Navigation (useRouter, usePathname, useSearchParams, useParams, useSelectedLayoutSegment, useSelectedLayoutSegments, searchParamsGet, searchParamsGetAll, searchParamsHas, searchParamsToString, paramsGet)
 import React.Basic.Events (handler_)
 import Route (Route(..))
@@ -48,10 +48,10 @@ page = nextPage {} $ pure \_ -> Om.do
     , p {} $ "Segments: " <> show segments
     , h2 {} "useRouter"
     , div {}
-        [ btn "Go Home" (router.push Home)
-        , btn "Go Dashboard" (router.push Dashboard)
-        , btn "Replace to About" (router.replace About)
-        , btn "Prefetch Blog" (router.prefetch (Blog__Slug "hello"))
+        [ btn "Go Home" (router.push (toPath Home))
+        , btn "Go Dashboard" (router.push (toPath Dashboard))
+        , btn "Replace to About" (router.replace (toPath About))
+        , btn "Prefetch Blog" (router.prefetch (toPath (Blog__Slug "hello")))
         , btn "Back" router.back
         , btn "Forward" router.forward
         , btn "Refresh" router.refresh

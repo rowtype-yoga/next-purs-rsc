@@ -29,6 +29,7 @@ foreign import rmSync :: String -> Effect Unit
 foreign import relativePath :: String -> String -> String
 foreign import joinPath :: String -> String -> String
 foreign import resolvePath :: String -> String -> String
+foreign import getEnvOrDefault :: String -> String -> String
 
 --------------------------------------------------------------------------------
 -- Types
@@ -585,9 +586,10 @@ writeIfChanged filePath content = do
 
 main :: Effect Unit
 main = do
-  let srcDir = resolvePath "." "src"
-  let appDir = resolvePath "." "app"
-  let outputDir = resolvePath "." "output"
+  let root = getEnvOrDefault "PURESCRIPT_RSC_ROOT" "."
+  let srcDir = resolvePath root "src"
+  let appDir = resolvePath root "app"
+  let outputDir = resolvePath root "output"
 
   -- 1. Scan source modules
   modules <- scanModules srcDir
@@ -621,7 +623,7 @@ main = do
   -- 8. Generate middleware if Middleware module exists
   case Map.lookup "Middleware" modules of
     Just middlewareInfo -> do
-      let middlewarePath = resolvePath "." "middleware.ts"
+      let middlewarePath = resolvePath root "middleware.ts"
       let content = generateMiddleware outputDir middlewareInfo
       middlewareChanged <- writeIfChanged middlewarePath content
       when middlewareChanged do
@@ -657,6 +659,7 @@ hasConfigSig (CST.ModuleBody { decls }) = Array.any matchConfig decls
 
 writeDirectivesManifest :: String -> Map String ModuleInfo -> Effect Unit
 writeDirectivesManifest outputDir modules = do
+  mkdirSync outputDir
   let entries = Map.toUnfoldable modules # Array.mapMaybe \(name /\ info) ->
         map (\d -> show name <> ": " <> show d) info.directive
   let json = "{\n  " <> String.joinWith ",\n  " entries <> "\n}\n"
@@ -688,14 +691,15 @@ generateRoutePursFromModules routes modules = String.joinWith "\n" allLines
     , "module Route where"
     , ""
     , "import Prelude"
+    , "import Next.Route (class IsRoute)"
     , ""
     , "data Route = " <> String.joinWith " | " constructors
     , ""
     , "derive instance Eq Route"
     , "derive instance Ord Route"
     , ""
-    , "toPath :: Route -> String"
-    , "toPath = case _ of"
+    , "instance IsRoute Route where"
+    , "  toPath = case _ of"
     ] <> cases <> [ "" ]
 
   routeEntries = pageRoutes # map \route -> do
@@ -722,7 +726,7 @@ generateRoutePursFromModules routes modules = String.joinWith "\n" allLines
     let vars = Array.mapWithIndex (\i _ -> varName i) paramSegs
     let patVars = if Array.null vars then "" else " " <> String.joinWith " " vars
     let pathExpr = buildPathExpr segments
-    "  " <> name <> patVars <> " -> " <> pathExpr
+    "    " <> name <> patVars <> " -> " <> pathExpr
 
   constructorName modName = do
     let parts = Array.drop 1 (String.split (String.Pattern ".") modName)

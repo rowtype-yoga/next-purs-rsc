@@ -1,26 +1,24 @@
 {
   "workspace": {
     "packages": {
-      "next-purs-rsc": {
-        "path": "./",
+      "kitchen-sink": {
+        "path": "examples/kitchen-sink",
         "core": {
           "dependencies": [
+            "aff",
             "aff-promise",
             "console",
             "effect",
-            "heterogeneous",
-            "http-methods",
+            "foreign",
             "js-timers",
             "maybe",
-            "nullable",
+            "newtype",
+            "next-purs-rsc",
             "prelude",
             "react-basic",
             "react-basic-hooks",
-            "record",
-            "record-studio",
-            "refs",
             "tuples",
-            "untagged-union",
+            "unsafe-coerce",
             "yoga-http-api",
             "yoga-om",
             "yoga-react",
@@ -35,6 +33,34 @@
             "spec-node",
             "vitest"
           ]
+        }
+      },
+      "next-purs-rsc": {
+        "path": "./",
+        "core": {
+          "dependencies": [
+            "aff-promise",
+            "effect",
+            "foreign",
+            "http-methods",
+            "maybe",
+            "nullable",
+            "prelude",
+            "react-basic",
+            "react-basic-hooks",
+            "record",
+            "tuples",
+            "unsafe-coerce",
+            "untagged-union",
+            "yoga-http-api",
+            "yoga-om",
+            "yoga-react",
+            "yoga-react-dom",
+            "yoga-react-om"
+          ]
+        },
+        "test": {
+          "dependencies": []
         }
       },
       "route-loader": {

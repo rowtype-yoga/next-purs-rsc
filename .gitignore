@@ -2,3 +2,8 @@ node_modules/
 .next/
 output/
 output-loader/
+examples/*/output/
+examples/*/.next/
+examples/*/app/
+examples/*/middleware.ts
+examples/*/src/Route.purs

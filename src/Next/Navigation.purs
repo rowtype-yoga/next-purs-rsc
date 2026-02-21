@@ -28,7 +28,6 @@ import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
 import React.Basic.Hooks.Internal (Hook, unsafeHook)
-import Route (Route, toPath)
 
 --------------------------------------------------------------------------------
 -- FFI
@@ -66,10 +65,10 @@ foreign import paramsGetImpl :: EffectFn2 Params String (Nullable String)
 foreign import data UseRouter :: Type -> Type
 
 type Router =
-  { push :: Route -> Effect Unit
-  , replace :: Route -> Effect Unit
+  { push :: String -> Effect Unit
+  , replace :: String -> Effect Unit
   , refresh :: Effect Unit
-  , prefetch :: Route -> Effect Unit
+  , prefetch :: String -> Effect Unit
   , back :: Effect Unit
   , forward :: Effect Unit
   }
@@ -78,10 +77,10 @@ useRouter :: Hook UseRouter Router
 useRouter = unsafeHook do
   impl <- useRouterImpl
   pure
-    { push: \route -> runEffectFn2 routerPushImpl impl (toPath route)
-    , replace: \route -> runEffectFn2 routerReplaceImpl impl (toPath route)
+    { push: \path -> runEffectFn2 routerPushImpl impl path
+    , replace: \path -> runEffectFn2 routerReplaceImpl impl path
     , refresh: runEffectFn1 routerRefreshImpl impl
-    , prefetch: \route -> runEffectFn2 routerPrefetchImpl impl (toPath route)
+    , prefetch: \path -> runEffectFn2 routerPrefetchImpl impl path
     , back: runEffectFn1 routerBackImpl impl
     , forward: runEffectFn1 routerForwardImpl impl
     }

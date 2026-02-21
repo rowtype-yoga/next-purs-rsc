@@ -24,6 +24,7 @@ module Next
   , notFound
   , errorBoundary
   , globalError
+  , module Next.Route
   , link
   , image
   , script
@@ -67,7 +68,7 @@ import React.Basic (JSX, ReactComponent)
 import React.Basic.Hooks (ReactChildren)
 import Record as Record
 import Record.Builder as Builder
-import Route (Route, toPath)
+import Next.Route (class IsRoute, toPath)
 import Type.Proxy (Proxy(..))
 import Partial.Unsafe (unsafeCrashWith)
 import Unsafe.Coerce (unsafeCoerce)
@@ -388,11 +389,12 @@ type LinkOptionalProps =
   )
 
 link
-  :: forall kids props rest
-   . IsJSX kids
+  :: forall route kids props rest
+   . IsRoute route
+  => IsJSX kids
   => Union props rest LinkOptionalProps
   => Row.Lacks "href" props
-  => Route
+  => route
   -> { | props }
   -> kids
   -> JSX

@@ -3,7 +3,6 @@ module ErrorBoundary.Root where
 
 import Prelude hiding (div)
 
-import Effect.Uncurried (mkEffectFn1)
 import Next (ErrorBoundary)
 import Next (errorBoundary) as Next
 import React.Basic.Events (handler_)

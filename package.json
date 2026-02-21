@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "bundle-loader": "bun build loader-entry.js --outfile=purescript-rsc-loader.js --format=cjs --target=node --bundle --external unplugin && node -e \"require('fs').appendFileSync('purescript-rsc-loader.js','\\nmodule.exports=module.exports.default;\\n')\"",
-    "generate": "spago build -p route-loader --output output-loader && bun run bundle-loader && bun -e 'import { main } from \"./output-loader/Loader.Main/index.js\"; main();' && spago build",
-    "dev": "bun dev.js",
-    "build": "spago build -p route-loader --output output-loader && bun run bundle-loader && bun -e 'import { main } from \"./output-loader/Loader.Main/index.js\"; main();' && spago build && bunx next build",
-    "start": "bunx next start",
-    "test": "spago test -p route-loader --output output-loader && spago test"
+    "generate": "spago build -p route-loader --output output-loader && bun run bundle-loader && PURESCRIPT_RSC_ROOT=examples/kitchen-sink bun -e 'import { main } from \"./output-loader/Loader.Main/index.js\"; main();' && spago build --output examples/kitchen-sink/output",
+    "dev": "node examples/kitchen-sink/dev.js",
+    "build": "spago build -p route-loader --output output-loader && bun run bundle-loader && PURESCRIPT_RSC_ROOT=examples/kitchen-sink bun -e 'import { main } from \"./output-loader/Loader.Main/index.js\"; main();' && spago build --output examples/kitchen-sink/output && cd examples/kitchen-sink && bunx next build",
+    "start": "cd examples/kitchen-sink && bunx next start",
+    "test": "spago test -p route-loader --output output-loader && spago test -p kitchen-sink --output examples/kitchen-sink/output"
   },
   "dependencies": {
     "next": "^16.1.6",

@@ -3,7 +3,8 @@ module Test.Main where
 import Prelude
 
 import Effect (Effect)
-import Route (Route(..), toPath)
+import Next.Route (toPath)
+import Route (Route(..))
 import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual)
 import Test.Spec.Reporter (consoleReporter)

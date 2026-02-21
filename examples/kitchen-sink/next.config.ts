@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     rules: {
       "output/**/index.js": {
-        loaders: [path.resolve(__dirname, "purescript-rsc-loader.js")],
+        loaders: [path.resolve(__dirname, "../../purescript-rsc-loader.js")],
       },
     },
   },
@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
   webpack(config) {
     config.module.rules.push({
       test: /output[/\\].*[/\\]index\.js$/,
-      use: [path.resolve(__dirname, "purescript-rsc-loader.js")],
+      use: [path.resolve(__dirname, "../../purescript-rsc-loader.js")],
     });
     return config;
   },

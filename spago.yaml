@@ -4,33 +4,23 @@ package:
     - aff-promise
     - prelude
     - effect
-    - console
+    - foreign
     - http-methods
-    - js-timers
-    - heterogeneous
     - maybe
     - nullable
     - react-basic
     - react-basic-hooks
     - record
-    - record-studio
-    - refs
     - tuples
+    - untagged-union
+    - unsafe-coerce
     - yoga-http-api
     - yoga-om
     - yoga-react
-    - untagged-union
     - yoga-react-dom
     - yoga-react-om
   build:
     strict: true
-  test:
-    main: Test.Main
-    dependencies:
-      - spec
-      - spec-node
-      - aff
-      - vitest
 workspace:
   packageSet:
     registry: 73.1.0

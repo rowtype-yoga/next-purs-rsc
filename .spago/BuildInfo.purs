@@ -3,9 +3,10 @@
 -- @inline export spagoVersion always
 module Spago.Generated.BuildInfo where
 
-packages :: { "next-purs-rsc" :: String, "route-loader" :: String }
+packages :: { "kitchen-sink" :: String, "next-purs-rsc" :: String, "route-loader" :: String }
 packages =
-  { "next-purs-rsc": "0.0.0"
+  { "kitchen-sink": "0.0.0"
+  , "next-purs-rsc": "0.0.0"
   , "route-loader": "0.0.0"
   }
 

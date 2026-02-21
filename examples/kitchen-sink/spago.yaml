@@ -1,0 +1,31 @@
+package:
+  name: kitchen-sink
+  dependencies:
+    - next-purs-rsc
+    - prelude
+    - effect
+    - aff
+    - aff-promise
+    - console
+    - foreign
+    - js-timers
+    - maybe
+    - newtype
+    - react-basic
+    - react-basic-hooks
+    - tuples
+    - unsafe-coerce
+    - yoga-http-api
+    - yoga-om
+    - yoga-react
+    - yoga-react-dom
+    - yoga-react-om
+  build:
+    strict: true
+  test:
+    main: Test.Main
+    dependencies:
+      - spec
+      - spec-node
+      - aff
+      - vitest

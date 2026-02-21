@@ -19,3 +19,4 @@ export const rmSync = (p) => () => fs.rmSync(p, { recursive: true, force: true }
 export const relativePath = (from) => (to) => path.relative(from, to).replace(/\\/g, "/");
 export const joinPath = (a) => (b) => path.join(a, b);
 export const resolvePath = (a) => (b) => path.resolve(a, b);
+export const getEnvOrDefault = (key) => (def) => process.env[key] || def;
