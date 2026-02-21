@@ -1,14 +1,11 @@
-module Next.Dynamic (clientOnly) where
-
-import Prelude
+module Next.Dynamic (dynamic) where
 
 import Control.Promise (Promise)
-import Control.Promise as Promise
 import Data.Function.Uncurried (Fn2, runFn2)
 import Effect (Effect)
 import React.Basic (ReactComponent)
 
 foreign import dynamicImpl :: forall props. Fn2 (Effect (Promise { default :: ReactComponent props })) { ssr :: Boolean } (ReactComponent props)
 
-clientOnly :: forall props. ReactComponent props -> ReactComponent props
-clientOnly component = runFn2 dynamicImpl (Promise.fromAff (pure { default: component })) { ssr: false }
+dynamic :: forall props. Effect (Promise { default :: ReactComponent props }) -> { ssr :: Boolean } -> ReactComponent props
+dynamic = runFn2 dynamicImpl
