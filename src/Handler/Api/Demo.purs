@@ -14,18 +14,19 @@ get :: GET ("api" / "demo")
 get = simpleGet \req _ -> do
   let nurl = requestNextUrl req
   let rc = requestCookies req
-  let body =
-        { method: requestMethod req
-        , url: requestUrl req
-        , pathname: nextUrlPathname nurl
-        , origin: nextUrlOrigin nurl
-        , host: nextUrlHost nurl
-        , protocol: nextUrlProtocol nurl
-        , ip: maybe "unknown" identity (requestIp req)
-        , geo: requestGeo req
-        , reqCookies: requestCookiesGetAll rc # map \c -> un CookieName c.name <> "=" <> un CookieValue c.value
-        , hasDemo: requestCookiesHas rc (CookieName "demo")
-        }
+  let
+    body =
+      { method: requestMethod req
+      , url: requestUrl req
+      , pathname: nextUrlPathname nurl
+      , origin: nextUrlOrigin nurl
+      , host: nextUrlHost nurl
+      , protocol: nextUrlProtocol nurl
+      , ip: maybe "unknown" identity (requestIp req)
+      , geo: requestGeo req
+      , reqCookies: requestCookiesGetAll rc <#> \c -> un CookieName c.name <> "=" <> un CookieValue c.value
+      , hasDemo: requestCookiesHas rc (CookieName "demo")
+      }
   c <- cookies
   cookiesSet c (CookieName "demo") (CookieValue "set-by-purescript") # liftEffect
   cookiesDelete c (CookieName "stale") # liftEffect

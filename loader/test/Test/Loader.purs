@@ -65,7 +65,7 @@ spec = do
     it "layout" do kindToDeclName "layout" `shouldEqual` "layout"
     it "template" do kindToDeclName "template" `shouldEqual` "template"
     it "notFound" do kindToDeclName "notFound" `shouldEqual` "notFound"
-    it "default" do kindToDeclName "default" `shouldEqual` "default_"
+    it "default" do kindToDeclName "default" `shouldEqual` "default"
 
   describe "generateTsx" do
     let golden = goldenTest { goldenDir: "loader/test/golden", diffDir: "loader/test/diffs" }
@@ -239,7 +239,7 @@ spec = do
       map _.kind result `shouldEqual` Just "page"
       map _.routePath result `shouldEqual` Just "app/@modal"
     it "default page" do
-      let info = { name: "Default.Root", source: "module Default.Root where\ndefault_ :: Default Root\ndefault_ = simplePage \\_ -> mempty", file: "src/Default/Root.purs", directive: Nothing }
+      let info = { name: "Default.Root", source: "module Default.Root where\ndefault :: Default Root\ndefault = simplePage \\_ -> mempty", file: "src/Default/Root.purs", directive: Nothing }
       let result = moduleToRoute "app" "output" info
       map _.kind result `shouldEqual` Just "default"
       map _.routePath result `shouldEqual` Just "app"

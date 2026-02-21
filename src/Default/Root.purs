@@ -8,6 +8,7 @@ import Unsafe.Coerce (unsafeCoerce)
 import Yoga.HTTP.API.Path (Root)
 import Yoga.React.DOM (div, p)
 
-default_ :: Default Root
-default_ = unsafeCoerce $ Promise.fromAff $ pure \(_ :: forall r. { | r }) ->
-  div {} [ p {} "Default fallback content." ]
+default :: Default Root
+default = unsafeCoerce $ Promise.fromAff $ pure \(_ :: forall r. { | r }) ->
+  div {} $
+    p {} "Default fallback content."

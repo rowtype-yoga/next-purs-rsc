@@ -282,6 +282,12 @@ findConfigs (CST.ModuleBody { decls }) = Array.mapMaybe matchConfig decls
     | Array.elem ident routeConfigNames = Just ident
   matchConfig _ = Nothing
 
+isJsReserved :: String -> Boolean
+isJsReserved = case _ of
+  "default" -> true
+  "delete" -> true
+  _ -> false
+
 methodToExportName :: String -> String
 methodToExportName "delete_" = "DELETE"
 methodToExportName "head_" = "HEAD"
@@ -339,7 +345,7 @@ kindToFileName k = k
 kindToDeclName :: String -> String
 kindToDeclName "error" = "error"
 kindToDeclName "globalError" = "globalError"
-kindToDeclName "default" = "default_"
+kindToDeclName "default" = "default"
 kindToDeclName k = k
 
 detectKind :: Array String -> Maybe String
@@ -411,10 +417,11 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
   lines = directiveLine <> contentLines <> metadataLines <> viewportLines <> staticParamsLines <> routeConfigLines
 
   declName = kindToDeclName route.kind
+  localName = if isJsReserved declName then "_" <> declName else declName
 
   configImports = if Array.null route.routeConfigs then "" else ", " <> String.joinWith ", " route.routeConfigs
 
-  imports
+  namedImports
     | route.kind == "handler" = String.joinWith ", " route.handlerMethods <> configImports
     | otherwise = declName
         <> (if route.hasMetadata then ", metadata" else "")
@@ -422,7 +429,16 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         <> (if route.hasStaticParams then ", staticParams" else "")
         <> configImports
 
-  importLine = "import { " <> imports <> " } from " <> show route.relImport <> ";"
+  extraNamedImports = (if route.hasMetadata then ", metadata" else "")
+    <> (if route.hasViewport then ", viewport" else "")
+    <> (if route.hasStaticParams then ", staticParams" else "")
+    <> configImports
+
+  importLine
+    | route.kind == "handler" = "import { " <> namedImports <> " } from " <> show route.relImport <> ";"
+    | isJsReserved declName && String.null extraNamedImports = "import " <> localName <> " from " <> show route.relImport <> ";"
+    | isJsReserved declName = "import " <> localName <> ", { " <> String.drop 2 extraNamedImports <> " } from " <> show route.relImport <> ";"
+    | otherwise = "import { " <> namedImports <> " } from " <> show route.relImport <> ";"
 
   directiveLine
     | route.kind == "error" || route.kind == "globalError" = [ show "use client" <> ";" ]
@@ -445,7 +461,7 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         , "// @ts-expect-error — PureScript output"
         , importLine
         , "import { use } from \"react\";"
-        , "const _Component = await " <> declName <> "();"
+        , "const _Component = await " <> localName <> "();"
         , "export default function(props) {"
         , "  const params = {...use(props.params)};"
         , "  const searchParams = {...use(props.searchParams)};"
@@ -457,7 +473,7 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         [ marker
         , "// @ts-expect-error — PureScript output"
         , importLine
-        , "export default await " <> declName <> "();"
+        , "export default await " <> localName <> "();"
         ]
     -- Page/Default: async server with params
     | route.kind == "page" || route.kind == "default" =
@@ -465,7 +481,7 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         , "// @ts-expect-error — PureScript output"
         , importLine
         , "export default async function(props) {"
-        , "  const render = await " <> declName <> "();"
+        , "  const render = await " <> localName <> "();"
         , "  const params = {...await (props.params ?? {})};"
         , "  const searchParams = {...await (props.searchParams ?? {})};"
         , "  return render({ params, searchParams });"
@@ -477,7 +493,7 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         , "// @ts-expect-error — PureScript output"
         , importLine
         , "export default async function() {"
-        , "  const render = await " <> declName <> "();"
+        , "  const render = await " <> localName <> "();"
         , "  return render();"
         , "}"
         ]
@@ -487,7 +503,7 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         , "// @ts-expect-error — PureScript output"
         , importLine
         , "export default async function(props) {"
-        , "  const render = await " <> declName <> "();"
+        , "  const render = await " <> localName <> "();"
         , "  return render(props);"
         , "}"
         ]
