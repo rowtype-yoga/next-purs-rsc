@@ -1,1 +1,1 @@
-export { default as dynamic } from "next/dynamic";
+export { default as dynamicImpl } from "next/dynamic";

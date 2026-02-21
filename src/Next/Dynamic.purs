@@ -8,7 +8,7 @@ import Data.Function.Uncurried (Fn2, runFn2)
 import Effect (Effect)
 import React.Basic (ReactComponent)
 
-foreign import dynamic :: forall props. Fn2 (Effect (Promise { default :: ReactComponent props })) { ssr :: Boolean } (ReactComponent props)
+foreign import dynamicImpl :: forall props. Fn2 (Effect (Promise { default :: ReactComponent props })) { ssr :: Boolean } (ReactComponent props)
 
 clientOnly :: forall props. ReactComponent props -> ReactComponent props
-clientOnly component = runFn2 dynamic (Promise.fromAff (pure { default: component })) { ssr: false }
+clientOnly component = runFn2 dynamicImpl (Promise.fromAff (pure { default: component })) { ssr: false }
