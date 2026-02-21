@@ -1,5 +1,7 @@
 module Next.WebVitals (useReportWebVitals, UseReportWebVitals, WebVital) where
 
+import Prelude
+
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, mkEffectFn1, runEffectFn1)
 import React.Basic.Hooks.Internal (Hook, unsafeHook)
