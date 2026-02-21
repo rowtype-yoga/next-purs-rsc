@@ -1,5 +1,6 @@
 module Next.Response
   ( module Next
+  , module StatusCode
   , ResponseOptions
   , json
   , text
@@ -12,11 +13,13 @@ module Next.Response
   ) where
 
 import Data.Function.Uncurried (Fn2, Fn3, runFn2, runFn3)
+import Data.Newtype (un)
 import Effect (Effect)
 import Next (NextResponse)
 import Next.Headers (HeaderName, HeaderValue, CookieName, CookieValue)
 import Prim.Row as Row
 import Route (Route, toPath)
+import Yoga.HTTP.API.Route.StatusCode (StatusCode(..), class StatusCodeMap, statusCodeFor) as StatusCode
 
 --------------------------------------------------------------------------------
 -- Options
@@ -24,9 +27,9 @@ import Route (Route, toPath)
 
 -- | Optional fields for response constructors.
 -- |
--- | - `status`: HTTP status code (e.g. `201`, `404`).
+-- | - `status`: HTTP status code (e.g. `StatusCode 201`, `StatusCode 404`).
 type ResponseOptions =
-  ( status :: Int
+  ( status :: StatusCode.StatusCode
   )
 
 --------------------------------------------------------------------------------
@@ -87,8 +90,8 @@ withHeader :: NextResponse -> HeaderName -> HeaderValue -> NextResponse
 withHeader = runFn3 withHeaderImpl
 
 foreign import withStatusImpl :: Fn2 NextResponse Int NextResponse
-withStatus :: NextResponse -> Int -> NextResponse
-withStatus = runFn2 withStatusImpl
+withStatus :: NextResponse -> StatusCode.StatusCode -> NextResponse
+withStatus res (StatusCode.StatusCode s) = runFn2 withStatusImpl res s
 
 foreign import withCookieImpl :: Fn3 NextResponse CookieName CookieValue NextResponse
 withCookie :: NextResponse -> CookieName -> CookieValue -> NextResponse

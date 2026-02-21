@@ -9,7 +9,7 @@ import Next (GET, POST, type (/))
 import Next (get, post) as Next
 import Next.Headers (HeaderName(..), HeaderValue(..), CookieName(..), CookieValue(..), cookies, cookiesSet, cookiesDelete)
 import Next.Request (requestMethod, requestUrl, requestNextUrl, nextUrlPathname, nextUrlOrigin, nextUrlHost, nextUrlProtocol, requestIp, requestGeo, requestCookies, requestCookiesGetAll, requestCookiesHas, requestText, print)
-import Next.Response (json, text, withHeader, withCookie)
+import Next.Response (json, text, withHeader, withCookie, StatusCode(..))
 
 get :: GET ("api" / "demo")
 get = Next.get \req _ -> do
@@ -40,4 +40,4 @@ get = Next.get \req _ -> do
 post :: POST ("api" / "demo")
 post = Next.post \req _ -> do
   body <- requestText req
-  pure $ text ("Received: " <> body) { status: 201 }
+  pure $ text ("Received: " <> body) { status: StatusCode 201 }
