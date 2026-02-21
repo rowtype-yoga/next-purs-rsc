@@ -33,11 +33,11 @@ omDynamic
    . Row.Union opts opts_ DynamicOptions
   => { | ctx }
   -> String
-  -> Om.Om { | ctx } () (props -> OmRender ctx Unit hooks JSX)
   -> { | opts }
+  -> Om.Om { | ctx } () (props -> OmRender ctx Unit hooks JSX)
   -> ReactComponent props
-omDynamic ctx name om opts = dynamic loader opts
+omDynamic ctx name opts om = dynamic (unsafeCoerce loader) opts
   where
-  loader = unsafeCoerce $ Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+  loader = Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
     render <- om
     omComponent name render
