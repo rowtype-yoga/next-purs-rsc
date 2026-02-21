@@ -1,4 +1,4 @@
-module Next.Dynamic (dynamic, DynamicOptions) where
+module Next.Dynamic (dynamic, omDynamic, DynamicOptions) where
 
 import Prelude
 
@@ -9,6 +9,9 @@ import Effect (Effect)
 import Effect.Aff (Aff)
 import Prim.Row as Row
 import React.Basic (JSX, ReactComponent)
+import Unsafe.Coerce (unsafeCoerce)
+import Yoga.Om as Om
+import Yoga.React.Om (OmRender, omComponent)
 
 type DynamicOptions =
   ( ssr :: Boolean
@@ -24,3 +27,17 @@ dynamic
   -> { | opts }
   -> ReactComponent props
 dynamic loader opts = runFn2 dynamicImpl (Promise.fromAff (map (\c -> { default: c }) loader)) opts
+
+omDynamic
+  :: forall ctx hooks props opts opts_
+   . Row.Union opts opts_ DynamicOptions
+  => { | ctx }
+  -> String
+  -> Om.Om { | ctx } () (props -> OmRender ctx Unit hooks JSX)
+  -> { | opts }
+  -> ReactComponent props
+omDynamic ctx name om opts = dynamic loader opts
+  where
+  loader = unsafeCoerce $ Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+    render <- om
+    omComponent name render
