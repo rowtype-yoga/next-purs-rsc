@@ -2,11 +2,16 @@ module Next.Cache
   ( RevalidationType(..)
   , revalidatePath
   , revalidateTag
+  , cacheAff
   ) where
 
 import Prelude
 
+import Control.Promise (Promise)
+import Control.Promise as Promise
+import Data.Function.Uncurried (Fn1, runFn1)
 import Effect (Effect)
+import Effect.Aff (Aff)
 import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
 
 --------------------------------------------------------------------------------
@@ -15,6 +20,7 @@ import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
 
 foreign import _revalidatePathImpl :: EffectFn2 String String Unit
 foreign import _revalidateTagImpl :: EffectFn1 String Unit
+foreign import _cacheImpl :: forall a b. Fn1 (a -> Effect (Promise b)) (a -> Promise b)
 
 --------------------------------------------------------------------------------
 -- revalidatePath
@@ -34,3 +40,12 @@ revalidatePath path typ = runEffectFn2 _revalidatePathImpl path (toStr typ)
 
 revalidateTag :: String -> Effect Unit
 revalidateTag = runEffectFn1 _revalidateTagImpl
+
+--------------------------------------------------------------------------------
+-- React cache()
+--------------------------------------------------------------------------------
+
+cacheAff :: forall a b. (a -> Aff b) -> a -> Aff b
+cacheAff f = do
+  let cached = runFn1 _cacheImpl \a -> Promise.fromAff (f a)
+  \a -> Promise.toAff (cached a)

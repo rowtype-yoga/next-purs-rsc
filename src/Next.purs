@@ -1,6 +1,7 @@
 module Next
   ( Page
   , Metadata
+  , Viewport
   , StaticParams
   , Layout
   , Template
@@ -15,6 +16,7 @@ module Next
   , RawRecord
   , nextPage
   , simpleMetadata
+  , simpleViewport
   , simpleStaticParams
   , nextLayout
   , simpleTemplate
@@ -96,6 +98,9 @@ newtype ErrorBoundary path = ErrorBoundary Unit
 
 newtype Metadata :: forall k. k -> Type
 newtype Metadata path = Metadata Unit
+
+newtype Viewport :: forall k. k -> Type
+newtype Viewport path = Viewport Unit
 
 newtype StaticParams :: forall k. k -> Type
 newtype StaticParams path = StaticParams Unit
@@ -235,6 +240,19 @@ simpleMetadata
   => ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> { | r })
   -> Metadata path
 simpleMetadata f = unsafeCoerce $ Promise.fromAff $ pure \rawProps -> do
+  let params = parsePathFields (unsafeCoerce rawProps).params
+  let searchParams = _mapRecord toMaybe (unsafeCoerce rawProps).searchParams
+  f { params, searchParams }
+
+simpleViewport
+  :: forall path pathParams queryParams pathRL r
+   . SegmentPathParams path pathParams
+  => SegmentQueryParams path queryParams
+  => RL.RowToList pathParams pathRL
+  => ParsePathFields pathRL pathParams
+  => ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> { | r })
+  -> Viewport path
+simpleViewport f = unsafeCoerce $ Promise.fromAff $ pure \rawProps -> do
   let params = parsePathFields (unsafeCoerce rawProps).params
   let searchParams = _mapRecord toMaybe (unsafeCoerce rawProps).searchParams
   f { params, searchParams }

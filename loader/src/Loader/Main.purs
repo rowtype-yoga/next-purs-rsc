@@ -59,6 +59,7 @@ type RouteInfo =
   , routePath :: String
   , directive :: Maybe String
   , hasMetadata :: Boolean
+  , hasViewport :: Boolean
   , hasStaticParams :: Boolean
   , handlerMethods :: Array String
   , routeConfigs :: Array String
@@ -159,6 +160,7 @@ extractFromType = case _ of
   CST.TypeApp head args -> case head of
     CST.TypeConstructor (CST.QualifiedName { name: CST.Proper ctor })
       | ctor == "Page" || ctor == "Loading" || ctor == "ErrorBoundary" || ctor == "NotFound" || ctor == "Template" || ctor == "GlobalError" || ctor == "Default"
+        || ctor == "Viewport" || ctor == "Metadata"
         || ctor == "GET" || ctor == "POST" || ctor == "PUT" || ctor == "DELETE" || ctor == "PATCH" || ctor == "HEAD" || ctor == "OPTIONS" ->
           case Array.head (Array.fromFoldable args) of
             Just arg -> Just (walkTypeArg arg)
@@ -234,6 +236,19 @@ hasStaticParamsSig (CST.ModuleBody { decls }) = Array.any matchSP decls
   matchSP (CST.DeclSignature (CST.Labeled { label: CST.Name { name: CST.Ident ident } }))
     | ident == "staticParams" = true
   matchSP _ = false
+
+hasViewportDecl :: String -> Boolean
+hasViewportDecl src = case parseModule src of
+  ParseSucceeded (CST.Module m) -> hasViewportSig m.body
+  ParseSucceededWithErrors (CST.Module m) _ -> hasViewportSig m.body
+  ParseFailed _ -> false
+
+hasViewportSig :: forall e. CST.ModuleBody e -> Boolean
+hasViewportSig (CST.ModuleBody { decls }) = Array.any matchVP decls
+  where
+  matchVP (CST.DeclSignature (CST.Labeled { label: CST.Name { name: CST.Ident ident } }))
+    | ident == "viewport" = true
+  matchVP _ = false
 
 handlerMethodNames :: Array String
 handlerMethodNames = [ "get", "post", "put", "delete_", "patch", "head_", "options" ]
@@ -380,10 +395,11 @@ moduleToRoute appDir outputDir info = do
 
   let canHaveMeta = (kind == "page" || kind == "layout" || kind == "template") && info.directive /= Just "use client"
   let hasMetadata = canHaveMeta && hasMetadataDecl info.source
+  let hasViewport = canHaveMeta && hasViewportDecl info.source
   let hasStaticParams = kind == "page" && hasStaticParamsDecl info.source
   let routeConfigs = findRouteConfigDecls info.source
 
-  Just { mod: info.name, kind, filePath, relImport, routePath, directive: info.directive, hasMetadata, hasStaticParams, handlerMethods: methods, routeConfigs }
+  Just { mod: info.name, kind, filePath, relImport, routePath, directive: info.directive, hasMetadata, hasViewport, hasStaticParams, handlerMethods: methods, routeConfigs }
 
 --------------------------------------------------------------------------------
 -- .tsx generation
@@ -392,7 +408,7 @@ moduleToRoute appDir outputDir info = do
 generateTsx :: RouteInfo -> String
 generateTsx route = String.joinWith "\n" (lines <> [ "" ])
   where
-  lines = directiveLine <> contentLines <> metadataLines <> staticParamsLines <> routeConfigLines
+  lines = directiveLine <> contentLines <> metadataLines <> viewportLines <> staticParamsLines <> routeConfigLines
 
   declName = kindToDeclName route.kind
 
@@ -402,6 +418,7 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
     | route.kind == "handler" = String.joinWith ", " route.handlerMethods <> configImports
     | otherwise = declName
         <> (if route.hasMetadata then ", metadata" else "")
+        <> (if route.hasViewport then ", viewport" else "")
         <> (if route.hasStaticParams then ", staticParams" else "")
         <> configImports
 
@@ -489,6 +506,23 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         [ "export async function generateMetadata(props) {"
         , "  const meta = await metadata();"
         , "  return meta(props);"
+        , "}"
+        ]
+
+  viewportLines
+    | not route.hasViewport = []
+    | route.kind == "page" || route.kind == "default" =
+        [ "export async function generateViewport(props) {"
+        , "  const vp = await viewport();"
+        , "  const params = {...await (props.params ?? {})};"
+        , "  const searchParams = {...await (props.searchParams ?? {})};"
+        , "  return vp({ params, searchParams });"
+        , "}"
+        ]
+    | otherwise =
+        [ "export async function generateViewport(props) {"
+        , "  const vp = await viewport();"
+        , "  return vp(props);"
         , "}"
         ]
 
