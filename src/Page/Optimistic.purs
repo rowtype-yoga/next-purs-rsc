@@ -9,18 +9,17 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Timer (setTimeout)
-import Next (Page)
-import Next.Action.Client (useOptimistic, callServerAction)
+import Next (Page, mkPage)
+import Next.Action.Client (useOptimistic', callServerAction)
 import React.Basic.Events (handler_)
-import React.Basic.Hooks (component, useState)
-import React.Basic.Hooks as React
 import Unsafe.Coerce (unsafeCoerce)
 import Yoga.React.DOM (button, div, h1, h2, li, p, ul)
+import Yoga.React.Om as Om
 
 page :: Page "optimistic"
-page = unsafeCoerce $ component "OptimisticPage" \(_ :: {}) -> React.do
-  messages /\ setMessages <- React.useState [ "Welcome!" ]
-  { state: optimistic, dispatch: addOptimistic } <- useOptimistic messages \state msg ->
+page = mkPage {} $ pure \_ -> Om.do
+  messages /\ setMessages <- Om.useState [ "Welcome!" ]
+  { state: optimistic, dispatch: addOptimistic } <- useOptimistic' messages \state msg ->
     snoc state (msg <> " (sending...)")
 
   let counter = length optimistic
@@ -38,7 +37,7 @@ page = unsafeCoerce $ component "OptimisticPage" \(_ :: {}) -> React.do
         void $ setTimeout 1500 do
           setMessages \prev -> snoc prev msg
 
-  pure $ div {}
+  Om.pure $ div {}
     [ h1 {} "useOptimistic Demo"
     , p {} "Items appear immediately with '(sending...)' then confirm after 1.5s."
     , div {}

@@ -5,26 +5,25 @@ import Prelude hiding (div)
 
 import Data.Maybe (maybe)
 import Data.Tuple.Nested ((/\))
-import Next (Page)
+import Next (Page, mkPage)
 import Next.Navigation (useRouter, usePathname, useSearchParams, useParams, useSelectedLayoutSegment, useSelectedLayoutSegments, searchParamsGet, searchParamsGetAll, searchParamsHas, searchParamsToString, paramsGet)
 import React.Basic.Events (handler_)
-import React.Basic.Hooks (component, useState, useEffect)
-import React.Basic.Hooks as React
 import Route (Route(..))
-import Unsafe.Coerce (unsafeCoerce)
 import Yoga.React.DOM (button, div, h1, h2, p)
+import Yoga.React.Om (liftRender)
+import Yoga.React.Om as Om
 
 page :: Page "navigation"
-page = unsafeCoerce $ component "NavigationPage" \(_ :: {}) -> React.do
-  router <- useRouter
-  pathname <- usePathname
-  searchParams <- useSearchParams
-  params <- useParams
-  segment <- useSelectedLayoutSegment
-  segments <- useSelectedLayoutSegments
+page = mkPage {} $ pure \_ -> Om.do
+  router <- liftRender useRouter
+  pathname <- liftRender usePathname
+  searchParams <- liftRender useSearchParams
+  params <- liftRender useParams
+  segment <- liftRender useSelectedLayoutSegment
+  segments <- liftRender useSelectedLayoutSegments
 
-  info /\ setInfo <- useState ""
-  useEffect pathname do
+  info /\ setInfo <- Om.useState ""
+  Om.useEffect pathname do
     str <- searchParamsToString searchParams
     hasQ <- searchParamsHas searchParams "q"
     qVal <- searchParamsGet searchParams "q"
@@ -37,7 +36,7 @@ page = unsafeCoerce $ component "NavigationPage" \(_ :: {}) -> React.do
       <> " | name param=" <> maybe "none" identity nameParam
     pure (pure unit)
 
-  pure $ div {}
+  Om.pure $ div {}
     [ h1 {} "Navigation Hooks"
     , h2 {} "usePathname"
     , p {} $ "Pathname: " <> pathname

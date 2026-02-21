@@ -4,7 +4,7 @@ module Page.Form where
 import Prelude hiding (div)
 
 import Actions.Counter (stepAction)
-import Next (Page, nextPage)
+import Next (Page, mkPage)
 import Next.Action.Client (useActionState', useFormStatus')
 import React.Basic.Events (handler_)
 import Unsafe.Coerce (unsafeCoerce)
@@ -13,7 +13,7 @@ import Yoga.React.Om (omComponent)
 import Yoga.React.Om as Om
 
 page :: Page "form"
-page = nextPage {} do
+page = mkPage {} do
   submitBtn <- omComponent "OmSubmitButton" \(_ :: {}) -> Om.do
     { pending } <- useFormStatus'
     Om.pure $ button { type: "submit", disabled: pending }

@@ -4,17 +4,15 @@ module Page.Home where
 import Prelude hiding (div)
 
 import Data.Tuple.Nested ((/\))
-import Next (Page, Root)
+import Next (Page, Root, mkPage)
 import React.Basic.Events (handler_)
-import Unsafe.Coerce (unsafeCoerce)
-import React.Basic.Hooks (component, useState)
-import React.Basic.Hooks as React
 import Yoga.React.DOM (button, div, h1, p)
+import Yoga.React.Om as Om
 
 page :: Page Root
-page = unsafeCoerce $ component "HomePage" \_ -> React.do
-  count /\ setCount <- useState 0
-  pure $ div {}
+page = mkPage {} $ pure \_ -> Om.do
+  count /\ setCount <- Om.useState 0
+  Om.pure $ div {}
     [ h1 {} "Homey"
     , p {} "This entire page is a PureScript client component."
     , p {} $ "Counter: " <> show count

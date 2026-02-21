@@ -13,17 +13,15 @@ module Next
   , buildParsedPath
   , class FirstSegment
   , RawRecord
-  , simplePage
+  , mkPage
   , simpleMetadata
   , simpleStaticParams
-  , simpleLayout
+  , mkLayout
   , simpleTemplate
   , loading
   , notFound
   , errorBoundary
   , globalError
-  , nextPage
-  , nextLayout
   , link
   , image
   , script
@@ -209,18 +207,24 @@ else instance IsSymbol sym => FirstSegment sym sym
 -- Page constructors
 --------------------------------------------------------------------------------
 
-simplePage
-  :: forall path pathParams queryParams pathRL
+mkPage
+  :: forall path name pathParams queryParams pathRL ctx hooks
    . SegmentPathParams path pathParams
   => SegmentQueryParams path queryParams
   => RL.RowToList pathParams pathRL
   => ParsePathFields pathRL pathParams
-  => ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> JSX)
+  => FirstSegment path name
+  => IsSymbol name
+  => { | ctx }
+  -> Om.Om { | ctx } () ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> OmRender ctx Unit hooks JSX)
   -> Page path
-simplePage render = unsafeCoerce $ Promise.fromAff $ pure \rawProps -> do
-  let params = parsePathFields (unsafeCoerce rawProps).params
-  let searchParams = _mapRecord toMaybe (unsafeCoerce rawProps).searchParams
-  render { params, searchParams }
+mkPage ctx om = unsafeCoerce $ Promise.fromAff do
+  Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+    render <- om
+    omComponent (reflectSymbol (Proxy :: Proxy name)) \rawProps -> do
+      let params = parsePathFields (unsafeCoerce rawProps).params
+      let searchParams = _mapRecord toMaybe (unsafeCoerce rawProps).searchParams
+      render { params, searchParams }
 
 simpleMetadata
   :: forall path pathParams queryParams pathRL r
@@ -244,8 +248,15 @@ simpleStaticParams
   -> StaticParams path
 simpleStaticParams gen = unsafeCoerce gen
 
-simpleLayout :: ({ children :: ReactChildren JSX } -> JSX) -> Layout
-simpleLayout render = unsafeCoerce $ Promise.fromAff $ pure render
+mkLayout
+  :: forall ctx hooks
+   . { | ctx }
+  -> Om.Om { | ctx } () ({ children :: JSX } -> OmRender ctx Unit hooks JSX)
+  -> Layout
+mkLayout ctx om = unsafeCoerce $ Promise.fromAff do
+  Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+    render <- om
+    omComponent "Layout" render
 
 simpleTemplate :: forall path. ({ children :: ReactChildren JSX } -> JSX) -> Template path
 simpleTemplate render = unsafeCoerce $ Promise.fromAff $ pure render
@@ -297,36 +308,6 @@ globalError ctx om = unsafeCoerce $ Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
     render <- om
     omComponent (reflectSymbol (Proxy :: Proxy name)) render
-
-nextPage
-  :: forall path name pathParams queryParams pathRL ctx hooks
-   . SegmentPathParams path pathParams
-  => SegmentQueryParams path queryParams
-  => RL.RowToList pathParams pathRL
-  => ParsePathFields pathRL pathParams
-  => FirstSegment path name
-  => IsSymbol name
-  => { | ctx }
-  -> Om.Om { | ctx } () ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> OmRender ctx Unit hooks JSX)
-  -> Page path
-nextPage ctx om = unsafeCoerce $ Promise.fromAff do
-  Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
-    render <- om
-    omComponent (reflectSymbol (Proxy :: Proxy name)) \rawProps -> do
-      let params = parsePathFields (unsafeCoerce rawProps).params
-      let searchParams = _mapRecord toMaybe (unsafeCoerce rawProps).searchParams
-      render { params, searchParams }
-
-nextLayout
-  :: forall ctx hooks
-   . String
-  -> { | ctx }
-  -> Om.Om { | ctx } () ({ children :: JSX } -> OmRender ctx Unit hooks JSX)
-  -> Layout
-nextLayout name ctx om = unsafeCoerce $ Promise.fromAff do
-  Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
-    render <- om
-    omComponent name render
 
 --------------------------------------------------------------------------------
 -- Route handlers
