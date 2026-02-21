@@ -36,6 +36,8 @@ layout = nextLayout {} $ pure \{ children } -> Om.do
               , link (Blog__Slug "hello") {} [ text "Blog" ]
               , text " | "
               , link Optimistic {} [ text "Optimistic" ]
+              , text " | "
+              , link Server {} [ text "Server" ]
               ]
           , main {} children
           ]

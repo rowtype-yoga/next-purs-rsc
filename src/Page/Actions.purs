@@ -9,8 +9,8 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Next (Page, nextPage)
-import Next.Action.Client (callServerAction, useActionState', useFormStatus')
 import React.Basic.Events (handler_)
+import Next.Action.Client (callServerAction, useActionState', useFormStatus')
 import Unsafe.Coerce (unsafeCoerce)
 import Yoga.React.DOM (button, div, form, h1, h2, input, label, p)
 import Yoga.React.Om (omComponent)
@@ -31,7 +31,7 @@ page = nextPage {} do
       , p {} $ "Counter: " <> show count
       , form { action: unsafeCoerce dispatch }
           [ label {} "Step: "
-          , input { type: "number", name: "step", value: "1", onChange: handler_ (pure unit) }
+          , input { type: "number", name: "step", placeholder: "1" }
           , submitBtn {}
           ]
       , h2 {} "Direct Server Action"
