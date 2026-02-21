@@ -185,80 +185,80 @@ spec = do
 
   describe "moduleToRoute" do
     it "page without metadata" do
-      let info = { name: "Page.About", source: "module Page.About where\npage :: Page \"about\"\npage = simplePage \\_ -> mempty", file: "src/Page/About.purs", directive: Nothing }
+      let info = { name: "Page.About", source: "module Page.About where\npage :: Page \"about\"\npage = simplePage \\_ -> mempty", file: "src/Page/About.purs", directive: Nothing, imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.hasMetadata result `shouldEqual` Just false
       map _.kind result `shouldEqual` Just "page"
     it "page with metadata" do
-      let info = { name: "Page.Blog", source: "module Page.Blog where\npage :: Page \"blog\"\npage = simplePage \\_ -> mempty\nmetadata :: Metadata \"blog\"\nmetadata = simpleMetadata \\_ -> {}", file: "src/Page/Blog.purs", directive: Nothing }
+      let info = { name: "Page.Blog", source: "module Page.Blog where\npage :: Page \"blog\"\npage = simplePage \\_ -> mempty\nmetadata :: Metadata \"blog\"\nmetadata = simpleMetadata \\_ -> {}", file: "src/Page/Blog.purs", directive: Nothing, imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.hasMetadata result `shouldEqual` Just true
     it "client page never has metadata" do
-      let info = { name: "Page.Home.Client", source: "module Page.Home.Client where\npage :: Page Root\npage = simplePage \\_ -> mempty\nmetadata :: Metadata Root\nmetadata = simpleMetadata \\_ -> {}", file: "src/Page/Home/Client.purs", directive: Just "use client" }
+      let info = { name: "Page.Home.Client", source: "module Page.Home.Client where\npage :: Page Root\npage = simplePage \\_ -> mempty\nmetadata :: Metadata Root\nmetadata = simpleMetadata \\_ -> {}", file: "src/Page/Home/Client.purs", directive: Just "use client", imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.hasMetadata result `shouldEqual` Just false
     it "layout with metadata" do
-      let info = { name: "Layout.Root", source: "module Layout.Root where\nlayout :: Layout\nlayout = simpleLayout \\_ -> mempty\nmetadata :: Metadata Root\nmetadata = simpleMetadata \\_ -> {}", file: "src/Layout/Root.purs", directive: Nothing }
+      let info = { name: "Layout.Root", source: "module Layout.Root where\nlayout :: Layout\nlayout = simpleLayout \\_ -> mempty\nmetadata :: Metadata Root\nmetadata = simpleMetadata \\_ -> {}", file: "src/Layout/Root.purs", directive: Nothing, imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.hasMetadata result `shouldEqual` Just true
     it "loading never has metadata" do
-      let info = { name: "Loading.Dashboard", source: "module Loading.Dashboard where\nloading :: Loading (\"dashboard\")\nloading = undefined\nmetadata :: Metadata (\"dashboard\")\nmetadata = undefined", file: "src/Loading/Dashboard.purs", directive: Nothing }
+      let info = { name: "Loading.Dashboard", source: "module Loading.Dashboard where\nloading :: Loading (\"dashboard\")\nloading = undefined\nmetadata :: Metadata (\"dashboard\")\nmetadata = undefined", file: "src/Loading/Dashboard.purs", directive: Nothing, imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.hasMetadata result `shouldEqual` Just false
     it "template with metadata" do
-      let info = { name: "Template.Dashboard", source: "module Template.Dashboard where\ntemplate :: Template (\"dashboard\")\ntemplate = undefined\nmetadata :: Metadata (\"dashboard\")\nmetadata = undefined", file: "src/Template/Dashboard.purs", directive: Nothing }
+      let info = { name: "Template.Dashboard", source: "module Template.Dashboard where\ntemplate :: Template (\"dashboard\")\ntemplate = undefined\nmetadata :: Metadata (\"dashboard\")\nmetadata = undefined", file: "src/Template/Dashboard.purs", directive: Nothing, imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.kind result `shouldEqual` Just "template"
       map _.hasMetadata result `shouldEqual` Just true
     it "page with viewport" do
-      let info = { name: "Page.Blog", source: "module Page.Blog where\npage :: Page \"blog\"\npage = simplePage \\_ -> mempty\nviewport :: Viewport \"blog\"\nviewport = simpleViewport \\_ -> {}", file: "src/Page/Blog.purs", directive: Nothing }
+      let info = { name: "Page.Blog", source: "module Page.Blog where\npage :: Page \"blog\"\npage = simplePage \\_ -> mempty\nviewport :: Viewport \"blog\"\nviewport = simpleViewport \\_ -> {}", file: "src/Page/Blog.purs", directive: Nothing, imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.hasViewport result `shouldEqual` Just true
     it "client page never has viewport" do
-      let info = { name: "Page.Home.Client", source: "module Page.Home.Client where\npage :: Page Root\npage = simplePage \\_ -> mempty\nviewport :: Viewport Root\nviewport = simpleViewport \\_ -> {}", file: "src/Page/Home/Client.purs", directive: Just "use client" }
+      let info = { name: "Page.Home.Client", source: "module Page.Home.Client where\npage :: Page Root\npage = simplePage \\_ -> mempty\nviewport :: Viewport Root\nviewport = simpleViewport \\_ -> {}", file: "src/Page/Home/Client.purs", directive: Just "use client", imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.hasViewport result `shouldEqual` Just false
     it "page with staticParams" do
-      let info = { name: "Page.Blog.Slug", source: "module Page.Blog.Slug where\npage :: Page (\"blog\" / \"slug\" : String)\npage = simplePage \\_ -> mempty\nstaticParams :: StaticParams (\"blog\" / \"slug\" : String)\nstaticParams = simpleStaticParams $ pure []", file: "src/Page/Blog/Slug.purs", directive: Nothing }
+      let info = { name: "Page.Blog.Slug", source: "module Page.Blog.Slug where\npage :: Page (\"blog\" / \"slug\" : String)\npage = simplePage \\_ -> mempty\nstaticParams :: StaticParams (\"blog\" / \"slug\" : String)\nstaticParams = simpleStaticParams $ pure []", file: "src/Page/Blog/Slug.purs", directive: Nothing, imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.hasStaticParams result `shouldEqual` Just true
     it "globalError always client never metadata" do
-      let info = { name: "GlobalError.Root", source: "module GlobalError.Root where\nglobalError :: GlobalError Root\nglobalError = undefined\nmetadata :: Metadata Root\nmetadata = undefined", file: "src/GlobalError/Root.purs", directive: Nothing }
+      let info = { name: "GlobalError.Root", source: "module GlobalError.Root where\nglobalError :: GlobalError Root\nglobalError = undefined\nmetadata :: Metadata Root\nmetadata = undefined", file: "src/GlobalError/Root.purs", directive: Nothing, imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.kind result `shouldEqual` Just "globalError"
       map _.hasMetadata result `shouldEqual` Just false
     it "handler with GET and POST" do
-      let info = { name: "Handler.Api.Hello", source: "module Handler.Api.Hello where\nget :: GET (\"api\" / \"hello\")\nget = undefined\npost :: POST (\"api\" / \"hello\")\npost = undefined", file: "src/Handler/Api/Hello.purs", directive: Nothing }
+      let info = { name: "Handler.Api.Hello", source: "module Handler.Api.Hello where\nget :: GET (\"api\" / \"hello\")\nget = undefined\npost :: POST (\"api\" / \"hello\")\npost = undefined", file: "src/Handler/Api/Hello.purs", directive: Nothing, imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.kind result `shouldEqual` Just "handler"
       map _.handlerMethods result `shouldEqual` Just [ "get", "post" ]
       map _.routePath result `shouldEqual` Just "app/api/hello"
     it "slot page" do
-      let info = { name: "Slot.Modal.Page.Root", source: "module Slot.Modal.Page.Root where\npage :: Page Root\npage = simplePage \\_ -> mempty", file: "src/Slot/Modal/Page/Root.purs", directive: Nothing }
+      let info = { name: "Slot.Modal.Page.Root", source: "module Slot.Modal.Page.Root where\npage :: Page Root\npage = simplePage \\_ -> mempty", file: "src/Slot/Modal/Page/Root.purs", directive: Nothing, imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.kind result `shouldEqual` Just "page"
       map _.routePath result `shouldEqual` Just "app/@modal"
     it "default page" do
-      let info = { name: "Default.Root", source: "module Default.Root where\ndefault :: Default Root\ndefault = simplePage \\_ -> mempty", file: "src/Default/Root.purs", directive: Nothing }
+      let info = { name: "Default.Root", source: "module Default.Root where\ndefault :: Default Root\ndefault = simplePage \\_ -> mempty", file: "src/Default/Root.purs", directive: Nothing, imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.kind result `shouldEqual` Just "default"
       map _.routePath result `shouldEqual` Just "app"
     it "route group page" do
-      let info = { name: "Page.Marketing_.About", source: "module Page.Marketing_.About where\npage :: Page \"about\"\npage = simplePage \\_ -> mempty", file: "src/Page/Marketing_/About.purs", directive: Nothing }
+      let info = { name: "Page.Marketing_.About", source: "module Page.Marketing_.About where\npage :: Page \"about\"\npage = simplePage \\_ -> mempty", file: "src/Page/Marketing_/About.purs", directive: Nothing, imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.routePath result `shouldEqual` Just "app/(marketing)/about"
       map _.kind result `shouldEqual` Just "page"
     it "page with route config" do
-      let info = { name: "Page.Blog", source: "module Page.Blog where\npage :: Page \"blog\"\npage = simplePage \\_ -> mempty\ndynamic :: String\ndynamic = \"force-dynamic\"", file: "src/Page/Blog.purs", directive: Nothing }
+      let info = { name: "Page.Blog", source: "module Page.Blog where\npage :: Page \"blog\"\npage = simplePage \\_ -> mempty\ndynamic :: String\ndynamic = \"force-dynamic\"", file: "src/Page/Blog.purs", directive: Nothing, imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.routeConfigs result `shouldEqual` Just [ "dynamic" ]
     it "intercepting route same level" do
-      let info = { name: "Page.Intercept_.Photo", source: "module Page.Intercept_.Photo where\npage :: Page \"photo\"\npage = simplePage \\_ -> mempty", file: "src/Page/Intercept_/Photo.purs", directive: Nothing }
+      let info = { name: "Page.Intercept_.Photo", source: "module Page.Intercept_.Photo where\npage :: Page \"photo\"\npage = simplePage \\_ -> mempty", file: "src/Page/Intercept_/Photo.purs", directive: Nothing, imports: [] }
       let result = moduleToRoute "app" "output" info
       map _.routePath result `shouldEqual` Just "app/(.)/photo"
       map _.kind result `shouldEqual` Just "page"
     it "returns Nothing for non-route module" do
-      let info = { name: "Utils.Helpers", source: "module Utils.Helpers where\nfoo :: String\nfoo = \"bar\"", file: "src/Utils/Helpers.purs", directive: Nothing }
+      let info = { name: "Utils.Helpers", source: "module Utils.Helpers where\nfoo :: String\nfoo = \"bar\"", file: "src/Utils/Helpers.purs", directive: Nothing, imports: [] }
       moduleToRoute "app" "output" info `shouldEqual` Nothing
 
   describe "findRouteConfigDecls" do
@@ -278,9 +278,9 @@ spec = do
   describe "generateMiddleware" do
     let golden = goldenTest { goldenDir: "loader/test/golden", diffDir: "loader/test/diffs" }
     golden "middleware" $ generateMiddleware "output"
-      { name: "Middleware", source: "module Middleware where\nmiddleware :: Foreign\nmiddleware = undefined\nconfig :: { matcher :: Array String }\nconfig = undefined", file: "src/Middleware.purs", directive: Nothing }
+      { name: "Middleware", source: "module Middleware where\nmiddleware :: Foreign\nmiddleware = undefined\nconfig :: { matcher :: Array String }\nconfig = undefined", file: "src/Middleware.purs", directive: Nothing, imports: [] }
     golden "middleware-no-config" $ generateMiddleware "output"
-      { name: "Middleware", source: "module Middleware where\nmiddleware :: Foreign\nmiddleware = undefined", file: "src/Middleware.purs", directive: Nothing }
+      { name: "Middleware", source: "module Middleware where\nmiddleware :: Foreign\nmiddleware = undefined", file: "src/Middleware.purs", directive: Nothing, imports: [] }
 
   describe "extractModule" do
     it "unix path" do
@@ -305,6 +305,7 @@ spec = do
     , hasStaticParams: false
     , handlerMethods: []
     , routeConfigs: []
+    , imports: []
     }
   goldenCases =
     [ "client-page" /\ generateTsx (route "page" (Just "use client"))
@@ -312,92 +313,92 @@ spec = do
     , "layout" /\ generateTsx
         { mod: "Layout.Root", kind: "layout", filePath: "app/layout.tsx"
         , relImport: "../output/Layout.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [], imports: []
         }
     , "error" /\ generateTsx
         { mod: "ErrorBoundary.Root", kind: "error", filePath: "app/error.tsx"
         , relImport: "../output/ErrorBoundary.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [], imports: []
         }
     , "loading" /\ generateTsx
         { mod: "Loading.Root", kind: "loading", filePath: "app/loading.tsx"
         , relImport: "../output/Loading.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [], imports: []
         }
     , "not-found" /\ generateTsx
         { mod: "NotFound.Root", kind: "notFound", filePath: "app/not-found.tsx"
         , relImport: "../output/NotFound.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [], imports: []
         }
     , "nested-page" /\ generateTsx
         { mod: "Page.Foo", kind: "page", filePath: "app/foo/page.tsx"
         , relImport: "../output/Page.Foo/index.js", routePath: "app/foo"
-        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [], imports: []
         }
     , "server-directive-page" /\ generateTsx (route "page" (Just "use server"))
     , "server-page-metadata" /\ generateTsx
         { mod: "Page.Blog.Slug", kind: "page", filePath: "app/blog/[slug]/page.tsx"
         , relImport: "../output/Page.Blog.Slug/index.js", routePath: "app/blog/[slug]"
-        , directive: Nothing, hasMetadata: true, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: true, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [], imports: []
         }
     , "layout-metadata" /\ generateTsx
         { mod: "Layout.Root", kind: "layout", filePath: "app/layout.tsx"
         , relImport: "../output/Layout.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: true, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: true, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [], imports: []
         }
     , "template" /\ generateTsx
         { mod: "Template.Dashboard", kind: "template", filePath: "app/dashboard/template.tsx"
         , relImport: "../output/Template.Dashboard/index.js", routePath: "app/dashboard"
-        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [], imports: []
         }
     , "global-error" /\ generateTsx
         { mod: "GlobalError.Root", kind: "globalError", filePath: "app/global-error.tsx"
         , relImport: "../output/GlobalError.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [], imports: []
         }
     , "static-params-page" /\ generateTsx
         { mod: "Page.Blog.Slug", kind: "page", filePath: "app/blog/[slug]/page.tsx"
         , relImport: "../output/Page.Blog.Slug/index.js", routePath: "app/blog/[slug]"
-        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: true, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: true, handlerMethods: [], routeConfigs: [], imports: []
         }
     , "route-group-page" /\ generateTsx
         { mod: "Page.Marketing_.About", kind: "page", filePath: "app/(marketing)/about/page.tsx"
         , relImport: "../output/Page.Marketing_.About/index.js", routePath: "app/(marketing)/about"
-        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [], imports: []
         }
     , "handler" /\ generateTsx
         { mod: "Handler.Api.Hello", kind: "handler", filePath: "app/api/hello/route.ts"
         , relImport: "../output/Handler.Api.Hello/index.js", routePath: "app/api/hello"
-        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [ "get", "post" ], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [ "get", "post" ], routeConfigs: [], imports: []
         }
     , "handler-delete" /\ generateTsx
         { mod: "Handler.Api.Item", kind: "handler", filePath: "app/api/item/route.ts"
         , relImport: "../output/Handler.Api.Item/index.js", routePath: "app/api/item"
-        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [ "delete_" ], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [ "delete_" ], routeConfigs: [], imports: []
         }
     , "slot-page" /\ generateTsx
         { mod: "Slot.Modal.Page.Root", kind: "page", filePath: "app/@modal/page.tsx"
         , relImport: "../output/Slot.Modal.Page.Root/index.js", routePath: "app/@modal"
-        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [], imports: []
         }
     , "default" /\ generateTsx
         { mod: "Default.Root", kind: "default", filePath: "app/default.tsx"
         , relImport: "../output/Default.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [], imports: []
         }
     , "page-with-config" /\ generateTsx
         { mod: "Page.Blog", kind: "page", filePath: "app/blog/page.tsx"
         , relImport: "../output/Page.Blog/index.js", routePath: "app/blog"
-        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [ "dynamic", "revalidate" ]
+        , directive: Nothing, hasMetadata: false, hasViewport: false, hasStaticParams: false, handlerMethods: [], routeConfigs: [ "dynamic", "revalidate" ], imports: []
         }
     , "server-page-viewport" /\ generateTsx
         { mod: "Page.Blog.Slug", kind: "page", filePath: "app/blog/[slug]/page.tsx"
         , relImport: "../output/Page.Blog.Slug/index.js", routePath: "app/blog/[slug]"
-        , directive: Nothing, hasMetadata: false, hasViewport: true, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: true, hasStaticParams: false, handlerMethods: [], routeConfigs: [], imports: []
         }
     , "layout-viewport" /\ generateTsx
         { mod: "Layout.Root", kind: "layout", filePath: "app/layout.tsx"
         , relImport: "../output/Layout.Root/index.js", routePath: "app"
-        , directive: Nothing, hasMetadata: false, hasViewport: true, hasStaticParams: false, handlerMethods: [], routeConfigs: []
+        , directive: Nothing, hasMetadata: false, hasViewport: true, hasStaticParams: false, handlerMethods: [], routeConfigs: [], imports: []
         }
     ]

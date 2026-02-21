@@ -50,6 +50,7 @@ type ModuleInfo =
   , source :: String
   , file :: String
   , directive :: Maybe String
+  , imports :: Array String
   }
 
 type RouteInfo =
@@ -64,6 +65,7 @@ type RouteInfo =
   , hasStaticParams :: Boolean
   , handlerMethods :: Array String
   , routeConfigs :: Array String
+  , imports :: Array String
   }
 
 --------------------------------------------------------------------------------
@@ -113,6 +115,18 @@ detectDirective modName src
   | String.contains (String.Pattern "Actions.") modName = Just "use server"
   | otherwise = Nothing
 
+detectImports :: String -> Array String
+detectImports src = Array.mapMaybe parseImportLine lines
+  where
+  lines = String.split (String.Pattern "\n") src
+  prefix = "-- @import \""
+  parseImportLine line
+    | String.take 12 (String.trim line) == prefix = do
+        let rest = String.drop 12 (String.trim line)
+        let path = SCU.takeWhile (\c -> c /= '"') rest
+        if String.length path > 0 then Just path else Nothing
+    | otherwise = Nothing
+
 scanModules :: String -> Effect (Map String ModuleInfo)
 scanModules srcDir = do
   files <- findPursFiles srcDir
@@ -125,7 +139,8 @@ scanModules srcDir = do
       Nothing -> pure acc
       Just name -> do
         let directive = detectDirective name src
-        pure $ Map.insert name { name, source: src, file, directive } acc
+        let imports = detectImports src
+        pure $ Map.insert name { name, source: src, file, directive, imports } acc
 
 extractModuleName :: String -> Maybe String
 extractModuleName src = do
@@ -406,7 +421,7 @@ moduleToRoute appDir outputDir info = do
   let hasStaticParams = kind == "page" && hasStaticParamsDecl info.source
   let routeConfigs = findRouteConfigDecls info.source
 
-  Just { mod: info.name, kind, filePath, relImport, routePath, directive: info.directive, hasMetadata, hasViewport, hasStaticParams, handlerMethods: methods, routeConfigs }
+  Just { mod: info.name, kind, filePath, relImport, routePath, directive: info.directive, hasMetadata, hasViewport, hasStaticParams, handlerMethods: methods, routeConfigs, imports: info.imports }
 
 --------------------------------------------------------------------------------
 -- .tsx generation
@@ -415,7 +430,9 @@ moduleToRoute appDir outputDir info = do
 generateTsx :: RouteInfo -> String
 generateTsx route = String.joinWith "\n" (lines <> [ "" ])
   where
-  lines = directiveLine <> contentLines
+  lines = directiveLine <> importLines <> contentLines
+
+  importLines = route.imports <#> \path -> "import " <> show path <> ";"
 
   declName = kindToDeclName route.kind
   isClient = route.directive == Just "use client" || route.kind == "error" || route.kind == "globalError"
@@ -449,8 +466,9 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         [ marker
         , "// @ts-expect-error — PureScript output"
         , importPart
-        , "import { use } from \"react\";"
-        , "export default function(props) { return use(" <> localName <> "(props)); }"
+        , "import { use, useRef, Suspense } from \"react\";"
+        , "function Inner(props) { const ref = useRef(null); if (!ref.current) ref.current = " <> localName <> "(props); return use(ref.current); }"
+        , "export default function(props) { return <Suspense><Inner {...props} /></Suspense>; }"
         ]
     -- Server components: pure re-export
     | otherwise = do
