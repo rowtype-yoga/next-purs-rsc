@@ -2,12 +2,12 @@ module Page.Media where
 
 import Prelude hiding (div)
 
-import Next (Metadata, Page, image, script, ScriptStrategy(..), mkPage, simpleMetadata)
+import Next (Metadata, Page, image, script, ScriptStrategy(..), nextPage, simpleMetadata)
 import Yoga.React.DOM (div, h1, h2, p)
 import Yoga.React.Om as Om
 
 page :: Page "media"
-page = mkPage {} $ pure \_ -> Om.do
+page = nextPage {} $ pure \_ -> Om.do
   Om.pure $ div {}
     [ h1 {} "Media Components"
     , h2 {} "Next Image"

@@ -9,7 +9,7 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Timer (setTimeout)
-import Next (Page, mkPage)
+import Next (Page, nextPage)
 import Next.Action.Client (useOptimistic', callServerAction)
 import React.Basic.Events (handler_)
 import Unsafe.Coerce (unsafeCoerce)
@@ -17,7 +17,7 @@ import Yoga.React.DOM (button, div, h1, h2, li, p, ul)
 import Yoga.React.Om as Om
 
 page :: Page "optimistic"
-page = mkPage {} $ pure \_ -> Om.do
+page = nextPage {} $ pure \_ -> Om.do
   messages /\ setMessages <- Om.useState [ "Welcome!" ]
   { state: optimistic, dispatch: addOptimistic } <- useOptimistic' messages \state msg ->
     snoc state (msg <> " (sending...)")

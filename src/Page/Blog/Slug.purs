@@ -2,12 +2,12 @@ module Page.Blog.Slug where
 
 import Prelude hiding (div)
 
-import Next (Metadata, Page, StaticParams, type (/), type (:), mkPage, simpleMetadata, simpleStaticParams)
+import Next (Metadata, Page, StaticParams, type (/), type (:), nextPage, simpleMetadata, simpleStaticParams)
 import Yoga.React.DOM (div, h1, p)
 import Yoga.React.Om as Om
 
 page :: Page ("blog" / "slug" : String)
-page = mkPage {} $ pure \{ params: { slug } } -> Om.do
+page = nextPage {} $ pure \{ params: { slug } } -> Om.do
   Om.pure $ div {}
     [ h1 {} $ "Blog: " <> slug
     , p {} "This page uses a path parameter."

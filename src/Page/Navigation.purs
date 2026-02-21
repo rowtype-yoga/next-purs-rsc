@@ -5,7 +5,7 @@ import Prelude hiding (div)
 
 import Data.Maybe (maybe)
 import Data.Tuple.Nested ((/\))
-import Next (Page, mkPage)
+import Next (Page, nextPage)
 import Next.Navigation (useRouter, usePathname, useSearchParams, useParams, useSelectedLayoutSegment, useSelectedLayoutSegments, searchParamsGet, searchParamsGetAll, searchParamsHas, searchParamsToString, paramsGet)
 import React.Basic.Events (handler_)
 import Route (Route(..))
@@ -14,7 +14,7 @@ import Yoga.React.Om (liftRender)
 import Yoga.React.Om as Om
 
 page :: Page "navigation"
-page = mkPage {} $ pure \_ -> Om.do
+page = nextPage {} $ pure \_ -> Om.do
   router <- liftRender useRouter
   pathname <- liftRender usePathname
   searchParams <- liftRender useSearchParams

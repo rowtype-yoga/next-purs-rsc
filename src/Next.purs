@@ -13,10 +13,10 @@ module Next
   , buildParsedPath
   , class FirstSegment
   , RawRecord
-  , mkPage
+  , nextPage
   , simpleMetadata
   , simpleStaticParams
-  , mkLayout
+  , nextLayout
   , simpleTemplate
   , loading
   , notFound
@@ -207,7 +207,7 @@ else instance IsSymbol sym => FirstSegment sym sym
 -- Page constructors
 --------------------------------------------------------------------------------
 
-mkPage
+nextPage
   :: forall path name pathParams queryParams pathRL ctx hooks
    . SegmentPathParams path pathParams
   => SegmentQueryParams path queryParams
@@ -218,7 +218,7 @@ mkPage
   => { | ctx }
   -> Om.Om { | ctx } () ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> OmRender ctx Unit hooks JSX)
   -> Page path
-mkPage ctx om = unsafeCoerce $ Promise.fromAff do
+nextPage ctx om = unsafeCoerce $ Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
     render <- om
     omComponent (reflectSymbol (Proxy :: Proxy name)) \rawProps -> do
@@ -248,12 +248,12 @@ simpleStaticParams
   -> StaticParams path
 simpleStaticParams gen = unsafeCoerce gen
 
-mkLayout
+nextLayout
   :: forall ctx hooks
    . { | ctx }
   -> Om.Om { | ctx } () ({ children :: JSX } -> OmRender ctx Unit hooks JSX)
   -> Layout
-mkLayout ctx om = unsafeCoerce $ Promise.fromAff do
+nextLayout ctx om = unsafeCoerce $ Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
     render <- om
     omComponent "Layout" render

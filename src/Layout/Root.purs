@@ -4,7 +4,7 @@ import Prelude (($), (<>), append, pure)
 
 import Data.Maybe (maybe)
 import Fonts (sans)
-import Next (Layout, Metadata, Root, link, mkLayout, simpleMetadata)
+import Next (Layout, Metadata, Root, link, nextLayout, simpleMetadata)
 import Next.Font (fontClassName, fontVariable)
 import Route (Route(..))
 import Yoga.React.DOM (body, html, main, nav, strong, text)
@@ -12,7 +12,7 @@ import Yoga.React.DOM.Internal (css)
 import Yoga.React.Om as Om
 
 layout :: Layout
-layout = mkLayout {} $ pure \{ children } -> Om.do
+layout = nextLayout {} $ pure \{ children } -> Om.do
   Om.pure $
     html { lang: "en", className: fontClassName sans <> maybe "" (append " ") (fontVariable sans) }
       [ body { style: css { background: "#001", color: "#d0d0e7" } }

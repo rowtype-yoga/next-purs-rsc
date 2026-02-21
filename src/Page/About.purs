@@ -2,12 +2,12 @@ module Page.About where
 
 import Prelude hiding (div)
 
-import Next (Metadata, Page, mkPage, simpleMetadata)
+import Next (Metadata, Page, nextPage, simpleMetadata)
 import Yoga.React.DOM (div, h1, p)
 import Yoga.React.Om as Om
 
 page :: Page "about"
-page = mkPage {} $ pure \_ -> Om.do
+page = nextPage {} $ pure \_ -> Om.do
   Om.pure $ div {}
     [ h1 {} "About"
     , p {} "This page is a PureScript server component."

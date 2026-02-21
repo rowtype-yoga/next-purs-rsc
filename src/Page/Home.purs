@@ -4,13 +4,13 @@ module Page.Home where
 import Prelude hiding (div)
 
 import Data.Tuple.Nested ((/\))
-import Next (Page, Root, mkPage)
+import Next (Page, Root, nextPage)
 import React.Basic.Events (handler_)
 import Yoga.React.DOM (button, div, h1, p)
 import Yoga.React.Om as Om
 
 page :: Page Root
-page = mkPage {} $ pure \_ -> Om.do
+page = nextPage {} $ pure \_ -> Om.do
   count /\ setCount <- Om.useState 0
   Om.pure $ div {}
     [ h1 {} "Homey"

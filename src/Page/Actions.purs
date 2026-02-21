@@ -8,7 +8,7 @@ import Data.Maybe (Maybe(..), maybe)
 import Data.Tuple.Nested ((/\))
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
-import Next (Page, mkPage)
+import Next (Page, nextPage)
 import Next.Action.Client (callServerAction, useActionState', useFormStatus')
 import React.Basic.Events (handler_)
 import Unsafe.Coerce (unsafeCoerce)
@@ -17,7 +17,7 @@ import Yoga.React.Om (omComponent)
 import Yoga.React.Om as Om
 
 page :: Page "actions"
-page = mkPage {} do
+page = nextPage {} do
   submitBtn <- omComponent "SubmitButton" \(_ :: {}) -> Om.do
     { pending } <- useFormStatus'
     Om.pure $ button { type: "submit", disabled: pending }
