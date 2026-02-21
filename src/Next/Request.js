@@ -23,6 +23,10 @@ export const requestJsonImpl = (r) => r.json();
 export const requestTextImpl = (r) => r.text();
 export const requestFormDataImpl = (r) => r.formData();
 
+// userAgent
+import { userAgent } from "next/server";
+export const userAgentImpl = (r) => userAgent({ headers: r.headers });
+
 // RequestCookies accessors
 export const requestCookiesGetImpl = (c, name) => c.get(name) ?? null;
 export const requestCookiesGetAll = c => c.getAll();

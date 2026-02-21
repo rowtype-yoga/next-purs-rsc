@@ -1,4 +1,4 @@
-import { headers, cookies } from "next/headers";
+import { headers, cookies, draftMode } from "next/headers";
 
 export const headersImpl = headers;
 export const cookiesImpl = cookies;
@@ -13,3 +13,8 @@ export const cookiesHasImpl = (c, name) => c.has(name);
 export const cookiesSetImpl = (c, name, value) => c.set(name, value);
 export const cookiesSetObjImpl = (c, obj) => c.set(obj);
 export const cookiesDeleteImpl = (c, name) => c.delete(name);
+
+export const draftModeImpl = draftMode;
+export const draftModeIsEnabled = (dm) => dm.isEnabled;
+export const draftModeEnableImpl = (dm) => dm.enable();
+export const draftModeDisableImpl = (dm) => dm.disable();

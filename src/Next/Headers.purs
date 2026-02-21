@@ -17,6 +17,11 @@ module Next.Headers
   , cookiesSet
   , cookiesSetObj
   , cookiesDelete
+  , DraftMode
+  , draftMode
+  , draftModeIsEnabled
+  , draftModeEnable
+  , draftModeDisable
   ) where
 
 import Prelude
@@ -129,3 +134,23 @@ cookiesSetObj = runEffectFn2 cookiesSetObjImpl
 foreign import cookiesDeleteImpl :: EffectFn2 Cookies CookieName Unit
 cookiesDelete :: Cookies -> CookieName -> Effect Unit
 cookiesDelete = runEffectFn2 cookiesDeleteImpl
+
+--------------------------------------------------------------------------------
+-- DraftMode
+--------------------------------------------------------------------------------
+
+foreign import data DraftMode :: Type
+
+foreign import draftModeImpl :: Effect (Promise DraftMode)
+draftMode :: Aff DraftMode
+draftMode = Promise.toAffE draftModeImpl
+
+foreign import draftModeIsEnabled :: DraftMode -> Boolean
+
+foreign import draftModeEnableImpl :: EffectFn1 DraftMode Unit
+draftModeEnable :: DraftMode -> Effect Unit
+draftModeEnable = runEffectFn1 draftModeEnableImpl
+
+foreign import draftModeDisableImpl :: EffectFn1 DraftMode Unit
+draftModeDisable :: DraftMode -> Effect Unit
+draftModeDisable = runEffectFn1 draftModeDisableImpl

@@ -27,6 +27,8 @@ module Next.Request
   , requestCookiesGetAll
   , requestCookiesHas
   , Geo
+  , UserAgent
+  , userAgent
   ) where
 
 import Prelude
@@ -137,3 +139,42 @@ foreign import requestCookiesGetAll :: RequestCookies -> Array Cookie
 foreign import requestCookiesHasImpl :: Fn2 RequestCookies CookieName Boolean
 requestCookiesHas :: RequestCookies -> CookieName -> Boolean
 requestCookiesHas = runFn2 requestCookiesHasImpl
+
+--------------------------------------------------------------------------------
+-- userAgent
+--------------------------------------------------------------------------------
+
+type UserAgent =
+  { isBot :: Boolean
+  , ua :: String
+  , browser :: { name :: Maybe String, version :: Maybe String, major :: Maybe String }
+  , device :: { model :: Maybe String, "type" :: Maybe String, vendor :: Maybe String }
+  , engine :: { name :: Maybe String, version :: Maybe String }
+  , os :: { name :: Maybe String, version :: Maybe String }
+  , cpu :: { architecture :: Maybe String }
+  }
+
+type UserAgentImpl =
+  { isBot :: Boolean
+  , ua :: String
+  , browser :: { name :: Nullable String, version :: Nullable String, major :: Nullable String }
+  , device :: { model :: Nullable String, "type" :: Nullable String, vendor :: Nullable String }
+  , engine :: { name :: Nullable String, version :: Nullable String }
+  , os :: { name :: Nullable String, version :: Nullable String }
+  , cpu :: { architecture :: Nullable String }
+  }
+
+foreign import userAgentImpl :: NextRequest -> UserAgentImpl
+
+userAgent :: NextRequest -> UserAgent
+userAgent = toResult <<< userAgentImpl
+  where
+  toResult raw =
+    { isBot: raw.isBot
+    , ua: raw.ua
+    , browser: { name: toMaybe raw.browser.name, version: toMaybe raw.browser.version, major: toMaybe raw.browser.major }
+    , device: { model: toMaybe raw.device.model, "type": toMaybe raw.device."type", vendor: toMaybe raw.device.vendor }
+    , engine: { name: toMaybe raw.engine.name, version: toMaybe raw.engine.version }
+    , os: { name: toMaybe raw.os.name, version: toMaybe raw.os.version }
+    , cpu: { architecture: toMaybe raw.cpu.architecture }
+    }
