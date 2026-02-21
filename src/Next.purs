@@ -50,6 +50,7 @@ module Next
 
 import Prelude
 
+import Control.Promise (Promise)
 import Control.Promise as Promise
 import Data.Either (Either(..))
 import Data.Maybe (Maybe)
@@ -57,6 +58,7 @@ import Data.Nullable (Nullable, toMaybe)
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Effect (Effect)
 import Effect.Aff (Aff)
+import Effect.Uncurried (mkEffectFn1, mkEffectFn2)
 import Foreign (Foreign)
 import Prim.Row as Row
 import Prim.Row (class Union)
@@ -154,8 +156,8 @@ foreign import data RawRecord :: Type
 
 foreign import _mapRecord :: forall rin rout. (forall x. Nullable x -> Maybe x) -> { | rin } -> { | rout }
 foreign import _getField :: String -> RawRecord -> String
-foreign import _mkHandler :: forall a b. a -> b
-foreign import _toPlainObject :: forall r. { | r } -> { | r }
+foreign import _unwrapPageProps :: forall r. { | r } -> Promise { params :: RawRecord, searchParams :: { | r } }
+foreign import _unwrapHandlerParams :: forall r. { | r } -> Promise RawRecord
 foreign import _linkComponent :: forall props. ReactComponent { | props }
 foreign import _imageComponent :: forall props. ReactComponent { | props }
 foreign import _scriptComponent :: forall props. ReactComponent { | props }
@@ -223,13 +225,15 @@ nextPage
   => { | ctx }
   -> Om.Om { | ctx } () ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> OmRender ctx Unit hooks JSX)
   -> Page path
-nextPage ctx om = unsafeCoerce $ Promise.fromAff do
+nextPage ctx om = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
+  unwrapped <- Promise.toAff (_unwrapPageProps rawProps)
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
     render <- om
-    omComponent (reflectSymbol (Proxy :: Proxy name)) \rawProps -> do
-      let params = parsePathFields (unsafeCoerce rawProps).params
-      let searchParams = _mapRecord toMaybe (unsafeCoerce rawProps).searchParams
+    component <- omComponent (reflectSymbol (Proxy :: Proxy name)) \_ -> do
+      let params = parsePathFields unwrapped.params
+      let searchParams = _mapRecord toMaybe unwrapped.searchParams
       render { params, searchParams }
+    createElement_ (unsafeCoerce component) {} # pure
 
 simpleMetadata
   :: forall path pathParams queryParams pathRL r
@@ -239,10 +243,11 @@ simpleMetadata
   => ParsePathFields pathRL pathParams
   => ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> { | r })
   -> Metadata path
-simpleMetadata f = unsafeCoerce $ Promise.fromAff $ pure \rawProps -> do
-  let params = parsePathFields (unsafeCoerce rawProps).params
-  let searchParams = _mapRecord toMaybe (unsafeCoerce rawProps).searchParams
-  f { params, searchParams }
+simpleMetadata f = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
+  unwrapped <- Promise.toAff (_unwrapPageProps rawProps)
+  let params = parsePathFields unwrapped.params
+  let searchParams = _mapRecord toMaybe unwrapped.searchParams
+  pure $ f { params, searchParams }
 
 simpleViewport
   :: forall path pathParams queryParams pathRL r
@@ -252,10 +257,11 @@ simpleViewport
   => ParsePathFields pathRL pathParams
   => ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> { | r })
   -> Viewport path
-simpleViewport f = unsafeCoerce $ Promise.fromAff $ pure \rawProps -> do
-  let params = parsePathFields (unsafeCoerce rawProps).params
-  let searchParams = _mapRecord toMaybe (unsafeCoerce rawProps).searchParams
-  f { params, searchParams }
+simpleViewport f = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
+  unwrapped <- Promise.toAff (_unwrapPageProps rawProps)
+  let params = parsePathFields unwrapped.params
+  let searchParams = _mapRecord toMaybe unwrapped.searchParams
+  pure $ f { params, searchParams }
 
 simpleStaticParams
   :: forall path pathParams pathRL
@@ -271,13 +277,15 @@ nextLayout
    . { | ctx }
   -> Om.Om { | ctx } () ({ children :: JSX } -> OmRender ctx Unit hooks JSX)
   -> Layout
-nextLayout ctx om = unsafeCoerce $ Promise.fromAff do
+nextLayout ctx om = unsafeCoerce $ mkEffectFn1 \props -> Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
     render <- om
-    omComponent "Layout" render
+    component <- omComponent "Layout" render
+    createElement_ (unsafeCoerce component) (unsafeCoerce props) # pure
 
 simpleTemplate :: forall path. ({ children :: ReactChildren JSX } -> JSX) -> Template path
-simpleTemplate render = unsafeCoerce $ Promise.fromAff $ pure render
+simpleTemplate render = unsafeCoerce $ mkEffectFn1 \props ->
+  Promise.fromAff $ pure (render (unsafeCoerce props))
 
 loading
   :: forall path name ctx hooks
@@ -286,10 +294,11 @@ loading
   => { | ctx }
   -> Om.Om { | ctx } () (Unit -> OmRender ctx Unit hooks JSX)
   -> Loading path
-loading ctx om = unsafeCoerce $ Promise.fromAff do
+loading ctx om = unsafeCoerce $ mkEffectFn1 \(_ :: forall r. { | r }) -> Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
     render <- om
-    omComponent (reflectSymbol (Proxy :: Proxy name)) render
+    component <- omComponent (reflectSymbol (Proxy :: Proxy name)) render
+    createElement_ (unsafeCoerce component) unit # pure
 
 notFound
   :: forall path name ctx hooks
@@ -298,10 +307,11 @@ notFound
   => { | ctx }
   -> Om.Om { | ctx } () (Unit -> OmRender ctx Unit hooks JSX)
   -> NotFound path
-notFound ctx om = unsafeCoerce $ Promise.fromAff do
+notFound ctx om = unsafeCoerce $ mkEffectFn1 \(_ :: forall r. { | r }) -> Promise.fromAff do
   Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
     render <- om
-    omComponent (reflectSymbol (Proxy :: Proxy name)) render
+    component <- omComponent (reflectSymbol (Proxy :: Proxy name)) render
+    createElement_ (unsafeCoerce component) unit # pure
 
 errorBoundary
   :: forall path name ctx hooks
@@ -338,8 +348,9 @@ simpleHandler
   => ParsePathFields pathRL pathParams
   => (NextRequest -> { | pathParams } -> Aff NextResponse)
   -> Foreign
-simpleHandler f = _mkHandler \request rawParams -> Promise.fromAff do
-  let params = parsePathFields (unsafeCoerce rawParams)
+simpleHandler f = unsafeCoerce $ mkEffectFn2 \request context -> Promise.fromAff do
+  rawParams <- Promise.toAff (_unwrapHandlerParams (unsafeCoerce context))
+  let params = parsePathFields rawParams
   f (unsafeCoerce request) params
 
 simpleGet :: forall path pathParams pathRL. SegmentPathParams path pathParams => RL.RowToList pathParams pathRL => ParsePathFields pathRL pathParams => (NextRequest -> { | pathParams } -> Aff NextResponse) -> GET path

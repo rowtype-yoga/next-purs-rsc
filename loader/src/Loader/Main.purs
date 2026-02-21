@@ -414,31 +414,10 @@ moduleToRoute appDir outputDir info = do
 generateTsx :: RouteInfo -> String
 generateTsx route = String.joinWith "\n" (lines <> [ "" ])
   where
-  lines = directiveLine <> contentLines <> metadataLines <> viewportLines <> staticParamsLines <> routeConfigLines
+  lines = directiveLine <> contentLines
 
   declName = kindToDeclName route.kind
-  localName = if isJsReserved declName then "_" <> declName else declName
-
-  configImports = if Array.null route.routeConfigs then "" else ", " <> String.joinWith ", " route.routeConfigs
-
-  namedImports
-    | route.kind == "handler" = String.joinWith ", " route.handlerMethods <> configImports
-    | otherwise = declName
-        <> (if route.hasMetadata then ", metadata" else "")
-        <> (if route.hasViewport then ", viewport" else "")
-        <> (if route.hasStaticParams then ", staticParams" else "")
-        <> configImports
-
-  extraNamedImports = (if route.hasMetadata then ", metadata" else "")
-    <> (if route.hasViewport then ", viewport" else "")
-    <> (if route.hasStaticParams then ", staticParams" else "")
-    <> configImports
-
-  importLine
-    | route.kind == "handler" = "import { " <> namedImports <> " } from " <> show route.relImport <> ";"
-    | isJsReserved declName && String.null extraNamedImports = "import " <> localName <> " from " <> show route.relImport <> ";"
-    | isJsReserved declName = "import " <> localName <> ", { " <> String.drop 2 extraNamedImports <> " } from " <> show route.relImport <> ";"
-    | otherwise = "import { " <> namedImports <> " } from " <> show route.relImport <> ";"
+  isClient = route.directive == Just "use client" || route.kind == "error" || route.kind == "globalError"
 
   directiveLine
     | route.kind == "error" || route.kind == "globalError" = [ show "use client" <> ";" ]
@@ -446,120 +425,59 @@ generateTsx route = String.joinWith "\n" (lines <> [ "" ])
         Just d -> [ show d <> ";" ]
         Nothing -> []
 
-  isClient = route.directive == Just "use client" || route.kind == "error" || route.kind == "globalError"
-
   contentLines
-    -- Handler: named exports for each HTTP method
+    -- Handler: re-export with method aliasing
     | route.kind == "handler" =
         [ marker
         , "// @ts-expect-error — PureScript output"
-        , importLine
-        ] <> handlerExports
-    -- Client page/default: unwrap params/searchParams with React.use()
-    | isClient && (route.kind == "page" || route.kind == "default") =
+        , "export { " <> handlerReExports <> configReExports <> " } from " <> show route.relImport <> ";"
+        ]
+    -- Error/GlobalError (always client): keep thunk + await pattern
+    | route.kind == "error" || route.kind == "globalError" =
         [ marker
         , "// @ts-expect-error — PureScript output"
-        , importLine
+        , "import { " <> declName <> " } from " <> show route.relImport <> ";"
+        , "export default await " <> declName <> "();"
+        ]
+    -- Client page/default: use() bridge
+    | isClient && (route.kind == "page" || route.kind == "default") = do
+        let localName = if isJsReserved declName then "_" <> declName else declName
+        let importPart = if isJsReserved declName
+              then "import " <> localName <> " from " <> show route.relImport <> ";"
+              else "import { " <> declName <> " } from " <> show route.relImport <> ";"
+        [ marker
+        , "// @ts-expect-error — PureScript output"
+        , importPart
         , "import { use } from \"react\";"
-        , "const _Component = await " <> localName <> "();"
-        , "export default function(props) {"
-        , "  const params = {...use(props.params)};"
-        , "  const searchParams = {...use(props.searchParams)};"
-        , "  return _Component({ params, searchParams });"
-        , "}"
+        , "export default function(props) { return use(" <> localName <> "(props)); }"
         ]
-    -- Client component: top-level await
-    | isClient =
+    -- Server components: pure re-export
+    | otherwise = do
+        let defaultExport = if declName == "default" then "default" else declName <> " as default"
+        let extraExports = metadataExport <> viewportExport <> staticParamsExport <> configExports
         [ marker
         , "// @ts-expect-error — PureScript output"
-        , importLine
-        , "export default await " <> localName <> "();"
-        ]
-    -- Page/Default: async server with params
-    | route.kind == "page" || route.kind == "default" =
-        [ marker
-        , "// @ts-expect-error — PureScript output"
-        , importLine
-        , "export default async function(props) {"
-        , "  const render = await " <> localName <> "();"
-        , "  const params = {...await (props.params ?? {})};"
-        , "  const searchParams = {...await (props.searchParams ?? {})};"
-        , "  return render({ params, searchParams });"
-        , "}"
-        ]
-    -- Loading/NotFound: await thunk, call component (no props)
-    | route.kind == "loading" || route.kind == "notFound" =
-        [ marker
-        , "// @ts-expect-error — PureScript output"
-        , importLine
-        , "export default async function() {"
-        , "  const render = await " <> localName <> "();"
-        , "  return render();"
-        , "}"
-        ]
-    -- Layout and other: async server, pass props through
-    | otherwise =
-        [ marker
-        , "// @ts-expect-error — PureScript output"
-        , importLine
-        , "export default async function(props) {"
-        , "  const render = await " <> localName <> "();"
-        , "  return render(props);"
-        , "}"
+        , "export { " <> defaultExport <> extraExports <> " } from " <> show route.relImport <> ";"
         ]
 
-  metadataLines
-    | not route.hasMetadata = []
-    | route.kind == "page" || route.kind == "default" =
-        [ "export async function generateMetadata(props) {"
-        , "  const meta = await metadata();"
-        , "  const params = {...await (props.params ?? {})};"
-        , "  const searchParams = {...await (props.searchParams ?? {})};"
-        , "  return meta({ params, searchParams });"
-        , "}"
-        ]
-    | otherwise =
-        [ "export async function generateMetadata(props) {"
-        , "  const meta = await metadata();"
-        , "  return meta(props);"
-        , "}"
-        ]
+  metadataExport
+    | route.hasMetadata = ", metadata as generateMetadata"
+    | otherwise = ""
 
-  viewportLines
-    | not route.hasViewport = []
-    | route.kind == "page" || route.kind == "default" =
-        [ "export async function generateViewport(props) {"
-        , "  const vp = await viewport();"
-        , "  const params = {...await (props.params ?? {})};"
-        , "  const searchParams = {...await (props.searchParams ?? {})};"
-        , "  return vp({ params, searchParams });"
-        , "}"
-        ]
-    | otherwise =
-        [ "export async function generateViewport(props) {"
-        , "  const vp = await viewport();"
-        , "  return vp(props);"
-        , "}"
-        ]
+  viewportExport
+    | route.hasViewport = ", viewport as generateViewport"
+    | otherwise = ""
 
-  staticParamsLines
-    | not route.hasStaticParams = []
-    | otherwise =
-        [ "export async function generateStaticParams() {"
-        , "  return staticParams();"
-        , "}"
-        ]
+  staticParamsExport
+    | route.hasStaticParams = ", staticParams as generateStaticParams"
+    | otherwise = ""
 
-  handlerExports = route.handlerMethods # Array.concatMap \method -> do
-    let exportName = methodToExportName method
-    [ "export async function " <> exportName <> "(request, context) {"
-    , "  const params = await (context.params ?? {});"
-    , "  return " <> method <> "()(request, params);"
-    , "}"
-    ]
+  configExports = route.routeConfigs # foldMap \name -> ", " <> name
 
-  routeConfigLines = route.routeConfigs # map \name ->
-    "export { " <> name <> " };"
+  configReExports = route.routeConfigs # foldMap \name -> ", " <> name
+
+  handlerReExports = String.joinWith ", " (route.handlerMethods # map \method ->
+    method <> " as " <> methodToExportName method)
 
 --------------------------------------------------------------------------------
 -- Helpers

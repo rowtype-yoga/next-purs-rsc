@@ -3,9 +3,4 @@
 // @ts-expect-error — PureScript output
 import { page } from "../output/Page.Home/index.js";
 import { use } from "react";
-const _Component = await page();
-export default function(props) {
-  const params = {...use(props.params)};
-  const searchParams = {...use(props.searchParams)};
-  return _Component({ params, searchParams });
-}
+export default function(props) { return use(page(props)); }

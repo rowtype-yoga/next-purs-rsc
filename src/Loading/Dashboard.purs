@@ -11,5 +11,5 @@ import Yoga.React.Om (pure) as Om
 loading :: Loading "dashboard"
 loading = Next.loading { message: "Loading dashboard..." } do
   msg <- Om.asks _.message
-  pure \_ -> Om.do
+  pure $ const Om.do
     Om.pure $ p {} msg

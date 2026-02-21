@@ -8,12 +8,13 @@ export const _mapRecord = f => r => new Proxy({}, {
 
 export const _getField = key => obj => obj[key];
 
-// Copy a Next.js Proxy (searchParams/params) to a plain object
-export const _toPlainObject = r => ({...r});
+// Unwrap Next.js Promise-wrapped params/searchParams proxies into plain objects
+export const _unwrapPageProps = async (props) => ({
+  params: {...await (props.params ?? {})},
+  searchParams: {...await (props.searchParams ?? {})}
+});
 
-// Wraps a curried PureScript handler (request => rawParams => Effect (Promise a))
-// into the shape expected by generated route wrappers: () => (request, rawParams) => Promise
-export const _mkHandler = f => () => (request, rawParams) => f(request)(rawParams)();
+export const _unwrapHandlerParams = async (context) => ({...await (context.params ?? {})});
 
 export { default as _linkComponent } from "next/link";
 export { default as _imageComponent } from "next/image";
