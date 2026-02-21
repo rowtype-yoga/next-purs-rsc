@@ -668,7 +668,26 @@
       "yoga-options": "0.1.0",
       "yoga-react": "1.0.1",
       "yoga-react-dom": {
-        "path": "../../code/purescript-yoga-react-dom"
+        "git": "https://github.com/rowtype-yoga/purescript-yoga-react-dom.git",
+        "ref": "v2.0.0",
+        "dependencies": [
+          "datetime",
+          "effect",
+          "forgetmenot",
+          "functions",
+          "nullable",
+          "prelude",
+          "react-basic",
+          "react-basic-hooks",
+          "record",
+          "type-equality",
+          "typelevel-prelude",
+          "unsafe-coerce",
+          "web-dom",
+          "web-events",
+          "web-html",
+          "web-touchevents"
+        ]
       },
       "yoga-react-om": {
         "path": "../purescript-yoga-react-om"
@@ -2286,8 +2305,9 @@
       ]
     },
     "yoga-react-dom": {
-      "type": "local",
-      "path": "../../code/purescript-yoga-react-dom",
+      "type": "git",
+      "url": "https://github.com/rowtype-yoga/purescript-yoga-react-dom.git",
+      "rev": "84d81fc328bbd06a857a6817a51f54851f8320ff",
       "dependencies": [
         "datetime",
         "effect",
