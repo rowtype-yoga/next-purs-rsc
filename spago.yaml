@@ -19,6 +19,7 @@ package:
     - yoga-http-api
     - yoga-om
     - yoga-react
+    - untagged-union
     - yoga-react-dom
     - yoga-react-om
   build:

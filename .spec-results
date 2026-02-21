@@ -2,77 +2,77 @@
   [
     "detectDirective comment @client",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "detectDirective comment @server",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "detectDirective convention .Client suffix",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "detectDirective convention .Server suffix",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "detectDirective convention Actions. prefix",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "detectDirective no directive",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "detectKind Default",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "detectKind Handler",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "detectKind Layout",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "detectKind Page",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "detectKind unknown",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
@@ -86,259 +86,259 @@
   [
     "extractJsonField extracts field with space after colon",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractJsonField extracts field with space before colon",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractJsonField returns Nothing for missing field",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractJsonField returns Nothing for non-string value",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractModule dotted module name",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractModule non-matching path",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractModule unix path",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractModule windows path",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractModuleName module with exports",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractModuleName no module declaration",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractModuleName simple module",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType Default type",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType ErrorBoundary type",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType GET type",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType GlobalError type",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType Layout has no type arg",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType Loading type",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType NotFound type",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType Nothing for non-matching decl",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType Root",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType Template type",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType catch-all segment",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType dynamic segment",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType mixed static and dynamic",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType nested static segments",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType optional catch-all segment",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType query params are ignored for segments",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "extractPageType static segment",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "findHandlerMethods finds GET method",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "findHandlerMethods finds delete_ method",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "findHandlerMethods finds multiple methods",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "findHandlerMethods finds no methods in non-handler",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "findRouteConfigDecls finds dynamic config",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "findRouteConfigDecls finds multiple configs",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "findRouteConfigDecls finds no configs in regular module",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateMiddleware middleware",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateMiddleware middleware-no-config",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
@@ -359,21 +359,21 @@
   [
     "generateTsx client-page",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateTsx default",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateTsx error",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
@@ -387,21 +387,21 @@
   [
     "generateTsx global-error",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateTsx handler",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateTsx handler-delete",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
@@ -422,7 +422,7 @@
   [
     "generateTsx layout",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
@@ -443,21 +443,21 @@
   [
     "generateTsx layout-metadata",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateTsx layout-viewport",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateTsx loading",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
@@ -478,14 +478,14 @@
   [
     "generateTsx nested-page",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateTsx not-found",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
@@ -499,14 +499,14 @@
   [
     "generateTsx page-with-config",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateTsx route-group-page",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
@@ -541,469 +541,469 @@
   [
     "generateTsx server-directive-page",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateTsx server-page",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateTsx server-page-metadata",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateTsx server-page-viewport",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateTsx slot-page",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateTsx static-params-page",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "generateTsx template",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "hasConfigDecl detects config signature",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "hasConfigDecl false when no config",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "hasMetadataDecl detects metadata signature",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "hasMetadataDecl false on parse failure",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "hasMetadataDecl false when metadata is a value binding without signature",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "hasMetadataDecl false when no metadata signature",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "hasStaticParamsDecl detects staticParams signature",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "hasStaticParamsDecl false when no staticParams signature",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "hasStaticParamsDecl false when staticParams is a value binding without signature",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "hasViewportDecl detects viewport signature",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "hasViewportDecl false when no viewport signature",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "hasViewportDecl false when viewport is a value binding without signature",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToDeclName default",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToDeclName error",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToDeclName globalError",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToDeclName layout",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToDeclName notFound",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToDeclName page",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToDeclName template",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToFileName error",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToFileName globalError",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToFileName handler",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToFileName layout",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToFileName loading",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToFileName notFound",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToFileName page",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "kindToFileName template",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "methodToExportName delete_ -> DELETE",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "methodToExportName get -> GET",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "methodToExportName head_ -> HEAD",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "methodToExportName post -> POST",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "modulePathSegments intercept root",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "modulePathSegments intercept same level",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "modulePathSegments intercept up",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "modulePathSegments multiple group segments",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "modulePathSegments no group segments",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "modulePathSegments non-trailing underscore ignored",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "modulePathSegments single group segment",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute client page never has metadata",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute client page never has viewport",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute default page",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute globalError always client never metadata",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute handler with GET and POST",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute intercepting route same level",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute layout with metadata",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute loading never has metadata",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute page with metadata",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute page with route config",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute page with staticParams",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute page with viewport",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute page without metadata",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute returns Nothing for non-route module",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute route group page",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute slot page",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "moduleToRoute template with metadata",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "segmentsToNextPath catch-all",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "segmentsToNextPath dynamic",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "segmentsToNextPath mixed segments",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "segmentsToNextPath optional catch-all",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],
   [
     "segmentsToNextPath static",
     {
-      "timestamp": "1771702481394.0",
+      "timestamp": "1771703111706.0",
       "success": true
     }
   ],

@@ -1,4 +1,4 @@
-import { userAgent } from "next/server";
+import { userAgent as _userAgent } from "next/server";
 
 // NextRequest accessors
 export const requestMethodImpl = r => r.method;
@@ -26,7 +26,7 @@ export const requestTextImpl = (r) => r.text();
 export const requestFormDataImpl = (r) => r.formData();
 
 // userAgent
-export const userAgentImpl = (r) => userAgent({ headers: r.headers });
+export const userAgent = (r) => _userAgent({ headers: r.headers });
 
 // RequestCookies accessors
 export const requestCookiesGetImpl = (c, name) => c.get(name) ?? null;

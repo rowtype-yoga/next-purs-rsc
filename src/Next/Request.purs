@@ -46,6 +46,7 @@ import Foreign (Foreign)
 import Next (NextRequest)
 import Next.Action (FormData)
 import Next.Headers (Headers, CookieName, Cookie)
+import Untagged.Union (UndefinedOr)
 
 foreign import data NextUrl :: Type
 foreign import data RequestCookies :: Type
@@ -147,35 +148,11 @@ requestCookiesHas = runFn2 requestCookiesHasImpl
 type UserAgent =
   { isBot :: Boolean
   , ua :: String
-  , browser :: { name :: Maybe String, version :: Maybe String, major :: Maybe String }
-  , device :: { model :: Maybe String, "type" :: Maybe String, vendor :: Maybe String }
-  , engine :: { name :: Maybe String, version :: Maybe String }
-  , os :: { name :: Maybe String, version :: Maybe String }
-  , cpu :: { architecture :: Maybe String }
+  , browser :: { name :: UndefinedOr String, version :: UndefinedOr String, major :: UndefinedOr String }
+  , device :: { model :: UndefinedOr String, "type" :: UndefinedOr String, vendor :: UndefinedOr String }
+  , engine :: { name :: UndefinedOr String, version :: UndefinedOr String }
+  , os :: { name :: UndefinedOr String, version :: UndefinedOr String }
+  , cpu :: { architecture :: UndefinedOr String }
   }
 
-type UserAgentImpl =
-  { isBot :: Boolean
-  , ua :: String
-  , browser :: { name :: Nullable String, version :: Nullable String, major :: Nullable String }
-  , device :: { model :: Nullable String, "type" :: Nullable String, vendor :: Nullable String }
-  , engine :: { name :: Nullable String, version :: Nullable String }
-  , os :: { name :: Nullable String, version :: Nullable String }
-  , cpu :: { architecture :: Nullable String }
-  }
-
-foreign import userAgentImpl :: NextRequest -> UserAgentImpl
-
-userAgent :: NextRequest -> UserAgent
-userAgent = toResult <<< userAgentImpl
-  where
-  m = toMaybe
-  toResult raw =
-    { isBot: raw.isBot
-    , ua: raw.ua
-    , browser: { name: m raw.browser.name, version: m raw.browser.version, major: m raw.browser.major }
-    , device: { model: m raw.device.model, "type": m raw.device."type", vendor: m raw.device.vendor }
-    , engine: { name: m raw.engine.name, version: m raw.engine.version }
-    , os: { name: m raw.os.name, version: m raw.os.version }
-    , cpu: { architecture: m raw.cpu.architecture }
-    }
+foreign import userAgent :: NextRequest -> UserAgent
