@@ -169,12 +169,13 @@ foreign import userAgentImpl :: NextRequest -> UserAgentImpl
 userAgent :: NextRequest -> UserAgent
 userAgent = toResult <<< userAgentImpl
   where
+  m = toMaybe
   toResult raw =
     { isBot: raw.isBot
     , ua: raw.ua
-    , browser: { name: toMaybe raw.browser.name, version: toMaybe raw.browser.version, major: toMaybe raw.browser.major }
-    , device: { model: toMaybe raw.device.model, "type": toMaybe raw.device."type", vendor: toMaybe raw.device.vendor }
-    , engine: { name: toMaybe raw.engine.name, version: toMaybe raw.engine.version }
-    , os: { name: toMaybe raw.os.name, version: toMaybe raw.os.version }
-    , cpu: { architecture: toMaybe raw.cpu.architecture }
+    , browser: { name: m raw.browser.name, version: m raw.browser.version, major: m raw.browser.major }
+    , device: { model: m raw.device.model, "type": m raw.device."type", vendor: m raw.device.vendor }
+    , engine: { name: m raw.engine.name, version: m raw.engine.version }
+    , os: { name: m raw.os.name, version: m raw.os.version }
+    , cpu: { architecture: m raw.cpu.architecture }
     }
