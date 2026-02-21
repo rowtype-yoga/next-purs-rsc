@@ -227,7 +227,7 @@ nextPage
   -> Page path
 nextPage ctx om = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
   unwrapped <- Promise.toAff (_unwrapPageProps rawProps)
-  Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+  Om.runOm ctx { exception: \_ -> pure (mempty :: JSX) } do
     render <- om
     component <- omComponent (reflectSymbol (Proxy :: Proxy name)) \_ -> do
       let params = parsePathFields unwrapped.params
@@ -278,7 +278,7 @@ nextLayout
   -> Om.Om { | ctx } () ({ children :: JSX } -> OmRender ctx Unit hooks JSX)
   -> Layout
 nextLayout ctx om = unsafeCoerce $ mkEffectFn1 \props -> Promise.fromAff do
-  Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+  Om.runOm ctx { exception: \_ -> pure (mempty :: JSX) } do
     render <- om
     component <- omComponent "Layout" render
     createElement_ (unsafeCoerce component) (unsafeCoerce props) # pure
@@ -295,7 +295,7 @@ loading
   -> Om.Om { | ctx } () (Unit -> OmRender ctx Unit hooks JSX)
   -> Loading path
 loading ctx om = unsafeCoerce $ mkEffectFn1 \(_ :: forall r. { | r }) -> Promise.fromAff do
-  Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+  Om.runOm ctx { exception: \_ -> pure (mempty :: JSX) } do
     render <- om
     component <- omComponent (reflectSymbol (Proxy :: Proxy name)) render
     createElement_ (unsafeCoerce component) unit # pure
@@ -308,7 +308,7 @@ notFound
   -> Om.Om { | ctx } () (Unit -> OmRender ctx Unit hooks JSX)
   -> NotFound path
 notFound ctx om = unsafeCoerce $ mkEffectFn1 \(_ :: forall r. { | r }) -> Promise.fromAff do
-  Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+  Om.runOm ctx { exception: \_ -> pure (mempty :: JSX) } do
     render <- om
     component <- omComponent (reflectSymbol (Proxy :: Proxy name)) render
     createElement_ (unsafeCoerce component) unit # pure
