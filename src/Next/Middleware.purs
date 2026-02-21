@@ -3,8 +3,6 @@ module Next.Middleware
   , MiddlewareConfig
   ) where
 
-import Prelude
-
 import Control.Promise as Promise
 import Effect.Aff (Aff)
 import Foreign (Foreign)

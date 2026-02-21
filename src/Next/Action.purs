@@ -18,6 +18,7 @@ import Data.Maybe (Maybe(..))
 import Data.Nullable (Nullable, toMaybe)
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Effect.Aff (Aff)
+import Effect.Uncurried (mkEffectFn1, mkEffectFn2)
 import Partial.Unsafe (unsafeCrashWith)
 import Prim.Row as Row
 import Prim.RowList as RL
@@ -44,8 +45,6 @@ foreign import data FormDispatch :: Type
 -- FFI
 --------------------------------------------------------------------------------
 
-foreign import _mkServerAction :: forall a b. a -> b
-foreign import _mkFormAction :: forall a b. a -> b
 foreign import _getFormField :: Fn2 String FormData (Nullable String)
 
 --------------------------------------------------------------------------------
@@ -89,9 +88,7 @@ parseFormFields fd = Builder.buildFromScratch (buildParsedForm (Proxy :: Proxy r
 --------------------------------------------------------------------------------
 
 serverAction :: forall input output. (input -> Aff output) -> ServerAction input output
-serverAction f = unsafeCoerce $ _mkServerAction handler
-  where
-  handler input = Promise.fromAff (f input)
+serverAction f = unsafeCoerce $ mkEffectFn1 \input -> Promise.fromAff (f input)
 
 formAction
   :: forall @fields state fieldsRL
@@ -99,9 +96,6 @@ formAction
   => ParseFormFields fieldsRL fields
   => (state -> { | fields } -> Aff state)
   -> FormAction state fields
-formAction f = unsafeCoerce $ _mkFormAction handler
-  where
-  handler prevState fd = do
-    let parsed = parseFormFields fd
-    Promise.fromAff (f prevState parsed)
+formAction f = unsafeCoerce $ mkEffectFn2 \prevState fd ->
+  Promise.fromAff (f prevState (parseFormFields fd))
 
