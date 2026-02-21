@@ -45,19 +45,19 @@ foreign import _useParamsImpl :: Effect Params
 foreign import _useSelectedLayoutSegmentImpl :: Effect (Nullable String)
 foreign import _useSelectedLayoutSegmentsImpl :: Effect (Array String)
 
-foreign import _routerPush :: EffectFn2 RouterImpl String Unit
-foreign import _routerReplace :: EffectFn2 RouterImpl String Unit
-foreign import _routerRefresh :: EffectFn1 RouterImpl Unit
-foreign import _routerPrefetch :: EffectFn2 RouterImpl String Unit
-foreign import _routerBack :: EffectFn1 RouterImpl Unit
-foreign import _routerForward :: EffectFn1 RouterImpl Unit
+foreign import _routerPushImpl :: EffectFn2 RouterImpl String Unit
+foreign import _routerReplaceImpl :: EffectFn2 RouterImpl String Unit
+foreign import _routerRefreshImpl :: EffectFn1 RouterImpl Unit
+foreign import _routerPrefetchImpl :: EffectFn2 RouterImpl String Unit
+foreign import _routerBackImpl :: EffectFn1 RouterImpl Unit
+foreign import _routerForwardImpl :: EffectFn1 RouterImpl Unit
 
-foreign import _searchParamsGet :: EffectFn2 SearchParams String (Nullable String)
-foreign import _searchParamsGetAll :: EffectFn2 SearchParams String (Array String)
-foreign import _searchParamsHas :: EffectFn2 SearchParams String Boolean
-foreign import _searchParamsToString :: EffectFn1 SearchParams String
+foreign import _searchParamsGetImpl :: EffectFn2 SearchParams String (Nullable String)
+foreign import _searchParamsGetAllImpl :: EffectFn2 SearchParams String (Array String)
+foreign import _searchParamsHasImpl :: EffectFn2 SearchParams String Boolean
+foreign import _searchParamsToStringImpl :: EffectFn1 SearchParams String
 
-foreign import _paramsGet :: EffectFn2 Params String (Nullable String)
+foreign import _paramsGetImpl :: EffectFn2 Params String (Nullable String)
 
 
 --------------------------------------------------------------------------------
@@ -79,12 +79,12 @@ useRouter :: Hook UseRouter Router
 useRouter = unsafeHook do
   impl <- _useRouterImpl
   pure
-    { push: \route -> runEffectFn2 _routerPush impl (toPath route)
-    , replace: \route -> runEffectFn2 _routerReplace impl (toPath route)
-    , refresh: runEffectFn1 _routerRefresh impl
-    , prefetch: \route -> runEffectFn2 _routerPrefetch impl (toPath route)
-    , back: runEffectFn1 _routerBack impl
-    , forward: runEffectFn1 _routerForward impl
+    { push: \route -> runEffectFn2 _routerPushImpl impl (toPath route)
+    , replace: \route -> runEffectFn2 _routerReplaceImpl impl (toPath route)
+    , refresh: runEffectFn1 _routerRefreshImpl impl
+    , prefetch: \route -> runEffectFn2 _routerPrefetchImpl impl (toPath route)
+    , back: runEffectFn1 _routerBackImpl impl
+    , forward: runEffectFn1 _routerForwardImpl impl
     }
 
 --------------------------------------------------------------------------------
@@ -106,16 +106,16 @@ useSearchParams :: Hook UseSearchParams SearchParams
 useSearchParams = unsafeHook _useSearchParamsImpl
 
 searchParamsGet :: SearchParams -> String -> Effect (Maybe String)
-searchParamsGet sp key = toMaybe <$> runEffectFn2 _searchParamsGet sp key
+searchParamsGet sp key = toMaybe <$> runEffectFn2 _searchParamsGetImpl sp key
 
 searchParamsGetAll :: SearchParams -> String -> Effect (Array String)
-searchParamsGetAll sp key = runEffectFn2 _searchParamsGetAll sp key
+searchParamsGetAll sp key = runEffectFn2 _searchParamsGetAllImpl sp key
 
 searchParamsHas :: SearchParams -> String -> Effect Boolean
-searchParamsHas sp key = runEffectFn2 _searchParamsHas sp key
+searchParamsHas sp key = runEffectFn2 _searchParamsHasImpl sp key
 
 searchParamsToString :: SearchParams -> Effect String
-searchParamsToString sp = runEffectFn1 _searchParamsToString sp
+searchParamsToString sp = runEffectFn1 _searchParamsToStringImpl sp
 
 --------------------------------------------------------------------------------
 -- useParams
@@ -127,7 +127,7 @@ useParams :: Hook UseParams Params
 useParams = unsafeHook _useParamsImpl
 
 paramsGet :: Params -> String -> Effect (Maybe String)
-paramsGet p key = toMaybe <$> runEffectFn2 _paramsGet p key
+paramsGet p key = toMaybe <$> runEffectFn2 _paramsGetImpl p key
 
 --------------------------------------------------------------------------------
 -- useSelectedLayoutSegment(s)
