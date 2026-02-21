@@ -11,8 +11,7 @@ import Effect.Class (liftEffect)
 import Next (Page, nextPage)
 import React.Basic.Events (handler_)
 import Next.Action.Client (callServerAction, useActionState', useFormStatus')
-import Unsafe.Coerce (unsafeCoerce)
-import Yoga.React.DOM (button, div, form, h1, h2, input, label, p)
+import Yoga.React.DOM (button, div, form, h1, h2, handlerAction, input, label, p)
 import Yoga.React.Om (omComponent)
 import Yoga.React.Om as Om
 
@@ -29,7 +28,7 @@ page = nextPage {} do
       [ h1 {} "Server Actions"
       , h2 {} "Form Action"
       , p {} $ "Counter: " <> show count
-      , form { action: unsafeCoerce dispatch }
+      , form { action: handlerAction dispatch }
           [ label {} "Step: "
           , input { type: "number", name: "step", defaultValue: "1" }
           , submitBtn {}
