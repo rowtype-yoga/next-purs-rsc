@@ -1,5 +1,5 @@
 // NextRequest accessors
-export const requestMethod = r => r.method;
+export const requestMethodImpl = r => r.method;
 export const requestUrl = r => r.url;
 export const requestNextUrl = r => r.nextUrl;
 export const requestHeaders = r => r.headers;

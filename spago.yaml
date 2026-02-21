@@ -5,6 +5,7 @@ package:
     - prelude
     - effect
     - console
+    - http-methods
     - js-timers
     - heterogeneous
     - maybe

@@ -8,7 +8,7 @@ import Effect.Class (liftEffect)
 import Next (GET, POST, type (/))
 import Next (get, post) as Next
 import Next.Headers (HeaderName(..), HeaderValue(..), CookieName(..), CookieValue(..), cookies, cookiesSet, cookiesDelete)
-import Next.Request (requestMethod, requestUrl, requestNextUrl, nextUrlPathname, nextUrlOrigin, nextUrlHost, nextUrlProtocol, requestIp, requestGeo, requestCookies, requestCookiesGetAll, requestCookiesHas, requestText)
+import Next.Request (requestMethod, requestUrl, requestNextUrl, nextUrlPathname, nextUrlOrigin, nextUrlHost, nextUrlProtocol, requestIp, requestGeo, requestCookies, requestCookiesGetAll, requestCookiesHas, requestText, print)
 import Next.Response (json, text, withHeader, withCookie)
 
 get :: GET ("api" / "demo")
@@ -17,7 +17,7 @@ get = Next.get \req _ -> do
   let rc = requestCookies req
   let
     body =
-      { method: requestMethod req
+      { method: print (requestMethod req)
       , url: requestUrl req
       , pathname: nextUrlPathname nurl
       , origin: nextUrlOrigin nurl

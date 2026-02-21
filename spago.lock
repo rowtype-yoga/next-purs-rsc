@@ -9,6 +9,7 @@
             "console",
             "effect",
             "heterogeneous",
+            "http-methods",
             "js-timers",
             "maybe",
             "nullable",
@@ -1174,6 +1175,16 @@
         "record",
         "tuples",
         "variant"
+      ]
+    },
+    "http-methods": {
+      "type": "registry",
+      "version": "6.0.0",
+      "integrity": "sha256-S0UjrJSgwJxEsFHM/pX77dM8V4HfvvDqdHPckQrtxMs=",
+      "dependencies": [
+        "either",
+        "prelude",
+        "strings"
       ]
     },
     "identity": {

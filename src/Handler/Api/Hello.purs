@@ -12,7 +12,7 @@ import Next.Response (json)
 import Next.Cache (RevalidationType(..), revalidatePath, revalidateTag)
 import Next.Headers (HeaderName(..), HeaderValue(..), CookieName(..), cookies, cookiesGet, cookiesGetAll, cookiesHas, headers, headersGet, headersHas)
 import Next.Navigation.Server (redirect, permanentRedirect, triggerNotFound)
-import Next.Request (requestMethod, requestUrl)
+import Next.Request (requestMethod, requestUrl, print)
 import Route (Route(..))
 
 jsonOk :: forall r. { | r } -> Aff NextResponse
@@ -20,7 +20,7 @@ jsonOk body = pure $ json body {}
 
 get :: GET ("api" / "hello")
 get = Next.get \req _ -> do
-  let method = requestMethod req
+  let method = print (requestMethod req)
   let url = requestUrl req
   h <- headers
   userAgent <- headersGet h (HeaderName "user-agent") # liftEffect

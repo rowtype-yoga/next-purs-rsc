@@ -1,5 +1,6 @@
 module Next.Request
   ( module Next
+  , module Method
   , requestMethod
   , requestUrl
   , requestNextUrl
@@ -32,7 +33,9 @@ import Prelude
 
 import Control.Promise (Promise)
 import Control.Promise as Promise
+import Data.Either (Either)
 import Data.Function.Uncurried (Fn2, runFn2)
+import Data.HTTP.Method (Method, CustomMethod, fromString, print) as Method
 import Data.Maybe (Maybe)
 import Data.Nullable (Nullable, toMaybe)
 import Effect.Aff (Aff)
@@ -62,7 +65,10 @@ type GeoImpl =
 -- NextRequest accessors
 --------------------------------------------------------------------------------
 
-foreign import requestMethod :: NextRequest -> String
+foreign import requestMethodImpl :: NextRequest -> String
+
+requestMethod :: NextRequest -> Either Method.Method Method.CustomMethod
+requestMethod = Method.fromString <<< requestMethodImpl
 foreign import requestUrl :: NextRequest -> String
 foreign import requestNextUrl :: NextRequest -> NextUrl
 foreign import requestHeaders :: NextRequest -> Headers
