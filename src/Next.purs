@@ -156,8 +156,8 @@ foreign import data RawRecord :: Type
 
 foreign import _mapRecord :: forall rin rout. (forall x. Nullable x -> Maybe x) -> { | rin } -> { | rout }
 foreign import _getField :: String -> RawRecord -> String
-foreign import _unwrapPageProps :: forall r. { | r } -> Promise { params :: RawRecord, searchParams :: { | r } }
-foreign import _unwrapHandlerParams :: forall r. { | r } -> Promise RawRecord
+foreign import unwrapPagePropsImpl :: forall r. { | r } -> Promise { params :: RawRecord, searchParams :: { | r } }
+foreign import unwrapHandlerParamsImpl :: forall r. { | r } -> Promise RawRecord
 foreign import _linkComponent :: forall props. ReactComponent { | props }
 foreign import _imageComponent :: forall props. ReactComponent { | props }
 foreign import _scriptComponent :: forall props. ReactComponent { | props }
@@ -226,7 +226,7 @@ nextPage
   -> Om.Om { | ctx } () ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> OmRender ctx Unit hooks JSX)
   -> Page path
 nextPage ctx om = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
-  unwrapped <- Promise.toAff (_unwrapPageProps rawProps)
+  unwrapped <- Promise.toAff (unwrapPagePropsImpl rawProps)
   Om.runOm ctx { exception: \_ -> pure (mempty :: JSX) } do
     render <- om
     component <- omComponent (reflectSymbol (Proxy :: Proxy name)) \_ -> do
@@ -244,7 +244,7 @@ simpleMetadata
   => ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> { | r })
   -> Metadata path
 simpleMetadata f = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
-  unwrapped <- Promise.toAff (_unwrapPageProps rawProps)
+  unwrapped <- Promise.toAff (unwrapPagePropsImpl rawProps)
   let params = parsePathFields unwrapped.params
   let searchParams = _mapRecord toMaybe unwrapped.searchParams
   pure $ f { params, searchParams }
@@ -258,7 +258,7 @@ simpleViewport
   => ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> { | r })
   -> Viewport path
 simpleViewport f = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
-  unwrapped <- Promise.toAff (_unwrapPageProps rawProps)
+  unwrapped <- Promise.toAff (unwrapPagePropsImpl rawProps)
   let params = parsePathFields unwrapped.params
   let searchParams = _mapRecord toMaybe unwrapped.searchParams
   pure $ f { params, searchParams }
@@ -288,7 +288,7 @@ simpleTemplate render = unsafeCoerce $ mkEffectFn1 \props ->
   Promise.fromAff $ pure (render (unsafeCoerce props))
 
 loading
-  :: forall path name ctx hooks
+  :: forall @path name ctx hooks
    . FirstSegment path name
   => IsSymbol name
   => { | ctx }
@@ -349,7 +349,7 @@ simpleHandler
   => (NextRequest -> { | pathParams } -> Aff NextResponse)
   -> Foreign
 simpleHandler f = unsafeCoerce $ mkEffectFn2 \request context -> Promise.fromAff do
-  rawParams <- Promise.toAff (_unwrapHandlerParams (unsafeCoerce context))
+  rawParams <- Promise.toAff (unwrapHandlerParamsImpl (unsafeCoerce context))
   let params = parsePathFields rawParams
   f (unsafeCoerce request) params
 
@@ -392,7 +392,10 @@ link
    . IsJSX kids
   => Union props rest LinkOptionalProps
   => Row.Lacks "href" props
-  => Route -> { | props } -> kids -> JSX
+  => Route
+  -> { | props }
+  -> kids
+  -> JSX
 link route props children =
   createElement _linkComponent (Record.insert (Proxy :: Proxy "href") (toPath route) props) children
 
@@ -435,7 +438,10 @@ script
    . Union opt rest ScriptOptionalProps
   => Row.Lacks "src" opt
   => Row.Lacks "strategy" opt
-  => String -> ScriptStrategy -> { | opt } -> JSX
+  => String
+  -> ScriptStrategy
+  -> { | opt }
+  -> JSX
 script src strategy props = do
   let
     full = Record.insert (Proxy :: Proxy "src") src

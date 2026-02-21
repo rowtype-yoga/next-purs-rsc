@@ -8,13 +8,12 @@ export const _mapRecord = f => r => new Proxy({}, {
 
 export const _getField = key => obj => obj[key];
 
-// Unwrap Next.js Promise-wrapped params/searchParams proxies into plain objects
-export const _unwrapPageProps = async (props) => ({
+export const unwrapPagePropsImpl = async (props) => ({
   params: {...await (props.params ?? {})},
   searchParams: {...await (props.searchParams ?? {})}
 });
 
-export const _unwrapHandlerParams = async (context) => ({...await (context.params ?? {})});
+export const unwrapHandlerParamsImpl = async (context) => ({...await (context.params ?? {})});
 
 export { default as _linkComponent } from "next/link";
 export { default as _imageComponent } from "next/image";

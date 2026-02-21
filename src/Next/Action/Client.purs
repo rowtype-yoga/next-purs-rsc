@@ -25,6 +25,7 @@ import Yoga.React.Om (OmRender, liftRender)
 foreign import data UseActionState :: Row Type -> Type -> Type -> Type
 
 foreign import useActionStateImpl :: forall action state. EffectFn2 action state { state :: state, dispatch :: FormDispatch, isPending :: Boolean }
+
 useActionState
   :: forall state fields
    . FormAction state fields
@@ -42,6 +43,7 @@ useActionState' action initialState = liftRender (useActionState action initialS
 foreign import data UseFormStatus :: Type -> Type
 
 foreign import useFormStatusImpl :: Effect { pending :: Boolean }
+
 useFormStatus :: Hook UseFormStatus { pending :: Boolean }
 useFormStatus = unsafeHook useFormStatusImpl
 
@@ -51,6 +53,7 @@ useFormStatus'
 useFormStatus' = liftRender useFormStatus
 
 foreign import callServerActionImpl :: forall action input output. EffectFn2 action input (Promise.Promise output)
+
 callServerAction :: forall input output. ServerAction input output -> input -> Aff output
 callServerAction action input = runEffectFn2 callServerActionImpl action input # Promise.toAffE
 
