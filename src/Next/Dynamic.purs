@@ -6,7 +6,7 @@ import Control.Promise (Promise)
 import Control.Promise as Promise
 import Data.Function.Uncurried (Fn2, runFn2)
 import Effect (Effect)
-import Effect.Aff (Aff)
+import Effect.Aff (Aff, throwError)
 import Prim.Row as Row
 import React.Basic (JSX, ReactComponent)
 import Unsafe.Coerce (unsafeCoerce)
@@ -61,6 +61,6 @@ omDynamic
   -> ReactComponent props
 omDynamic ctx name opts om = dynamic (unsafeCoerce loader) opts
   where
-  loader = Om.runOm ctx { exception: \_ -> pure (\_ -> mempty :: JSX) } do
+  loader = Om.runOm ctx { exception: throwError } do
     render <- om
     omComponent name render
