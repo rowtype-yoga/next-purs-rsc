@@ -9,6 +9,7 @@
             "console",
             "effect",
             "heterogeneous",
+            "js-timers",
             "maybe",
             "nullable",
             "prelude",
@@ -666,7 +667,9 @@
       },
       "yoga-options": "0.1.0",
       "yoga-react": "1.0.1",
-      "yoga-react-dom": "1.0.3",
+      "yoga-react-dom": {
+        "path": "../../code/purescript-yoga-react-dom"
+      },
       "yoga-react-om": {
         "path": "../purescript-yoga-react-om"
       }
@@ -987,25 +990,6 @@
         "prelude"
       ]
     },
-    "filterable": {
-      "type": "registry",
-      "version": "5.0.0",
-      "integrity": "sha256-be7ci1Bzwud2waqoCtNGsTBZbt7fi+gCLvGddQQRJ3A=",
-      "dependencies": [
-        "arrays",
-        "control",
-        "either",
-        "foldable-traversable",
-        "identity",
-        "lists",
-        "maybe",
-        "newtype",
-        "ordered-collections",
-        "prelude",
-        "st",
-        "tuples"
-      ]
-    },
     "foldable-traversable": {
       "type": "registry",
       "version": "6.0.0",
@@ -1171,35 +1155,6 @@
         "record",
         "tuples",
         "variant"
-      ]
-    },
-    "hyrule": {
-      "type": "registry",
-      "version": "2.3.8",
-      "integrity": "sha256-W9M8uvHbfEuI8O2+nJ0pA9m0riQiZWTue9ddfwz1EJI=",
-      "dependencies": [
-        "arrays",
-        "control",
-        "datetime",
-        "effect",
-        "either",
-        "filterable",
-        "foldable-traversable",
-        "js-timers",
-        "maybe",
-        "newtype",
-        "now",
-        "ordered-collections",
-        "prelude",
-        "record",
-        "refs",
-        "st",
-        "tuples",
-        "unsafe-coerce",
-        "unsafe-reference",
-        "web-events",
-        "web-html",
-        "web-uievents"
       ]
     },
     "identity": {
@@ -1805,15 +1760,6 @@
         "unsafe-coerce"
       ]
     },
-    "ref-lifted": {
-      "type": "local",
-      "path": "../purescript-ref-lifted",
-      "dependencies": [
-        "effect",
-        "prelude",
-        "refs"
-      ]
-    },
     "refs": {
       "type": "registry",
       "version": "6.0.0",
@@ -2340,9 +2286,8 @@
       ]
     },
     "yoga-react-dom": {
-      "type": "registry",
-      "version": "1.0.3",
-      "integrity": "sha256-OY4SLzEX5l3y1hM9CGYLTXSBHmUdnQTU8SHjBWHVMDI=",
+      "type": "local",
+      "path": "../../code/purescript-yoga-react-dom",
       "dependencies": [
         "datetime",
         "effect",
@@ -2367,16 +2312,13 @@
       "path": "../purescript-yoga-react-om",
       "dependencies": [
         "effect",
-        "hyrule",
         "indexed-monad",
         "maybe",
         "newtype",
         "prelude",
         "react-basic",
         "react-basic-hooks",
-        "ref-lifted",
         "refs",
-        "st",
         "tuples",
         "type-equality",
         "unsafe-coerce",

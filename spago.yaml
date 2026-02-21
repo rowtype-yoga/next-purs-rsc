@@ -5,6 +5,7 @@ package:
     - prelude
     - effect
     - console
+    - js-timers
     - heterogeneous
     - maybe
     - nullable
@@ -33,7 +34,8 @@ workspace:
     registry: 73.1.0
   extraPackages:
     yoga-react: "1.0.1"
-    yoga-react-dom: "1.0.3"
+    yoga-react-dom:
+      path: ../../code/purescript-yoga-react-dom
     yoga-http-api:
       path: ../../code/purescript-yoga-http-api
     yoga-options: "0.1.0"

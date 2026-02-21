@@ -19,6 +19,6 @@ export const useOptimisticImpl = (state, updateFn) => {
   return {
     state: optimistic,
     isPending,
-    dispatch: (action) => startTransition(() => addOptimistic(action)),
+    dispatch: (action) => () => startTransition(() => addOptimistic(action)),
   };
 };
