@@ -1,11 +1,24 @@
-module Next.Dynamic (dynamic) where
+module Next.Dynamic (dynamic, DynamicOptions) where
+
+import Prelude
 
 import Control.Promise (Promise)
 import Data.Function.Uncurried (Fn2, runFn2)
 import Effect (Effect)
-import React.Basic (ReactComponent)
+import Prim.Row as Row
+import React.Basic (JSX, ReactComponent)
 
-foreign import dynamicImpl :: forall props. Fn2 (Effect (Promise { default :: ReactComponent props })) { ssr :: Boolean } (ReactComponent props)
+type DynamicOptions =
+  ( ssr :: Boolean
+  , loading :: Unit -> JSX
+  )
 
-dynamic :: forall props. Effect (Promise { default :: ReactComponent props }) -> { ssr :: Boolean } -> ReactComponent props
+foreign import dynamicImpl :: forall props opts. Fn2 (Effect (Promise { default :: ReactComponent props })) { | opts } (ReactComponent props)
+
+dynamic
+  :: forall props opts opts_
+   . Row.Union opts opts_ DynamicOptions
+  => Effect (Promise { default :: ReactComponent props })
+  -> { | opts }
+  -> ReactComponent props
 dynamic = runFn2 dynamicImpl
