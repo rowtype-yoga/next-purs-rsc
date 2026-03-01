@@ -12,3 +12,12 @@ export const useFormStatusImpl = () => {
 };
 
 export const callServerActionImpl = (action, input) => action(input);
+
+export function useOptimisticImpl(tuple, state, updateFn) {
+  const [optimisticState, addOptimistic] = React.useOptimistic(state, updateFn);
+  if (!addOptimistic.hasOwnProperty("$$nextPursRsc$$cachedAddOptimistic")) {
+    addOptimistic.$$nextPursRsc$$cachedAddOptimistic = (action) => () =>
+      addOptimistic(action);
+  }
+  return tuple(optimisticState, addOptimistic.$$nextPursRsc$$cachedAddOptimistic);
+}
