@@ -730,49 +730,14 @@
       }
     },
     "extra_packages": {
-      "golden-test": {
-        "git": "https://github.com/rowtype-yoga/purescript-golden-test.git",
-        "ref": "v0.1.0",
-        "dependencies": [
-          "aff",
-          "effect",
-          "either",
-          "maybe",
-          "node-buffer",
-          "node-fs",
-          "node-path",
-          "node-process",
-          "prelude",
-          "spec",
-          "strings"
-        ]
-      },
+      "golden-test": "0.1.0",
       "ref-lifted": "0.0.2",
       "yoga-http-api": "0.2.1",
       "yoga-om": "1.5.2",
       "yoga-options": "0.1.0",
       "yoga-react": "1.0.1",
       "yoga-react-dom": "2.0.0",
-      "yoga-react-om": {
-        "git": "https://github.com/rowtype-yoga/purescript-yoga-react-om.git",
-        "ref": "v0.2.0",
-        "dependencies": [
-          "aff",
-          "effect",
-          "either",
-          "indexed-monad",
-          "maybe",
-          "newtype",
-          "prelude",
-          "react-basic",
-          "react-basic-hooks",
-          "refs",
-          "tuples",
-          "type-equality",
-          "unsafe-coerce",
-          "yoga-om"
-        ]
-      }
+      "yoga-react-om": "0.2.0"
     }
   },
   "packages": {
@@ -1227,9 +1192,9 @@
       ]
     },
     "golden-test": {
-      "type": "git",
-      "url": "https://github.com/rowtype-yoga/purescript-golden-test.git",
-      "rev": "d9fb55ca59a0470d0880d095c942667f9bbeaa10",
+      "type": "registry",
+      "version": "0.1.0",
+      "integrity": "sha256-O7eLWQ+QZ6Ksh2WSktbo9iCoO3mmZPDPDqC6Xeh2TnA=",
       "dependencies": [
         "aff",
         "effect",
@@ -2422,9 +2387,9 @@
       ]
     },
     "yoga-react-om": {
-      "type": "git",
-      "url": "https://github.com/rowtype-yoga/purescript-yoga-react-om.git",
-      "rev": "1297381e73b0cbebbcc3a347100a2d5a7395386f",
+      "type": "registry",
+      "version": "0.2.0",
+      "integrity": "sha256-XnmCcHF9mZxaqGYdnCiwQC4YLTzXEEXfRRU2owWdW14=",
       "dependencies": [
         "aff",
         "effect",
