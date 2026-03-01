@@ -1,9 +1,2 @@
-node_modules/
-.next/
+.spago/
 output/
-output-loader/
-examples/*/output/
-examples/*/.next/
-examples/*/app/
-examples/*/middleware.ts
-examples/*/src/Route.purs
