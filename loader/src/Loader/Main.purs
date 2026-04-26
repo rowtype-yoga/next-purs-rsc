@@ -678,8 +678,14 @@ hasConfigSig (CST.ModuleBody { decls }) = Array.any matchConfig decls
 writeDirectivesManifest :: String -> Map String ModuleInfo -> Effect Unit
 writeDirectivesManifest outputDir modules = do
   mkdirSync outputDir
-  let entries = Map.toUnfoldable modules # Array.mapMaybe \(name /\ info) ->
-        map (\d -> show name <> ": " <> show d) info.directive
+  let entries = Map.toUnfoldable modules # Array.mapMaybe \(name /\ info) -> do
+        let dirField = case info.directive of
+              Just d -> show "directive" <> ": " <> show d
+              Nothing -> show "directive" <> ": null"
+        let importsField = show "imports" <> ": [" <> String.joinWith ", " (show <$> info.imports) <> "]"
+        let hasContent = info.directive /= Nothing || not (Array.null info.imports)
+        if hasContent then Just (show name <> ": { " <> dirField <> ", " <> importsField <> " }")
+        else Nothing
   let json = "{\n  " <> String.joinWith ",\n  " entries <> "\n}\n"
   let manifestPath = joinPath outputDir "directives.json"
   changed <- writeIfChanged manifestPath json

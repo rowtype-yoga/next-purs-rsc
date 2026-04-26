@@ -18,8 +18,17 @@ export const loadDirectivesImpl = () => {
 
 export const lookupDirectiveImpl = (nothing) => (just) => (moduleName) => () => {
   if (!cache) return nothing;
-  const d = cache[moduleName];
+  const entry = cache[moduleName];
+  if (!entry) return nothing;
+  const d = typeof entry === "string" ? entry : entry.directive;
   return d ? just(d) : nothing;
+};
+
+export const lookupImportsImpl = (moduleName) => () => {
+  if (!cache) return [];
+  const entry = cache[moduleName];
+  if (!entry || typeof entry === "string") return [];
+  return entry.imports || [];
 };
 
 export const extractModuleImpl = (nothing) => (just) => (id) => {

@@ -11,7 +11,7 @@ packages =
   }
 
 pursVersion :: String
-pursVersion = "0.15.15"
+pursVersion = "0.15.16"
 
 spagoVersion :: String
 spagoVersion = "1.0.3"

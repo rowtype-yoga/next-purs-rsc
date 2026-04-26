@@ -7,7 +7,8 @@
   },
   "files": [
     "purescript-rsc-loader.js",
-    "output-loader/",
+    "output-loader/**/index.js",
+    "output-loader/**/foreign.js",
     "loader-entry.js",
     "bin/"
   ],
