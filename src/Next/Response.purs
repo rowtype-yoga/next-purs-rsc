@@ -14,11 +14,13 @@ module Next.Response
 
 import Data.Function.Uncurried (Fn2, Fn3, runFn2, runFn3)
 import Effect (Effect)
+import Foreign (Foreign)
 import Next (NextResponse)
 import Next.Headers (HeaderName, HeaderValue, CookieName, CookieValue)
 import Prim.Row as Row
 import Next.Route (class IsRoute, toPath)
 import Yoga.HTTP.API.Route.StatusCode (StatusCode(..), class StatusCodeMap, statusCodeFor) as StatusCode
+import Yoga.JSON (class WriteForeign, write)
 
 --------------------------------------------------------------------------------
 -- Options
@@ -35,16 +37,18 @@ type ResponseOptions =
 -- Constructors
 --------------------------------------------------------------------------------
 
-foreign import jsonImpl :: forall r opts. Fn2 { | r } { | opts } NextResponse
+foreign import jsonImpl :: forall opts. Fn2 Foreign { | opts } NextResponse
 
--- | Create a JSON response.
+-- | Create a JSON response. The payload is serialised via `yoga-json`'s
+-- | `WriteForeign`, so `Maybe a` collapses to value/absent rather than the
+-- | raw PureScript ADT runtime representation (`{value0: ...}`).
 -- |
 -- | ```purescript
 -- | json { message: "ok" } {}
 -- | json { error: "not found" } { status: 404 }
 -- | ```
-json :: forall r opts opts_. Row.Union opts opts_ ResponseOptions => { | r } -> { | opts } -> NextResponse
-json = runFn2 jsonImpl
+json :: forall a opts opts_. WriteForeign a => Row.Union opts opts_ ResponseOptions => a -> { | opts } -> NextResponse
+json a opts = runFn2 jsonImpl (write a) opts
 
 foreign import textImpl :: forall opts. Fn2 String { | opts } NextResponse
 

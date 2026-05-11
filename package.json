@@ -1,6 +1,6 @@
 {
   "name": "next-purs-rsc",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "bin": {
     "purs-rsc-routes": "./bin/generate-routes.js"

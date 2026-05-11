@@ -15,6 +15,7 @@ package:
     - untagged-union
     - unsafe-coerce
     - yoga-http-api
+    - yoga-json
     - yoga-om
     - yoga-react
     - yoga-react-dom

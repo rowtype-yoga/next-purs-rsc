@@ -53,6 +53,7 @@
             "unsafe-coerce",
             "untagged-union",
             "yoga-http-api",
+            "yoga-json",
             "yoga-om",
             "yoga-react",
             "yoga-react-dom",
