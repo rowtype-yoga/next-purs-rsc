@@ -6,7 +6,10 @@ package:
     - effect
     - foreign
     - http-methods
+    - arraybuffer-types
+    - js-fetch
     - maybe
+    - web-streams
     - nullable
     - react-basic
     - react-basic-hooks
