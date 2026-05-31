@@ -32,7 +32,7 @@ workspace:
     yoga-react: "1.0.1"
     yoga-react-dom:
       git: https://github.com/rowtype-yoga/purescript-yoga-react-dom.git
-      ref: v2.0.0
+      ref: v2.1.0
       dependencies:
         - datetime
         - effect

@@ -753,7 +753,7 @@
       "yoga-react": "1.0.1",
       "yoga-react-dom": {
         "git": "https://github.com/rowtype-yoga/purescript-yoga-react-dom.git",
-        "ref": "v2.0.0",
+        "ref": "v2.1.0",
         "dependencies": [
           "datetime",
           "effect",
@@ -2443,7 +2443,7 @@
     "yoga-react-dom": {
       "type": "git",
       "url": "https://github.com/rowtype-yoga/purescript-yoga-react-dom.git",
-      "rev": "84d81fc328bbd06a857a6817a51f54851f8320ff",
+      "rev": "cbe23d8ac4513560fd186025a9f9d70d83ab922d",
       "dependencies": [
         "datetime",
         "effect",
