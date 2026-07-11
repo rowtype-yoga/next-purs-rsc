@@ -47,8 +47,7 @@ workspace:
         - web-events
         - web-html
         - web-touchevents
-    yoga-http-api:
-      path: ../../code/purescript-yoga-http-api
+    yoga-http-api: "0.3.2"
     yoga-options: "0.1.0"
     ref-lifted:
       path: ../purescript-ref-lifted
