@@ -8,7 +8,7 @@ import Data.Newtype (class Newtype, un)
 import Next (Metadata, Page, type (:?), nextPage)
 import Next (metadata) as Next
 import Yoga.React.DOM (div, h1, p)
-import Yoga.React.Om (useOm)
+import Yoga.React.Om (useCtx)
 import Yoga.React.Om as Om
 
 newtype Name = Name String
@@ -18,7 +18,7 @@ derive instance Newtype Name _
 page :: Page ("dashboard" :? { name :: Name })
 page = nextPage { greeting: "Hello from Om!" } $ pure
   \{ searchParams: { name } } -> Om.do
-    msg <- useOm \c -> pure c.greeting
+    { greeting: msg } <- useCtx
     let who = name # maybe "stranger" (un Name)
     Om.pure $ div {}
       [ h1 {} "Dashboard"

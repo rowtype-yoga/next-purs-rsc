@@ -10,6 +10,7 @@ module Next.Request
   , requestGeo
   , NextUrl
   , nextUrlPathname
+  , nextUrlSearch
   , NextUrlSearchParams
   , nextUrlSearchParams
   , nextUrlSearchParamsGet
@@ -22,6 +23,7 @@ module Next.Request
   , requestJson
   , requestText
   , requestFormData
+  , requestBody
   , RequestCookies
   , requestCookiesGet
   , requestCookiesGetAll
@@ -40,6 +42,7 @@ import Data.Function.Uncurried (Fn2, runFn2)
 import Data.HTTP.Method (Method, CustomMethod, fromString, print) as Method
 import Data.Maybe (Maybe)
 import Data.Nullable (Nullable, toMaybe)
+import Data.ArrayBuffer.Types (Uint8Array)
 import Effect.Aff (Aff)
 import Effect.Uncurried (EffectFn1, runEffectFn1)
 import Foreign (Foreign)
@@ -47,6 +50,7 @@ import Next (NextRequest)
 import Next.Action (FormData)
 import Next.Headers (Headers, CookieName, Cookie)
 import Untagged.Union (UndefinedOr)
+import Web.Streams.ReadableStream (ReadableStream)
 
 foreign import data NextUrl :: Type
 foreign import data RequestCookies :: Type
@@ -96,6 +100,7 @@ requestGeo req = map toGeo (toMaybe (requestGeoImpl req))
 --------------------------------------------------------------------------------
 
 foreign import nextUrlPathname :: NextUrl -> String
+foreign import nextUrlSearch :: NextUrl -> String
 foreign import nextUrlSearchParams :: NextUrl -> NextUrlSearchParams
 foreign import nextUrlOrigin :: NextUrl -> String
 foreign import nextUrlHost :: NextUrl -> String
@@ -126,6 +131,8 @@ requestText req = runEffectFn1 requestTextImpl req # Promise.toAffE
 foreign import requestFormDataImpl :: EffectFn1 NextRequest (Promise FormData)
 requestFormData :: NextRequest -> Aff FormData
 requestFormData req = runEffectFn1 requestFormDataImpl req # Promise.toAffE
+
+foreign import requestBody :: NextRequest -> ReadableStream Uint8Array
 
 --------------------------------------------------------------------------------
 -- RequestCookies (read-only cookie jar from request)

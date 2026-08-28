@@ -7,6 +7,7 @@ module Next.Response
   , redirect
   , rewrite
   , next
+  , proxy
   , withHeader
   , withStatus
   , withCookie
@@ -15,6 +16,7 @@ module Next.Response
 import Data.Function.Uncurried (Fn2, Fn3, runFn2, runFn3)
 import Effect (Effect)
 import Foreign (Foreign)
+import JS.Fetch.Response (Response)
 import Next (NextResponse)
 import Next.Headers (HeaderName, HeaderValue, CookieName, CookieValue)
 import Prim.Row as Row
@@ -83,6 +85,14 @@ foreign import nextImpl :: Effect NextResponse
 -- | Continue to the next middleware.
 next :: Effect NextResponse
 next = nextImpl
+
+foreign import proxyImpl :: Response -> NextResponse
+
+-- | Forward an upstream `Response` (from `JS.Fetch`) back to the client,
+-- | streaming the body and preserving status + headers. Useful for proxying
+-- | binary responses (images, audio) where reading into memory is wasteful.
+proxy :: Response -> NextResponse
+proxy = proxyImpl
 
 --------------------------------------------------------------------------------
 -- Modifiers

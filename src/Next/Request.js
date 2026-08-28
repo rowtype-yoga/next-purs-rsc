@@ -11,6 +11,7 @@ export const requestGeoImpl = r => r.geo ?? null;
 
 // NextUrl accessors
 export const nextUrlPathname = u => u.pathname;
+export const nextUrlSearch = u => u.search;
 export const nextUrlSearchParams = u => u.searchParams;
 export const nextUrlOrigin = u => u.origin;
 export const nextUrlHost = u => u.host;
@@ -24,6 +25,7 @@ export const nextUrlSearchParamsHasImpl = (sp, key) => sp.has(key);
 export const requestJsonImpl = (r) => r.json();
 export const requestTextImpl = (r) => r.text();
 export const requestFormDataImpl = (r) => r.formData();
+export const requestBody = (r) => r.body;
 
 // userAgent
 export const userAgent = (r) => _userAgent({ headers: r.headers });

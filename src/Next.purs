@@ -12,6 +12,8 @@ module Next
   , NotFound
   , class ParsePathFields
   , buildParsedPath
+  , class QueryPresent
+  , queryPresent
   , class FirstSegment
   , RawRecord
   , nextPage
@@ -157,7 +159,19 @@ foreign import data RawRecord :: Type
 
 foreign import mapRecordImpl :: forall rin rout. (forall x. Nullable x -> Maybe x) -> { | rin } -> { | rout }
 foreign import getFieldImpl :: String -> RawRecord -> String
-foreign import unwrapPagePropsImpl :: forall r. { | r } -> Promise { params :: RawRecord, searchParams :: { | r } }
+foreign import unwrapPagePropsImpl :: forall r. Boolean -> { | r } -> Promise { params :: RawRecord, searchParams :: { | r } }
+
+-- | Does the page declare any query params? Used to decide whether to await
+-- | `searchParams` — awaiting it forces dynamic rendering (no static export), so
+-- | query-less pages skip it and stay statically prerenderable.
+class QueryPresent (rl :: RL.RowList Type) where
+  queryPresent :: Proxy rl -> Boolean
+
+instance QueryPresent RL.Nil where
+  queryPresent _ = false
+
+instance QueryPresent (RL.Cons k v t) where
+  queryPresent _ = true
 foreign import unwrapHandlerParamsImpl :: forall r. { | r } -> Promise RawRecord
 foreign import linkComponentImpl :: forall props. ReactComponent { | props }
 foreign import imageComponentImpl :: forall props. ReactComponent { | props }
@@ -216,10 +230,12 @@ else instance IsSymbol sym => FirstSegment sym sym
 --------------------------------------------------------------------------------
 
 nextPage
-  :: forall path name pathParams queryParams pathRL ctx hooks
+  :: forall path name pathParams queryParams pathRL queryRL ctx hooks
    . SegmentPathParams path pathParams
   => SegmentQueryParams path queryParams
   => RL.RowToList pathParams pathRL
+  => RL.RowToList queryParams queryRL
+  => QueryPresent queryRL
   => ParsePathFields pathRL pathParams
   => FirstSegment path name
   => IsSymbol name
@@ -227,7 +243,7 @@ nextPage
   -> Om.Om { | ctx } () ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> OmRender ctx Unit hooks JSX)
   -> Page path
 nextPage ctx om = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
-  unwrapped <- Promise.toAff (unwrapPagePropsImpl rawProps)
+  unwrapped <- Promise.toAff (unwrapPagePropsImpl (queryPresent (Proxy :: Proxy queryRL)) rawProps)
   Om.runOm ctx { exception: \_ -> pure (mempty :: JSX) } do
     render <- om
     component <- omComponent (reflectSymbol (Proxy :: Proxy name)) \_ -> do
@@ -237,29 +253,33 @@ nextPage ctx om = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
     createElement_ (unsafeCoerce component) {} # pure
 
 metadata
-  :: forall path pathParams queryParams pathRL r
+  :: forall path pathParams queryParams pathRL queryRL r
    . SegmentPathParams path pathParams
   => SegmentQueryParams path queryParams
   => RL.RowToList pathParams pathRL
+  => RL.RowToList queryParams queryRL
+  => QueryPresent queryRL
   => ParsePathFields pathRL pathParams
   => ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> { | r })
   -> Metadata path
 metadata f = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
-  unwrapped <- Promise.toAff (unwrapPagePropsImpl rawProps)
+  unwrapped <- Promise.toAff (unwrapPagePropsImpl (queryPresent (Proxy :: Proxy queryRL)) rawProps)
   let params = parsePathFields unwrapped.params
   let searchParams = mapRecordImpl toMaybe unwrapped.searchParams
   pure $ f { params, searchParams }
 
 viewport
-  :: forall path pathParams queryParams pathRL r
+  :: forall path pathParams queryParams pathRL queryRL r
    . SegmentPathParams path pathParams
   => SegmentQueryParams path queryParams
   => RL.RowToList pathParams pathRL
+  => RL.RowToList queryParams queryRL
+  => QueryPresent queryRL
   => ParsePathFields pathRL pathParams
   => ({ params :: { | pathParams }, searchParams :: { | queryParams } } -> { | r })
   -> Viewport path
 viewport f = unsafeCoerce $ mkEffectFn1 \rawProps -> Promise.fromAff do
-  unwrapped <- Promise.toAff (unwrapPagePropsImpl rawProps)
+  unwrapped <- Promise.toAff (unwrapPagePropsImpl (queryPresent (Proxy :: Proxy queryRL)) rawProps)
   let params = parsePathFields unwrapped.params
   let searchParams = mapRecordImpl toMaybe unwrapped.searchParams
   pure $ f { params, searchParams }

@@ -8,9 +8,13 @@ export const mapRecordImpl = f => r => new Proxy({}, {
 
 export const getFieldImpl = key => obj => obj[key];
 
-export const unwrapPagePropsImpl = async (props) => ({
+// Await `params` always (resolved at build for static routes), but only touch
+// `searchParams` when the page declares query params — awaiting searchParams opts
+// the route into dynamic rendering, which breaks `output: export`. Query-less
+// pages then stay statically prerenderable.
+export const unwrapPagePropsImpl = (hasQuery) => async (props) => ({
   params: {...await (props.params ?? {})},
-  searchParams: {...await (props.searchParams ?? {})}
+  searchParams: hasQuery ? {...await (props.searchParams ?? {})} : {}
 });
 
 export const unwrapHandlerParamsImpl = async (context) => ({...await (context.params ?? {})});

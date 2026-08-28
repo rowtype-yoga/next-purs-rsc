@@ -10,12 +10,13 @@ import Next (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, type (/), NextRespons
 import Next (get, post, put, delete, patch, head, options) as Next
 import Next.Response (json)
 import Next.Cache (RevalidationType(..), revalidatePath, revalidateTag)
-import Next.Headers (HeaderName(..), HeaderValue(..), CookieName(..), cookies, cookiesGet, cookiesGetAll, cookiesHas, headers, headersGet, headersHas)
+import Next.Headers (HeaderName(..), HeaderValue(..), CookieName(..), CookieValue(..), cookies, cookiesGet, cookiesGetAll, cookiesHas, headers, headersGet, headersHas)
 import Next.Navigation.Server (redirect, permanentRedirect, triggerNotFound)
 import Next.Request (requestMethod, requestUrl, print)
 import Route (Route(..))
+import Yoga.JSON (class WriteForeign)
 
-jsonOk :: forall r. { | r } -> Aff NextResponse
+jsonOk :: forall r. WriteForeign (Record r) => { | r } -> Aff NextResponse
 jsonOk body = pure $ json body {}
 
 get :: GET ("api" / "hello")
@@ -35,8 +36,8 @@ get = Next.get \req _ -> do
     , url
     , userAgent: maybe "" (un HeaderValue) userAgent
     , hasAccept
-    , sessionCookie
-    , cookieCount: allCookies # map _.name
+    , sessionCookie: map (un CookieValue <<< _.value) sessionCookie
+    , cookieCount: map (un CookieName <<< _.name) allCookies
     , hasSession
     }
 

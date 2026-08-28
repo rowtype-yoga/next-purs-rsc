@@ -6,7 +6,10 @@ package:
     - effect
     - foreign
     - http-methods
+    - arraybuffer-types
+    - js-fetch
     - maybe
+    - web-streams
     - nullable
     - react-basic
     - react-basic-hooks
@@ -24,12 +27,12 @@ package:
     strict: true
 workspace:
   packageSet:
-    registry: 73.1.0
+    registry: 77.3.1
   extraPackages:
     yoga-react: "1.0.1"
     yoga-react-dom:
       git: https://github.com/rowtype-yoga/purescript-yoga-react-dom.git
-      ref: v2.0.0
+      ref: v2.1.0
       dependencies:
         - datetime
         - effect
